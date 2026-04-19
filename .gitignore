@@ -2,7 +2,21 @@
 __pycache__/
 *.py[codz]
 *$py.class
+# Python
+__pycache__/
+*.py[cod]
+venv/
+*.env
+*.sqlite3
 
+# Node
+node_modules/
+dist/
+.env.local
+
+# IDE
+.vscode/
+.idea/
 # C extensions
 *.so
 
