@@ -10,8 +10,11 @@ export default function Publicaciones() {
   const [mostrarForm, setMostrarForm]     = useState(false)
   const [form, setForm] = useState({ titular: '', descripcion: '', imagen: null })
   const [enviando, setEnviando]           = useState(false)
+  const [editando, setEditando]     = useState(null) // publicación que se edita
+  const [formEdit, setFormEdit]     = useState({ titular: '', descripcion: '' })
+  const [guardando, setGuardando]   = useState(false)
 
-  // ── Cargar publicaciones ──────────────────────────────────────────
+  //Cargar publicaciones
   useEffect(() => {
     let activo = true
     const cargar = async () => {
@@ -28,7 +31,12 @@ export default function Publicaciones() {
     return () => { activo = false }
   }, [])
 
-  // ── Crear publicación ─────────────────────────────────────────────
+  const recargar = async () => {
+    const res = await api.get('/publicaciones/')
+    setPublicaciones(res.data)
+  }
+
+  //Crear publicación
   const handleSubmit = async e => {
     e.preventDefault()
     setEnviando(true)
@@ -37,15 +45,12 @@ export default function Publicaciones() {
       data.append('titular',     form.titular)
       data.append('descripcion', form.descripcion)
       if (form.imagen) data.append('imagen', form.imagen)
-
       await api.post('/publicaciones/', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
       setForm({ titular: '', descripcion: '', imagen: null })
       setMostrarForm(false)
-      // Recargar lista
-      const res = await api.get('/publicaciones/')
-      setPublicaciones(res.data)
+      await recargar()
     } catch {
       setError('Error al crear la publicación.')
     } finally {
@@ -53,7 +58,28 @@ export default function Publicaciones() {
     }
   }
 
-  // ── Eliminar publicación ──────────────────────────────────────────
+  //Abrir editor
+  const abrirEdicion = pub => {
+    setEditando(pub)
+    setFormEdit({ titular: pub.titular, descripcion: pub.descripcion })
+  }
+
+  //Guardar edición
+  const handleGuardarEdicion = async e => {
+    e.preventDefault()
+    setGuardando(true)
+    try {
+      await api.patch(`/publicaciones/${editando.id}/`, formEdit)
+      setEditando(null)
+      await recargar()
+    } catch {
+      setError('Error al editar la publicación.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  //Eliminar publicación
   const handleEliminar = async id => {
     if (!window.confirm('¿Eliminar esta publicación?')) return
     try {
@@ -64,7 +90,7 @@ export default function Publicaciones() {
     }
   }
 
-  // ── Render ────────────────────────────────────────────────────────
+  
   if (cargando) return <p style={styles.info}>Cargando publicaciones...</p>
 
   return (
@@ -85,33 +111,29 @@ export default function Publicaciones() {
 
       {error && <p style={styles.error}>{error}</p>}
 
-      {/* Formulario nueva publicación (solo admin) */}
+      {/* Formulario nueva publicación */}
       {mostrarForm && (
         <form onSubmit={handleSubmit} style={styles.form}>
           <h3 style={styles.formTitulo}>Nueva publicación</h3>
 
           <label style={styles.label}>Titular</label>
           <input
-            style={styles.input}
-            value={form.titular}
+            style={styles.input} value={form.titular} required
             onChange={e => setForm({ ...form, titular: e.target.value })}
-            required
             placeholder="Título de la publicación"
           />
 
           <label style={styles.label}>Descripción</label>
           <textarea
             style={{ ...styles.input, height: '100px', resize: 'vertical' }}
-            value={form.descripcion}
+            value={form.descripcion} required
             onChange={e => setForm({ ...form, descripcion: e.target.value })}
-            required
             placeholder="Contenido de la publicación..."
           />
 
           <label style={styles.label}>Imagen (opcional)</label>
           <input
-            type="file" accept="image/*"
-            style={styles.input}
+            type="file" accept="image/*" style={styles.input}
             onChange={e => setForm({ ...form, imagen: e.target.files[0] })}
           />
 
@@ -121,22 +143,19 @@ export default function Publicaciones() {
         </form>
       )}
 
-      {/* Lista de publicaciones */}
+      {/* Lista */}
       {publicaciones.length === 0 ? (
         <p style={styles.info}>No hay publicaciones todavía.</p>
       ) : (
         <div style={styles.lista}>
           {publicaciones.map(pub => (
             <div key={pub.id} style={styles.card}>
-
               {pub.imagen && (
                 <img
                   src={`http://localhost:8000${pub.imagen}`}
-                  alt={pub.titular}
-                  style={styles.imagen}
+                  alt={pub.titular} style={styles.imagen}
                 />
               )}
-
               <div style={styles.cardBody}>
                 <div style={styles.cardHeader}>
                   <h3 style={styles.cardTitulo}>{pub.titular}</h3>
@@ -146,26 +165,63 @@ export default function Publicaciones() {
                     })}
                   </span>
                 </div>
-
                 <p style={styles.descripcion}>{pub.descripcion}</p>
-
                 <div style={styles.cardFooter}>
                   <span style={styles.autor}>✍️ {pub.hermano_nombre}</span>
                   {usuario?.is_staff && (
-                    <button
-                      style={styles.btnEliminar}
-                      onClick={() => handleEliminar(pub.id)}
-                    >
-                      Eliminar
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button style={styles.btnEditar} onClick={() => abrirEdicion(pub)}>
+                        Editar
+                      </button>
+                      <button style={styles.btnEliminar} onClick={() => handleEliminar(pub.id)}>
+                        Eliminar
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
-
             </div>
           ))}
         </div>
       )}
+
+      {/* Modal edición */}
+      {editando && (
+        <div style={styles.overlay}>
+          <div style={styles.modal}>
+            <h3 style={styles.formTitulo}>Editar publicación</h3>
+            <form onSubmit={handleGuardarEdicion} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
+              <label style={styles.label}>Titular</label>
+              <input
+                style={styles.input} value={formEdit.titular} required
+                onChange={e => setFormEdit({ ...formEdit, titular: e.target.value })}
+              />
+
+              <label style={styles.label}>Descripción</label>
+              <textarea
+                style={{ ...styles.input, height: '100px', resize: 'vertical' }}
+                value={formEdit.descripcion} required
+                onChange={e => setFormEdit({ ...formEdit, descripcion: e.target.value })}
+              />
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                <button type="submit" disabled={guardando} style={styles.btnPrimary}>
+                  {guardando ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+                <button
+                  type="button" style={styles.btnCancelar}
+                  onClick={() => setEditando(null)}
+                >
+                  Cancelar
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
@@ -177,35 +233,39 @@ const styles = {
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
   form: {
-    background: 'white', borderRadius: '10px',
-    padding: '24px', marginBottom: '28px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+    background: 'white', borderRadius: '10px', padding: '24px',
+    marginBottom: '28px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
   formTitulo: { fontSize: '16px', fontWeight: '700', color: '#1a1a2e', marginBottom: '4px' },
   label:  { fontSize: '13px', fontWeight: '600', color: '#444' },
   input: {
     padding: '10px 14px', borderRadius: '8px',
-    border: '1px solid #ddd', fontSize: '14px', outline: 'none',
-    fontFamily: 'inherit',
+    border: '1px solid #ddd', fontSize: '14px',
+    outline: 'none', fontFamily: 'inherit',
   },
   btnPrimary: {
-    padding: '10px 20px', backgroundColor: '#1a1a2e',
-    color: 'white', border: 'none', borderRadius: '8px',
-    fontSize: '14px', cursor: 'pointer', fontWeight: '600',
-    alignSelf: 'flex-start',
+    padding: '10px 20px', backgroundColor: '#1a1a2e', color: 'white',
+    border: 'none', borderRadius: '8px', fontSize: '14px',
+    cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
+  },
+  btnEditar: {
+    padding: '6px 14px', backgroundColor: 'transparent',
+    color: '#1a1a2e', border: '1px solid #1a1a2e',
+    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
   },
   btnEliminar: {
     padding: '6px 14px', backgroundColor: 'transparent',
     color: '#e53e3e', border: '1px solid #e53e3e',
     borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
   },
-  lista:       { display: 'flex', flexDirection: 'column', gap: '16px' },
-  card: {
-    background: 'white', borderRadius: '10px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.07)',
-    overflow: 'hidden',
+  btnCancelar: {
+    padding: '10px 20px', backgroundColor: '#eee', color: '#333',
+    border: 'none', borderRadius: '8px', fontSize: '14px',
+    cursor: 'pointer', fontWeight: '600',
   },
+  lista:       { display: 'flex', flexDirection: 'column', gap: '16px' },
+  card:        { background: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.07)', overflow: 'hidden' },
   imagen:      { width: '100%', maxHeight: '260px', objectFit: 'cover' },
   cardBody:    { padding: '20px' },
   cardHeader:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' },
@@ -214,4 +274,16 @@ const styles = {
   descripcion: { fontSize: '14px', color: '#444', lineHeight: '1.6', marginBottom: '16px' },
   cardFooter:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   autor:       { fontSize: '13px', color: '#666' },
+  // Modal
+  overlay: {
+    position: 'fixed', inset: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    zIndex: 1000,
+  },
+  modal: {
+    background: 'white', borderRadius: '12px',
+    padding: '32px', width: '100%', maxWidth: '480px',
+    boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
+  },
 }
