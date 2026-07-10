@@ -21,7 +21,14 @@ export default function Eventos() {
     fecha: '', lugar: '', descripcion: '',
   })
 
-  // ── Cargar eventos ────────────────────────────────────────────────
+  const [editando, setEditando]   = useState(null)
+  const [formEdit, setFormEdit]   = useState({
+    nombre_evento: '', tipo_evento: 'CULTO',
+    fecha: '', lugar: '', descripcion: '',
+  })
+  const [guardando, setGuardando] = useState(false)
+
+  //Cargar eventos
   useEffect(() => {
     let activo = true
     const cargar = async () => {
@@ -38,7 +45,12 @@ export default function Eventos() {
     return () => { activo = false }
   }, [])
 
-  // ── Crear evento ──────────────────────────────────────────────────
+  const recargar = async () => {
+    const res = await api.get('/eventos/')
+    setEventos(res.data)
+  }
+
+  //Crear evento 
   const handleSubmit = async e => {
     e.preventDefault()
     setEnviando(true)
@@ -46,8 +58,7 @@ export default function Eventos() {
       await api.post('/eventos/', form)
       setForm({ nombre_evento: '', tipo_evento: 'CULTO', fecha: '', lugar: '', descripcion: '' })
       setMostrarForm(false)
-      const res = await api.get('/eventos/')
-      setEventos(res.data)
+      await recargar()
     } catch {
       setError('Error al crear el evento.')
     } finally {
@@ -55,7 +66,36 @@ export default function Eventos() {
     }
   }
 
-  // ── Eliminar evento ───────────────────────────────────────────────
+  // Abrir editor 
+  const abrirEdicion = ev => {
+    setEditando(ev)
+    // Convertir fecha ISO a formato datetime-local (YYYY-MM-DDTHH:MM)
+    const fechaLocal = new Date(ev.fecha).toISOString().slice(0, 16)
+    setFormEdit({
+      nombre_evento: ev.nombre_evento,
+      tipo_evento:   ev.tipo_evento,
+      fecha:         fechaLocal,
+      lugar:         ev.lugar,
+      descripcion:   ev.descripcion,
+    })
+  }
+
+  //Guardar edición
+  const handleGuardarEdicion = async e => {
+    e.preventDefault()
+    setGuardando(true)
+    try {
+      await api.patch(`/eventos/${editando.id}/`, formEdit)
+      setEditando(null)
+      await recargar()
+    } catch {
+      setError('Error al editar el evento.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  //Eliminar evento 
   const handleEliminar = async id => {
     if (!window.confirm('¿Eliminar este evento?')) return
     try {
@@ -66,12 +106,11 @@ export default function Eventos() {
     }
   }
 
-  // ── Inscribirse ───────────────────────────────────────────────────
+  // Inscribirse a evento
   const handleInscribirse = async id => {
     try {
       await api.post(`/eventos/${id}/inscribirse/`)
-      const res = await api.get('/eventos/')
-      setEventos(res.data)
+      await recargar()
       alert('✅ Inscripción confirmada.')
     } catch (err) {
       const msg = err.response?.data?.error || 'Error al inscribirse.'
@@ -79,7 +118,7 @@ export default function Eventos() {
     }
   }
 
-  // ── Render ────────────────────────────────────────────────────────
+  //Render 
   if (cargando) return <p style={styles.info}>Cargando eventos...</p>
 
   return (
@@ -97,23 +136,21 @@ export default function Eventos() {
 
       {error && <p style={styles.error}>{error}</p>}
 
-      {/* Formulario nuevo evento (solo admin) */}
+      {/* Formulario nuevo evento */}
       {mostrarForm && (
         <form onSubmit={handleSubmit} style={styles.form}>
           <h3 style={styles.formTitulo}>Nuevo evento</h3>
 
           <label style={styles.label}>Nombre del evento</label>
           <input
-            style={styles.input}
-            value={form.nombre_evento}
+            style={styles.input} value={form.nombre_evento} required
             onChange={e => setForm({ ...form, nombre_evento: e.target.value })}
-            required placeholder="Ej: Ensayo general de costaleros"
+            placeholder="Ej: Ensayo general de costaleros"
           />
 
           <label style={styles.label}>Tipo</label>
           <select
-            style={styles.input}
-            value={form.tipo_evento}
+            style={styles.input} value={form.tipo_evento}
             onChange={e => setForm({ ...form, tipo_evento: e.target.value })}
           >
             <option value="CULTO">Culto</option>
@@ -125,17 +162,15 @@ export default function Eventos() {
           <label style={styles.label}>Fecha y hora</label>
           <input
             type="datetime-local" style={styles.input}
-            value={form.fecha}
+            value={form.fecha} required
             onChange={e => setForm({ ...form, fecha: e.target.value })}
-            required
           />
 
           <label style={styles.label}>Lugar</label>
           <input
-            style={styles.input}
-            value={form.lugar}
+            style={styles.input} value={form.lugar} required
             onChange={e => setForm({ ...form, lugar: e.target.value })}
-            required placeholder="Ej: Casa de Hermandad"
+            placeholder="Ej: Casa de Hermandad"
           />
 
           <label style={styles.label}>Descripción (opcional)</label>
@@ -152,25 +187,27 @@ export default function Eventos() {
         </form>
       )}
 
-      {/* Lista de eventos */}
+       {/* Lista de eventos */}
       {eventos.length === 0 ? (
         <p style={styles.info}>No hay eventos programados.</p>
       ) : (
         <div style={styles.lista}>
           {eventos.map(ev => (
             <div key={ev.id} style={styles.card}>
-
-              {/* Tipo badge */}
               <div style={styles.cardTop}>
                 <span style={styles.badge}>{TIPOS[ev.tipo_evento] || ev.tipo_evento}</span>
                 {usuario?.is_staff && (
-                  <button style={styles.btnEliminar} onClick={() => handleEliminar(ev.id)}>
-                    Eliminar
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button style={styles.btnEditar} onClick={() => abrirEdicion(ev)}>
+                      Editar
+                    </button>
+                    <button style={styles.btnEliminar} onClick={() => handleEliminar(ev.id)}>
+                      Eliminar
+                    </button>
+                  </div>
                 )}
               </div>
 
-              {/* Info */}
               <h3 style={styles.cardTitulo}>{ev.nombre_evento}</h3>
 
               <div style={styles.meta}>
@@ -183,29 +220,83 @@ export default function Eventos() {
                 <span>📍 {ev.lugar}</span>
               </div>
 
-              {ev.descripcion && (
-                <p style={styles.descripcion}>{ev.descripcion}</p>
-              )}
+              {ev.descripcion && <p style={styles.descripcion}>{ev.descripcion}</p>}
 
-              {/* Footer */}
               <div style={styles.cardFooter}>
-                <span style={styles.inscritos}>
-                  👥 {ev.total_inscritos} inscritos
-                </span>
+                <span style={styles.inscritos}>👥 {ev.total_inscritos} inscritos</span>
                 {!usuario?.is_staff && (
-                  <button
-                    style={styles.btnInscribirse}
-                    onClick={() => handleInscribirse(ev.id)}
-                  >
+                  <button style={styles.btnInscribirse} onClick={() => handleInscribirse(ev.id)}>
                     Inscribirme
                   </button>
                 )}
               </div>
-
             </div>
           ))}
         </div>
       )}
+
+      {/* Modal edición */}
+      {editando && (
+        <div style={styles.overlay}>
+          <div style={styles.modal}>
+            <h3 style={styles.formTitulo}>Editar evento</h3>
+            <form
+              onSubmit={handleGuardarEdicion}
+              style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+            >
+              <label style={styles.label}>Nombre del evento</label>
+              <input
+                style={styles.input} value={formEdit.nombre_evento} required
+                onChange={e => setFormEdit({ ...formEdit, nombre_evento: e.target.value })}
+              />
+
+              <label style={styles.label}>Tipo</label>
+              <select
+                style={styles.input} value={formEdit.tipo_evento}
+                onChange={e => setFormEdit({ ...formEdit, tipo_evento: e.target.value })}
+              >
+                <option value="CULTO">Culto</option>
+                <option value="ENSAYO">Ensayo</option>
+                <option value="REUNION">Reunión</option>
+                <option value="PRIOSTIA">Priostía</option>
+              </select>
+
+              <label style={styles.label}>Fecha y hora</label>
+              <input
+                type="datetime-local" style={styles.input}
+                value={formEdit.fecha} required
+                onChange={e => setFormEdit({ ...formEdit, fecha: e.target.value })}
+              />
+
+              <label style={styles.label}>Lugar</label>
+              <input
+                style={styles.input} value={formEdit.lugar} required
+                onChange={e => setFormEdit({ ...formEdit, lugar: e.target.value })}
+              />
+
+              <label style={styles.label}>Descripción (opcional)</label>
+              <textarea
+                style={{ ...styles.input, height: '80px', resize: 'vertical' }}
+                value={formEdit.descripcion}
+                onChange={e => setFormEdit({ ...formEdit, descripcion: e.target.value })}
+              />
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                <button type="submit" disabled={guardando} style={styles.btnPrimary}>
+                  {guardando ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+                <button
+                  type="button" style={styles.btnCancelar}
+                  onClick={() => setEditando(null)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
@@ -216,26 +307,26 @@ const styles = {
   titulo:  { fontSize: '22px', fontWeight: '700', color: '#1a1a2e' },
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
-
   form: {
-    background: 'white', borderRadius: '10px',
-    padding: '24px', marginBottom: '28px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+    background: 'white', borderRadius: '10px', padding: '24px',
+    marginBottom: '28px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
   formTitulo: { fontSize: '16px', fontWeight: '700', color: '#1a1a2e', marginBottom: '4px' },
   label:  { fontSize: '13px', fontWeight: '600', color: '#444' },
   input: {
-    padding: '10px 14px', borderRadius: '8px',
-    border: '1px solid #ddd', fontSize: '14px',
-    outline: 'none', fontFamily: 'inherit',
+    padding: '10px 14px', borderRadius: '8px', border: '1px solid #ddd',
+    fontSize: '14px', outline: 'none', fontFamily: 'inherit',
   },
-
   btnPrimary: {
-    padding: '10px 20px', backgroundColor: '#1a1a2e',
-    color: 'white', border: 'none', borderRadius: '8px',
-    fontSize: '14px', cursor: 'pointer', fontWeight: '600',
-    alignSelf: 'flex-start',
+    padding: '10px 20px', backgroundColor: '#1a1a2e', color: 'white',
+    border: 'none', borderRadius: '8px', fontSize: '14px',
+    cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
+  },
+  btnEditar: {
+    padding: '6px 14px', backgroundColor: 'transparent',
+    color: '#1a1a2e', border: '1px solid #1a1a2e',
+    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
   },
   btnEliminar: {
     padding: '6px 14px', backgroundColor: 'transparent',
@@ -243,31 +334,36 @@ const styles = {
     borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
   },
   btnInscribirse: {
-    padding: '8px 18px', backgroundColor: '#1a1a2e',
-    color: 'white', border: 'none', borderRadius: '8px',
-    fontSize: '13px', cursor: 'pointer', fontWeight: '600',
+    padding: '8px 18px', backgroundColor: '#1a1a2e', color: 'white',
+    border: 'none', borderRadius: '8px', fontSize: '13px',
+    cursor: 'pointer', fontWeight: '600',
   },
-
+  btnCancelar: {
+    padding: '10px 20px', backgroundColor: '#eee', color: '#333',
+    border: 'none', borderRadius: '8px', fontSize: '14px',
+    cursor: 'pointer', fontWeight: '600',
+  },
   lista: { display: 'flex', flexDirection: 'column', gap: '16px' },
   card: {
     background: 'white', borderRadius: '10px',
     padding: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.07)',
   },
-  cardTop: {
-    display: 'flex', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: '10px',
-  },
+  cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' },
   badge: {
-    display: 'inline-block', padding: '4px 12px',
-    backgroundColor: '#f0f0f0', borderRadius: '20px',
-    fontSize: '12px', fontWeight: '600', color: '#444',
+    display: 'inline-block', padding: '4px 12px', backgroundColor: '#f0f0f0',
+    borderRadius: '20px', fontSize: '12px', fontWeight: '600', color: '#444',
   },
   cardTitulo:  { fontSize: '17px', fontWeight: '700', color: '#1a1a2e', marginBottom: '10px' },
-  meta: {
-    display: 'flex', flexWrap: 'wrap', gap: '12px',
-    fontSize: '13px', color: '#555', marginBottom: '10px',
-  },
+  meta:        { display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px', color: '#555', marginBottom: '10px' },
   descripcion: { fontSize: '14px', color: '#444', lineHeight: '1.6', marginBottom: '12px' },
   cardFooter:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' },
   inscritos:   { fontSize: '13px', color: '#666' },
+  overlay: {
+    position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+  },
+  modal: {
+    background: 'white', borderRadius: '12px', padding: '32px',
+    width: '100%', maxWidth: '480px', boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
+  },
 }
