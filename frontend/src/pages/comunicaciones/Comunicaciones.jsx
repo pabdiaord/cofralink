@@ -1,3 +1,463 @@
+import { useState, useEffect, useRef } from 'react'
+import { useAuth } from '../../context/AuthContext'
+import api from '../../api/axios'
+
 export default function Comunicaciones() {
-  return <div style={{ padding: '24px' }}><h2>Comunicaciones</h2></div>
+  const { usuario } = useAuth()
+  const [tab, setTab] = useState('privado') // 'privado' | 'general'
+
+  return (
+    <div style={styles.page}>
+      {/* Tabs */}
+      <div style={styles.tabs}>
+        <button
+          style={{ ...styles.tab, ...(tab === 'privado' ? styles.tabActivo : {}) }}
+          onClick={() => setTab('privado')}
+        >
+          💬 {usuario?.is_staff ? 'Mensajes privados' : 'Chat con la Junta'}
+        </button>
+        <button
+          style={{ ...styles.tab, ...(tab === 'general' ? styles.tabActivo : {}) }}
+          onClick={() => setTab('general')}
+        >
+          🌐 Chat general
+        </button>
+      </div>
+
+      {tab === 'privado'
+        ? usuario?.is_staff
+          ? <ChatAdminPrivado />
+          : <ChatHermanoPrivado />
+        : <ChatGeneral />
+      }
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════
+// CHAT PRIVADO — Vista del HERMANO
+// ══════════════════════════════════════════════════════════
+function ChatHermanoPrivado() {
+  const { usuario } = useAuth()
+  const [convId, setConvId]       = useState(null)
+  const [mensajes, setMensajes]   = useState([])
+  const [texto, setTexto]         = useState('')
+  const [enviando, setEnviando]   = useState(false)
+  const bottomRef                 = useRef(null)
+
+  // Obtener o crear conversación
+  useEffect(() => {
+    let activo = true
+    const init = async () => {
+      const res = await api.get('/mi-conversacion/')
+      if (activo) setConvId(res.data.id)
+    }
+    init()
+    return () => { activo = false }
+  }, [])
+
+  // Cargar mensajes + polling cada 4s
+  useEffect(() => {
+    if (!convId) return
+    const cargar = async () => {
+      const res = await api.get(`/conversaciones/${convId}/mensajes/`)
+      setMensajes(res.data)
+    }
+    cargar()
+    const interval = setInterval(cargar, 4000)
+    return () => clearInterval(interval)
+  }, [convId])
+
+  // Auto-scroll
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [mensajes])
+
+  const handleEnviar = async e => {
+    e.preventDefault()
+    if (!texto.trim() || !convId) return
+    setEnviando(true)
+    try {
+      await api.post('/mi-conversacion/', { contenido: texto.trim() })
+      setTexto('')
+      const res = await api.get(`/conversaciones/${convId}/mensajes/`)
+      setMensajes(res.data)
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return (
+    <div style={styles.chatWrap}>
+      <div style={styles.chatHeader}>
+        <span style={styles.chatHeaderTitle}>💬 Junta de Gobierno</span>
+        <span style={styles.chatHeaderSub}>Escríbenos cualquier consulta o solicitud</span>
+      </div>
+
+      <div style={styles.chatBody}>
+        {mensajes.length === 0 && (
+          <p style={styles.chatVacio}>Aún no hay mensajes. ¡Escríbenos!</p>
+        )}
+        {mensajes.map(msg => (
+          <BurbujaMensaje key={msg.id} msg={msg} />
+        ))}
+        <div ref={bottomRef} />
+      </div>
+
+      <form onSubmit={handleEnviar} style={styles.chatInput}>
+        <input
+          style={styles.inputChat}
+          value={texto}
+          onChange={e => setTexto(e.target.value)}
+          placeholder="Escribe un mensaje..."
+          disabled={enviando}
+        />
+        <button type="submit" disabled={enviando || !texto.trim()} style={styles.btnEnviar}>
+          ➤
+        </button>
+      </form>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════
+// CHAT PRIVADO — Vista del ADMIN
+// ══════════════════════════════════════════════════════════
+function ChatAdminPrivado() {
+  const [conversaciones, setConversaciones] = useState([])
+  const [convActiva, setConvActiva]         = useState(null)
+  const [mensajes, setMensajes]             = useState([])
+  const [texto, setTexto]                   = useState('')
+  const [enviando, setEnviando]             = useState(false)
+  const bottomRef                           = useRef(null)
+
+  // Cargar lista de conversaciones
+  useEffect(() => {
+    let activo = true
+    const cargar = async () => {
+      const res = await api.get('/conversaciones/')
+      if (activo) setConversaciones(res.data)
+    }
+    cargar()
+    const interval = setInterval(cargar, 5000)
+    return () => { activo = false; clearInterval(interval) }
+  }, [])
+
+  // Cargar mensajes de conversación activa + polling
+  useEffect(() => {
+    if (!convActiva) return
+    const cargar = async () => {
+      const res = await api.get(`/conversaciones/${convActiva.id}/mensajes/`)
+      setMensajes(res.data)
+    }
+    cargar()
+    const interval = setInterval(cargar, 4000)
+    return () => clearInterval(interval)
+  }, [convActiva])
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [mensajes])
+
+  const handleEnviar = async e => {
+    e.preventDefault()
+    if (!texto.trim() || !convActiva) return
+    setEnviando(true)
+    try {
+      await api.post(`/conversaciones/${convActiva.id}/enviar/`, { contenido: texto.trim() })
+      setTexto('')
+      const res = await api.get(`/conversaciones/${convActiva.id}/mensajes/`)
+      setMensajes(res.data)
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  return (
+    <div style={styles.adminWrap}>
+      {/* Panel izquierdo: lista de conversaciones */}
+      <div style={styles.listaConv}>
+        <div style={styles.listaConvHeader}>Conversaciones</div>
+        {conversaciones.length === 0 && (
+          <p style={{ padding: '16px', color: '#888', fontSize: '13px' }}>
+            No hay mensajes todavía.
+          </p>
+        )}
+        {conversaciones.map(conv => (
+          <div
+            key={conv.id}
+            style={{
+              ...styles.convItem,
+              ...(convActiva?.id === conv.id ? styles.convItemActivo : {})
+            }}
+            onClick={() => { setConvActiva(conv); setMensajes([]) }}
+          >
+            <div style={styles.convItemNombre}>
+              {conv.hermano_nombre}
+              {conv.no_leidos > 0 && (
+                <span style={styles.badge}>{conv.no_leidos}</span>
+              )}
+            </div>
+            {conv.ultimo_mensaje && (
+              <div style={styles.convItemPreview}>
+                {conv.ultimo_mensaje.contenido}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Panel derecho: chat activo */}
+      {convActiva ? (
+        <div style={styles.chatWrapAdmin}>
+          <div style={styles.chatHeader}>
+            <span style={styles.chatHeaderTitle}>
+              💬 {convActiva.hermano_nombre}
+            </span>
+            <span style={styles.chatHeaderSub}>{convActiva.hermano_email}</span>
+          </div>
+
+          <div style={styles.chatBody}>
+            {mensajes.map(msg => (
+              <BurbujaMensaje key={msg.id} msg={msg} />
+            ))}
+            <div ref={bottomRef} />
+          </div>
+
+          <form onSubmit={handleEnviar} style={styles.chatInput}>
+            <input
+              style={styles.inputChat}
+              value={texto}
+              onChange={e => setTexto(e.target.value)}
+              placeholder="Responder..."
+              disabled={enviando}
+            />
+            <button
+              type="submit" disabled={enviando || !texto.trim()}
+              style={styles.btnEnviar}
+            >
+              ➤
+            </button>
+          </form>
+        </div>
+      ) : (
+        <div style={styles.sinSeleccion}>
+          <p>👈 Selecciona una conversación para responder</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════
+// CHAT GENERAL
+// ══════════════════════════════════════════════════════════
+function ChatGeneral() {
+  const { usuario } = useAuth()
+  const [mensajes, setMensajes] = useState([])
+  const [texto, setTexto]       = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const bottomRef               = useRef(null)
+
+  useEffect(() => {
+    const cargar = async () => {
+      const res = await api.get('/chat-general/')
+      setMensajes(res.data)
+    }
+    cargar()
+    const interval = setInterval(cargar, 4000)
+    return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [mensajes])
+
+  const handleEnviar = async e => {
+    e.preventDefault()
+    if (!texto.trim()) return
+    setEnviando(true)
+    try {
+      await api.post('/chat-general/', { contenido: texto.trim() })
+      setTexto('')
+      const res = await api.get('/chat-general/')
+      setMensajes(res.data)
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  const handleEliminar = async id => {
+    await api.delete(`/chat-general/${id}/`)
+    setMensajes(prev => prev.filter(m => m.id !== id))
+  }
+
+  return (
+    <div style={styles.chatWrap}>
+      <div style={styles.chatHeader}>
+        <span style={styles.chatHeaderTitle}>🌐 Chat general de la hermandad</span>
+        <span style={styles.chatHeaderSub}>Visible para todos los hermanos</span>
+      </div>
+
+      <div style={styles.chatBody}>
+        {mensajes.length === 0 && (
+          <p style={styles.chatVacio}>El chat está vacío. ¡Sé el primero en escribir!</p>
+        )}
+        {mensajes.map(msg => (
+          <BurbujaMensaje
+            key={msg.id} msg={msg}
+            onEliminar={
+              (msg.es_mio || usuario?.is_staff)
+                ? () => handleEliminar(msg.id)
+                : null
+            }
+            mostrarNombre={true}
+          />
+        ))}
+        <div ref={bottomRef} />
+      </div>
+
+      <form onSubmit={handleEnviar} style={styles.chatInput}>
+        <input
+          style={styles.inputChat}
+          value={texto}
+          onChange={e => setTexto(e.target.value)}
+          placeholder="Escribe en el chat general..."
+          disabled={enviando}
+        />
+        <button type="submit" disabled={enviando || !texto.trim()} style={styles.btnEnviar}>
+          ➤
+        </button>
+      </form>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════
+// COMPONENTE: Burbuja de mensaje estilo WhatsApp
+// ══════════════════════════════════════════════════════════
+function BurbujaMensaje({ msg, onEliminar, mostrarNombre = false }) {
+  const mio = msg.es_mio
+  return (
+    <div style={{ display: 'flex', justifyContent: mio ? 'flex-end' : 'flex-start', marginBottom: '8px' }}>
+      <div style={{ maxWidth: '70%' }}>
+        {mostrarNombre && !mio && (
+          <div style={styles.burbujaAutor}>{msg.autor_nombre || msg.autor_email}</div>
+        )}
+        <div style={{ ...styles.burbuja, ...(mio ? styles.burbujaPropia : styles.burbujaAjena) }}>
+          <p style={styles.burbujaTexto}>{msg.contenido}</p>
+          <div style={styles.burbujaFooter}>
+            <span style={styles.burbujaHora}>
+              {new Date(msg.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+            {onEliminar && (
+              <button style={styles.btnBorrarMsg} onClick={onEliminar}>✕</button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════
+// ESTILOS
+// ══════════════════════════════════════════════════════════
+const styles = {
+  page: { padding: '24px', maxWidth: '1100px', margin: '0 auto', height: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column' },
+
+  tabs: { display: 'flex', gap: '8px', marginBottom: '16px', flexShrink: 0 },
+  tab: {
+    padding: '10px 22px', borderRadius: '8px', border: '1px solid #ddd',
+    background: 'white', color: '#555', cursor: 'pointer', fontSize: '14px', fontWeight: '500',
+  },
+  tabActivo: { backgroundColor: '#1a1a2e', color: 'white', borderColor: '#1a1a2e' },
+
+  // Chat hermano / chat general
+  chatWrap: {
+    flex: 1, display: 'flex', flexDirection: 'column',
+    background: 'white', borderRadius: '12px',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.08)', overflow: 'hidden',
+  },
+  chatHeader: {
+    padding: '16px 20px', backgroundColor: '#1a1a2e',
+    display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0,
+  },
+  chatHeaderTitle: { color: 'white', fontWeight: '700', fontSize: '15px' },
+  chatHeaderSub:   { color: '#aab', fontSize: '12px' },
+  chatBody: {
+    flex: 1, overflowY: 'auto', padding: '16px',
+    backgroundColor: '#f0ece4', display: 'flex', flexDirection: 'column',
+  },
+  chatVacio: { textAlign: 'center', color: '#888', marginTop: '40px', fontSize: '14px' },
+  chatInput: {
+    display: 'flex', gap: '8px', padding: '12px 16px',
+    borderTop: '1px solid #eee', backgroundColor: 'white', flexShrink: 0,
+  },
+  inputChat: {
+    flex: 1, padding: '10px 16px', borderRadius: '24px',
+    border: '1px solid #ddd', fontSize: '14px', outline: 'none', fontFamily: 'inherit',
+  },
+  btnEnviar: {
+    width: '44px', height: '44px', borderRadius: '50%',
+    backgroundColor: '#1a1a2e', color: 'white', border: 'none',
+    cursor: 'pointer', fontSize: '16px', display: 'flex',
+    alignItems: 'center', justifyContent: 'center',
+  },
+
+  // Burbujas
+  burbuja: {
+    padding: '8px 14px', borderRadius: '16px',
+    maxWidth: '100%', wordBreak: 'break-word',
+  },
+  burbujaPropia: { backgroundColor: '#1a1a2e', color: 'white', borderBottomRightRadius: '4px' },
+  burbujaAjena:  { backgroundColor: 'white', color: '#111', borderBottomLeftRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
+  burbujaAutor: { fontSize: '11px', color: '#555', marginBottom: '2px', paddingLeft: '4px', fontWeight: '600' },
+  burbujaTexto: { margin: 0, fontSize: '14px', lineHeight: '1.4' },
+  burbujaFooter: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px', marginTop: '4px' },
+  burbujaHora:   { fontSize: '10px', opacity: 0.6 },
+  btnBorrarMsg: {
+    background: 'none', border: 'none', cursor: 'pointer',
+    fontSize: '10px', opacity: 0.5, color: 'inherit', padding: '0',
+  },
+
+  // Vista admin
+  adminWrap: {
+    flex: 1, display: 'flex', borderRadius: '12px',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.08)', overflow: 'hidden', minHeight: 0,
+  },
+  listaConv: {
+    width: '280px', flexShrink: 0, backgroundColor: 'white',
+    borderRight: '1px solid #eee', overflowY: 'auto', display: 'flex', flexDirection: 'column',
+  },
+  listaConvHeader: {
+    padding: '16px 20px', fontWeight: '700', fontSize: '14px',
+    color: '#1a1a2e', borderBottom: '1px solid #eee', flexShrink: 0,
+  },
+  convItem: {
+    padding: '14px 16px', cursor: 'pointer', borderBottom: '1px solid #f5f5f5',
+    transition: 'background 0.15s',
+  },
+  convItemActivo: { backgroundColor: '#f0f4ff' },
+  convItemNombre: {
+    fontWeight: '600', fontSize: '14px', color: '#1a1a2e',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+  },
+  convItemPreview: {
+    fontSize: '12px', color: '#888', marginTop: '3px',
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+  },
+  badge: {
+    backgroundColor: '#e53e3e', color: 'white',
+    borderRadius: '50%', width: '18px', height: '18px',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: '10px', fontWeight: '700',
+  },
+  chatWrapAdmin: {
+    flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0,
+  },
+  sinSeleccion: {
+    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: '#888', fontSize: '15px', backgroundColor: '#f9f9f9',
+  },
 }
