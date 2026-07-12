@@ -6,5 +6,5 @@ class PapeletaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model  = Papeleta
-        fields = ('id', 'usuario', 'usuario_email', 'paso', 'fecha', 'tramo')
+        fields = ('id', 'usuario', 'usuario_email', 'paso', 'fecha', 'tramo', 'estado')
         read_only_fields = ('usuario',)

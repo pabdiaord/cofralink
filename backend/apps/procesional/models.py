@@ -2,6 +2,11 @@ from django.db import models
 from apps.hermanos.models import Hermano
 
 class Papeleta(models.Model):
+    ESTADO_CHOICES = [
+        ('pendiente',  'Pendiente'),
+        ('aprobada',   'Aprobada'),
+        ('rechazada',  'Rechazada'),
+    ]
     usuario = models.ForeignKey(
                   'usuarios.Usuario',
                   on_delete=models.CASCADE,
@@ -10,6 +15,11 @@ class Papeleta(models.Model):
     paso    = models.CharField(max_length=100)
     fecha   = models.DateField()
     tramo   = models.CharField(max_length=100)
+    estado  = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='pendiente'
+    )
 
     def __str__(self):
         return f"{self.usuario} – {self.paso} ({self.fecha})"
