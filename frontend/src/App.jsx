@@ -9,6 +9,8 @@ import Inventario     from './pages/inventario/Inventario'
 import Procesional    from './pages/procesional/Procesional'
 import Comunicaciones from './pages/comunicaciones/Comunicaciones'
 import Navbar         from './components/Navbar'
+import Perfil from './pages/perfil/Perfil'
+
 
 // Ruta protegida: redirige al login si no hay sesión
 function RutaProtegida({ children }) {
@@ -42,6 +44,9 @@ function AppRoutes() {
         }/>
         <Route path="/comunicaciones" element={
           <RutaProtegida><Comunicaciones /></RutaProtegida>
+        }/>
+        <Route path="/perfil" element={
+          <RutaProtegida><Perfil /></RutaProtegida>
         }/>
       </Routes>
     </>

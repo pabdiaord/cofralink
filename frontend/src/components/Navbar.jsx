@@ -26,6 +26,7 @@ export default function Navbar() {
             <Link to="/inventario" style={styles.link}>Inventario</Link>
           </>
         )}
+        <Link to="/perfil" style={styles.link}>Mi perfil</Link>
       </div>
       <button onClick={handleLogout} style={styles.btn}>Cerrar sesión</button>
     </nav>
