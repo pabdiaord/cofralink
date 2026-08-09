@@ -77,3 +77,34 @@ class CrearHermanoCompletoView(APIView):
             HermanoSerializer(hermano).data,
             status=status.HTTP_201_CREATED
         )
+
+class MiPerfilView(APIView):
+    """El hermano consulta y edita su propio perfil."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            hermano = request.user.hermano
+            return Response(HermanoSerializer(hermano).data)
+        except:
+            return Response({'detail': 'Sin perfil de hermano.'}, status=404)
+
+    def patch(self, request):
+        try:
+            hermano = request.user.hermano
+        except:
+            return Response({'detail': 'Sin perfil de hermano.'}, status=404)
+
+        # Solo puede editar su dirección y email
+        campos_permitidos = ['direccion']
+        data = {k: v for k, v in request.data.items() if k in campos_permitidos}
+        serializer = HermanoSerializer(hermano, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            # Actualizar email si viene
+            nuevo_email = request.data.get('email')
+            if nuevo_email:
+                request.user.email = nuevo_email
+                request.user.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
