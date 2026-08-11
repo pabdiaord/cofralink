@@ -2,7 +2,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Conversacion, MensajePrivado, MensajeGeneral
+from .models import Conversacion, MensajePrivado, MensajeGeneral, ReaccionMensaje
 from .serializers import (
     ConversacionSerializer, MensajePrivadoSerializer, MensajeGeneralSerializer
 )
@@ -85,7 +85,7 @@ class MiConversacionView(APIView):
 class MensajeGeneralViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = MensajeGeneralSerializer
-    queryset = MensajeGeneral.objects.all().order_by('fecha')
+    queryset = MensajeGeneral.objects.prefetch_related('reacciones').all().order_by('fecha')
     http_method_names = ['get', 'post', 'delete']
 
     def perform_create(self, serializer):
@@ -96,8 +96,48 @@ class MensajeGeneralViewSet(viewsets.ModelViewSet):
         ctx['request'] = self.request
         return ctx
 
+    def create(self, request, *args, **kwargs):
+        # Solo el admin puede publicar mensajes generales
+        if not request.user.is_staff:
+            return Response(
+                {'error': 'Solo la Junta de Gobierno puede publicar en el canal general.'},
+                status=403
+            )
+        return super().create(request, *args, **kwargs)
+
     def destroy(self, request, *args, **kwargs):
         msg = self.get_object()
         if msg.autor != request.user and not request.user.is_staff:
             return Response({'error': 'Sin permiso.'}, status=403)
         return super().destroy(request, *args, **kwargs)
+
+
+class ReaccionView(APIView):
+    """Añade, cambia o elimina la reacción del usuario a un mensaje general."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, mensaje_id):
+        emoji = request.data.get('emoji', '').strip()
+        if not emoji:
+            return Response({'error': 'Emoji requerido.'}, status=400)
+        try:
+            mensaje = MensajeGeneral.objects.get(id=mensaje_id)
+        except MensajeGeneral.DoesNotExist:
+            return Response({'error': 'Mensaje no encontrado.'}, status=404)
+
+        reaccion, creada = ReaccionMensaje.objects.get_or_create(
+            mensaje=mensaje, usuario=request.user,
+            defaults={'emoji': emoji}
+        )
+
+        if not creada:
+            if reaccion.emoji == emoji:
+                # Misma reacción → quitarla (toggle)
+                reaccion.delete()
+                return Response({'reaccion': None}, status=200)
+            else:
+                # Cambiar emoji
+                reaccion.emoji = emoji
+                reaccion.save()
+
+        return Response({'reaccion': reaccion.emoji}, status=200)
