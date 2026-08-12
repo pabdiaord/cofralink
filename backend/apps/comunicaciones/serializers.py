@@ -1,5 +1,13 @@
 from rest_framework import serializers
-from .models import Conversacion, MensajePrivado, MensajeGeneral
+from .models import Conversacion, MensajePrivado, MensajeGeneral, ReaccionMensaje
+
+
+class ReaccionSerializer(serializers.ModelSerializer):
+    usuario_email = serializers.EmailField(source='usuario.email', read_only=True)
+
+    class Meta:
+        model  = ReaccionMensaje
+        fields = ('id', 'usuario', 'usuario_email', 'emoji')
 
 
 class MensajePrivadoSerializer(serializers.ModelSerializer):
@@ -54,14 +62,16 @@ class ConversacionSerializer(serializers.ModelSerializer):
 
 
 class MensajeGeneralSerializer(serializers.ModelSerializer):
-    autor_email = serializers.EmailField(source='autor.email', read_only=True)
-    autor_nombre = serializers.SerializerMethodField()
-    es_mio = serializers.SerializerMethodField()
+    autor_email   = serializers.EmailField(source='autor.email', read_only=True)
+    autor_nombre  = serializers.SerializerMethodField()
+    es_mio        = serializers.SerializerMethodField()
+    reacciones    = serializers.SerializerMethodField()
+    mi_reaccion   = serializers.SerializerMethodField()
 
     class Meta:
-        model = MensajeGeneral
-        fields = ('id', 'autor', 'autor_email', 'autor_nombre', 'contenido', 
-                  'fecha', 'es_mio')
+        model  = MensajeGeneral
+        fields = ('id', 'autor', 'autor_email', 'autor_nombre',
+                  'contenido', 'fecha', 'es_mio', 'reacciones', 'mi_reaccion')
         read_only_fields = ('autor', 'fecha')
 
     def get_autor_nombre(self, obj):
@@ -74,3 +84,17 @@ class MensajeGeneralSerializer(serializers.ModelSerializer):
     def get_es_mio(self, obj):
         request = self.context.get('request')
         return request and obj.autor_id == request.user.id
+
+    def get_reacciones(self, obj):
+        # Agrupa reacciones por emoji: {'❤️': 3, '👏': 1}
+        reacciones = {}
+        for r in obj.reacciones.all():
+            reacciones[r.emoji] = reacciones.get(r.emoji, 0) + 1
+        return reacciones
+
+    def get_mi_reaccion(self, obj):
+        request = self.context.get('request')
+        if not request:
+            return None
+        r = obj.reacciones.filter(usuario=request.user).first()
+        return r.emoji if r else None

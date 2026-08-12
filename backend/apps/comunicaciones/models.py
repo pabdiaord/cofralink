@@ -42,3 +42,19 @@ class MensajeGeneral(models.Model):
 
     def __str__(self):
         return f"{self.autor.email}: {self.contenido[:40]}"
+
+
+class ReaccionMensaje(models.Model):
+    mensaje  = models.ForeignKey(
+        MensajeGeneral, on_delete=models.CASCADE, related_name='reacciones'
+    )
+    usuario  = models.ForeignKey(
+        Usuario, on_delete=models.CASCADE, related_name='reacciones'
+    )
+    emoji    = models.CharField(max_length=10)
+
+    class Meta:
+        unique_together = ('mensaje', 'usuario')  # una reacción por usuario y mensaje
+
+    def __str__(self):
+        return f"{self.usuario.email} → {self.emoji} en msg {self.mensaje.id}"

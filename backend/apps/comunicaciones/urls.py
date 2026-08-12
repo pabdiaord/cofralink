@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (
     ConversacionViewSet,
     MensajeGeneralViewSet,
-    MiConversacionView,
+    MiConversacionView, ReaccionView
 )
 
 router = DefaultRouter()
@@ -15,4 +15,6 @@ router.register(r'chat-general', MensajeGeneralViewSet,
 urlpatterns = [
     path('mi-conversacion/', MiConversacionView.as_view(),
          name='mi-conversacion'),
+    path('chat-general/<int:mensaje_id>/reaccionar/', ReaccionView.as_view(), 
+         name='reaccionar'),
 ] + router.urls
