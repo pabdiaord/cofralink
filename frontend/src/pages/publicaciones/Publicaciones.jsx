@@ -2,19 +2,28 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 
+const DARK  = '#2c1810'
+const GOLD  = '#c9a84c'
+const CREAM = '#f5f0e8'
+
 export default function Publicaciones() {
   const { usuario } = useAuth()
   const [publicaciones, setPublicaciones] = useState([])
   const [cargando, setCargando]           = useState(true)
   const [error, setError]                 = useState('')
-  const [mostrarForm, setMostrarForm]     = useState(false)
-  const [form, setForm] = useState({ titular: '', descripcion: '', imagen: null })
-  const [enviando, setEnviando]           = useState(false)
-  const [editando, setEditando]     = useState(null) // publicación que se edita
-  const [formEdit, setFormEdit]     = useState({ titular: '', descripcion: '' })
-  const [guardando, setGuardando]   = useState(false)
 
-  //Cargar publicaciones
+  // Modales
+  const [modalCrear, setModalCrear]     = useState(false)
+  const [modalDetalle, setModalDetalle] = useState(null) // pub seleccionada
+  const [editando, setEditando]         = useState(null)
+
+  // Formularios
+  const [form, setForm]         = useState({ titular: '', descripcion: '', imagen: null })
+  const [formEdit, setFormEdit] = useState({ titular: '', descripcion: '' })
+  const [enviando, setEnviando] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+
+  // ── Cargar ────────────────────────────────────────────────────
   useEffect(() => {
     let activo = true
     const cargar = async () => {
@@ -36,7 +45,7 @@ export default function Publicaciones() {
     setPublicaciones(res.data)
   }
 
-  //Crear publicación
+  // ── Crear ─────────────────────────────────────────────────────
   const handleSubmit = async e => {
     e.preventDefault()
     setEnviando(true)
@@ -49,7 +58,7 @@ export default function Publicaciones() {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
       setForm({ titular: '', descripcion: '', imagen: null })
-      setMostrarForm(false)
+      setModalCrear(false)
       await recargar()
     } catch {
       setError('Error al crear la publicación.')
@@ -58,19 +67,23 @@ export default function Publicaciones() {
     }
   }
 
-  //Abrir editor
-  const abrirEdicion = pub => {
+  // ── Editar ────────────────────────────────────────────────────
+  const abrirEdicion = (pub, e) => {
+    e.stopPropagation() // evita abrir el detalle al pulsar Editar
     setEditando(pub)
     setFormEdit({ titular: pub.titular, descripcion: pub.descripcion })
   }
 
-  //Guardar edición
   const handleGuardarEdicion = async e => {
     e.preventDefault()
     setGuardando(true)
     try {
       await api.patch(`/publicaciones/${editando.id}/`, formEdit)
       setEditando(null)
+      // Si el detalle estaba abierto con esa pub, actualizarlo
+      if (modalDetalle?.id === editando.id) {
+        setModalDetalle({ ...modalDetalle, ...formEdit })
+      }
       await recargar()
     } catch {
       setError('Error al editar la publicación.')
@@ -79,105 +92,97 @@ export default function Publicaciones() {
     }
   }
 
-  //Eliminar publicación
-  const handleEliminar = async id => {
+  // ── Eliminar ──────────────────────────────────────────────────
+  const handleEliminar = async (id, e) => {
+    e.stopPropagation()
     if (!window.confirm('¿Eliminar esta publicación?')) return
     try {
       await api.delete(`/publicaciones/${id}/`)
       setPublicaciones(prev => prev.filter(p => p.id !== id))
+      if (modalDetalle?.id === id) setModalDetalle(null)
     } catch {
       setError('Error al eliminar la publicación.')
     }
   }
 
-  
-  if (cargando) return <p style={styles.info}>Cargando publicaciones...</p>
+  // ── URL imagen ────────────────────────────────────────────────
+  const imgUrl = src =>
+    src?.startsWith('http') ? src : `http://localhost:8000${src}`
+
+  if (cargando) return <p style={ps.info}>Cargando publicaciones...</p>
 
   return (
-    <div style={styles.page}>
+    <div style={ps.page}>
 
-      {/* Cabecera */}
-      <div style={styles.header}>
-        <h2 style={styles.titulo}>Publicaciones</h2>
+      {/* ── Cabecera ── */}
+      <div style={ps.header}>
+        <h2 style={ps.titulo}>Noticias</h2>
         {usuario?.is_staff && (
-          <button
-            style={styles.btnPrimary}
-            onClick={() => setMostrarForm(!mostrarForm)}
-          >
-            {mostrarForm ? 'Cancelar' : '+ Nueva publicación'}
+          <button style={ps.btnPrimary} onClick={() => setModalCrear(true)}>
+            + Nueva publicación
           </button>
         )}
       </div>
 
-      {error && <p style={styles.error}>{error}</p>}
+      {error && <p style={ps.error}>{error}</p>}
 
-      {/* Formulario nueva publicación */}
-      {mostrarForm && (
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <h3 style={styles.formTitulo}>Nueva publicación</h3>
-
-          <label style={styles.label}>Titular</label>
-          <input
-            style={styles.input} value={form.titular} required
-            onChange={e => setForm({ ...form, titular: e.target.value })}
-            placeholder="Título de la publicación"
-          />
-
-          <label style={styles.label}>Descripción</label>
-          <textarea
-            style={{ ...styles.input, height: '100px', resize: 'vertical' }}
-            value={form.descripcion} required
-            onChange={e => setForm({ ...form, descripcion: e.target.value })}
-            placeholder="Contenido de la publicación..."
-          />
-
-          <label style={styles.label}>Imagen (opcional)</label>
-          <input
-            type="file" accept="image/*" style={styles.input}
-            onChange={e => setForm({ ...form, imagen: e.target.files[0] })}
-          />
-
-          <button type="submit" disabled={enviando} style={styles.btnPrimary}>
-            {enviando ? 'Publicando...' : 'Publicar'}
-          </button>
-        </form>
-      )}
-
-      {/* Lista */}
+      {/* ── Lista de publicaciones ── */}
       {publicaciones.length === 0 ? (
-        <p style={styles.info}>No hay publicaciones todavía.</p>
+        <p style={ps.info}>No hay publicaciones todavía.</p>
       ) : (
-        <div style={styles.lista}>
+        <div style={ps.lista}>
           {publicaciones.map(pub => (
-            <div key={pub.id} style={styles.card}>
+            <div
+              key={pub.id}
+              style={ps.card}
+              onClick={() => setModalDetalle(pub)}
+            >
               {pub.imagen && (
                 <img
-                  src={`http://localhost:8000${pub.imagen}`}
-                  alt={pub.titular} style={styles.imagen}
+                  src={imgUrl(pub.imagen)}
+                  alt={pub.titular}
+                  style={ps.imagen}
+                  onError={e => { e.target.style.display = 'none' }}
                 />
               )}
-              <div style={styles.cardBody}>
-                <div style={styles.cardHeader}>
-                  <h3 style={styles.cardTitulo}>{pub.titular}</h3>
-                  <span style={styles.fecha}>
+              <div style={ps.cardBody}>
+                <div style={ps.cardHeader}>
+                  <h3 style={ps.cardTitulo}>{pub.titular}</h3>
+                  <span style={ps.fecha}>
                     {new Date(pub.fecha).toLocaleDateString('es-ES', {
                       day: '2-digit', month: 'long', year: 'numeric'
                     })}
                   </span>
                 </div>
-                <p style={styles.descripcion}>{pub.descripcion}</p>
-                <div style={styles.cardFooter}>
-                  <span style={styles.autor}>✍️ {pub.hermano_nombre}</span>
-                  {usuario?.is_staff && (
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button style={styles.btnEditar} onClick={() => abrirEdicion(pub)}>
-                        Editar
-                      </button>
-                      <button style={styles.btnEliminar} onClick={() => handleEliminar(pub.id)}>
-                        Eliminar
-                      </button>
-                    </div>
-                  )}
+
+                {/* Descripción recortada en la lista */}
+                <p style={ps.descripcionPreview}>
+                  {pub.descripcion.length > 160
+                    ? pub.descripcion.slice(0, 160) + '…'
+                    : pub.descripcion}
+                </p>
+
+                <div style={ps.cardFooter}>
+                  <span style={ps.autor}>✍️ {pub.hermano_nombre}</span>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span style={ps.leerMas}>Leer más →</span>
+                    {usuario?.is_staff && (
+                      <>
+                        <button
+                          style={ps.btnEditar}
+                          onClick={e => abrirEdicion(pub, e)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          style={ps.btnEliminar}
+                          onClick={e => handleEliminar(pub.id, e)}
+                        >
+                          Eliminar
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -185,38 +190,150 @@ export default function Publicaciones() {
         </div>
       )}
 
-      {/* Modal edición */}
-      {editando && (
-        <div style={styles.overlay}>
-          <div style={styles.modal}>
-            <h3 style={styles.formTitulo}>Editar publicación</h3>
-            <form onSubmit={handleGuardarEdicion} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {/* ══ MODAL: Detalle de noticia ══ */}
+      {modalDetalle && (
+        <div style={ps.overlay} onClick={() => setModalDetalle(null)}>
+          <div style={ps.modalDetalle} onClick={e => e.stopPropagation()}>
 
-              <label style={styles.label}>Titular</label>
+            {/* Imagen cabecera */}
+            {modalDetalle.imagen && (
+              <img
+                src={imgUrl(modalDetalle.imagen)}
+                alt={modalDetalle.titular}
+                style={ps.detalleImagen}
+                onError={e => { e.target.style.display = 'none' }}
+              />
+            )}
+
+            <div style={ps.detalleBody}>
+              {/* Cerrar */}
+              <button style={ps.btnCerrar} onClick={() => setModalDetalle(null)}>
+                ✕
+              </button>
+
+              {/* Fecha */}
+              <p style={ps.detalleFecha}>
+                {new Date(modalDetalle.fecha).toLocaleDateString('es-ES', {
+                  weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+                })}
+              </p>
+
+              {/* Titular */}
+              <h2 style={ps.detalleTitulo}>{modalDetalle.titular}</h2>
+
+              {/* Autor */}
+              <p style={ps.detalleAutor}>✍️ {modalDetalle.hermano_nombre}</p>
+
+              {/* Separador */}
+              <div style={ps.separador} />
+
+              {/* Contenido completo */}
+              <p style={ps.detalleContenido}>{modalDetalle.descripcion}</p>
+
+              {/* Acciones admin dentro del detalle */}
+              {usuario?.is_staff && (
+                <div style={ps.detalleAcciones}>
+                  <button
+                    style={ps.btnEditar}
+                    onClick={e => { abrirEdicion(modalDetalle, e); setModalDetalle(null) }}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    style={ps.btnEliminar}
+                    onClick={e => handleEliminar(modalDetalle.id, e)}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ══ MODAL: Crear publicación ══ */}
+      {modalCrear && (
+        <div style={ps.overlay} onClick={() => setModalCrear(false)}>
+          <div style={ps.modal} onClick={e => e.stopPropagation()}>
+            <div style={ps.modalHeader}>
+              <h3 style={ps.modalTitulo}>Nueva publicación</h3>
+              <button style={ps.btnCerrar} onClick={() => setModalCrear(false)}>✕</button>
+            </div>
+
+            <form onSubmit={handleSubmit} style={ps.form}>
+              <label style={ps.label}>Titular</label>
               <input
-                style={styles.input} value={formEdit.titular} required
+                style={ps.input} value={form.titular} required
+                onChange={e => setForm({ ...form, titular: e.target.value })}
+                placeholder="Título de la publicación"
+              />
+
+              <label style={ps.label}>Descripción</label>
+              <textarea
+                style={{ ...ps.input, height: '120px', resize: 'vertical' }}
+                value={form.descripcion} required
+                onChange={e => setForm({ ...form, descripcion: e.target.value })}
+                placeholder="Contenido de la publicación..."
+              />
+
+              <label style={ps.label}>Imagen (opcional)</label>
+              <input
+                type="file" accept="image/*" style={ps.input}
+                onChange={e => setForm({ ...form, imagen: e.target.files[0] })}
+              />
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                <button type="submit" disabled={enviando} style={ps.btnPrimary}>
+                  {enviando ? 'Publicando...' : 'Publicar'}
+                </button>
+                <button
+                  type="button" style={ps.btnCancelar}
+                  onClick={() => setModalCrear(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ══ MODAL: Editar publicación ══ */}
+      {editando && (
+        <div style={ps.overlay} onClick={() => setEditando(null)}>
+          <div style={ps.modal} onClick={e => e.stopPropagation()}>
+            <div style={ps.modalHeader}>
+              <h3 style={ps.modalTitulo}>Editar publicación</h3>
+              <button style={ps.btnCerrar} onClick={() => setEditando(null)}>✕</button>
+            </div>
+
+            <form onSubmit={handleGuardarEdicion} style={ps.form}>
+              <label style={ps.label}>Titular</label>
+              <input
+                style={ps.input} value={formEdit.titular} required
                 onChange={e => setFormEdit({ ...formEdit, titular: e.target.value })}
               />
 
-              <label style={styles.label}>Descripción</label>
+              <label style={ps.label}>Descripción</label>
               <textarea
-                style={{ ...styles.input, height: '100px', resize: 'vertical' }}
+                style={{ ...ps.input, height: '120px', resize: 'vertical' }}
                 value={formEdit.descripcion} required
                 onChange={e => setFormEdit({ ...formEdit, descripcion: e.target.value })}
               />
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-                <button type="submit" disabled={guardando} style={styles.btnPrimary}>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                <button type="submit" disabled={guardando} style={ps.btnPrimary}>
                   {guardando ? 'Guardando...' : 'Guardar cambios'}
                 </button>
                 <button
-                  type="button" style={styles.btnCancelar}
+                  type="button" style={ps.btnCancelar}
                   onClick={() => setEditando(null)}
                 >
                   Cancelar
                 </button>
               </div>
-
             </form>
           </div>
         </div>
@@ -226,64 +343,107 @@ export default function Publicaciones() {
   )
 }
 
-const styles = {
-  page:    { padding: '24px', maxWidth: '800px', margin: '0 auto' },
+// ── Estilos ───────────────────────────────────────────────────────
+const ps = {
+  page:    { padding: '28px 32px', maxWidth: '860px', margin: '0 auto' },
   header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
-  titulo:  { fontSize: '22px', fontWeight: '700', color: '#1a1a2e' },
-  info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
-  error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
-  form: {
-    background: 'white', borderRadius: '10px', padding: '24px',
-    marginBottom: '28px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
-    display: 'flex', flexDirection: 'column', gap: '10px',
+  titulo:  { fontSize: '22px', fontWeight: '700', color: DARK },
+  info:    { textAlign: 'center', color: '#888', marginTop: '40px' },
+  error:   { color: '#e53e3e', marginBottom: '12px', fontSize: '14px' },
+
+  // Lista
+  lista: { display: 'flex', flexDirection: 'column', gap: '16px' },
+  card: {
+    background: 'white', borderRadius: '12px',
+    boxShadow: '0 2px 8px rgba(44,24,16,0.08)',
+    overflow: 'hidden', cursor: 'pointer',
+    border: '1px solid #e8e0d0',
+    transition: 'box-shadow 0.2s, transform 0.2s',
   },
-  formTitulo: { fontSize: '16px', fontWeight: '700', color: '#1a1a2e', marginBottom: '4px' },
-  label:  { fontSize: '13px', fontWeight: '600', color: '#444' },
-  input: {
-    padding: '10px 14px', borderRadius: '8px',
-    border: '1px solid #ddd', fontSize: '14px',
-    outline: 'none', fontFamily: 'inherit',
-  },
+  imagen:      { width: '100%', maxHeight: '240px', objectFit: 'cover' },
+  cardBody:    { padding: '20px' },
+  cardHeader:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' },
+  cardTitulo:  { fontSize: '17px', fontWeight: '700', color: DARK, flex: 1 },
+  fecha:       { fontSize: '12px', color: '#9a8866', whiteSpace: 'nowrap', marginLeft: '12px' },
+  descripcionPreview: { fontSize: '14px', color: '#5a4a3a', lineHeight: '1.6', marginBottom: '14px' },
+  cardFooter:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  autor:       { fontSize: '13px', color: '#9a8866' },
+  leerMas:     { fontSize: '12px', color: GOLD, fontWeight: '600', cursor: 'pointer' },
+
+  // Botones
   btnPrimary: {
-    padding: '10px 20px', backgroundColor: '#1a1a2e', color: 'white',
-    border: 'none', borderRadius: '8px', fontSize: '14px',
-    cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
-  },
-  btnEditar: {
-    padding: '6px 14px', backgroundColor: 'transparent',
-    color: '#1a1a2e', border: '1px solid #1a1a2e',
-    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
-  },
-  btnEliminar: {
-    padding: '6px 14px', backgroundColor: 'transparent',
-    color: '#e53e3e', border: '1px solid #e53e3e',
-    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
-  },
-  btnCancelar: {
-    padding: '10px 20px', backgroundColor: '#eee', color: '#333',
+    padding: '10px 20px', backgroundColor: DARK, color: 'white',
     border: 'none', borderRadius: '8px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '600',
   },
-  lista:       { display: 'flex', flexDirection: 'column', gap: '16px' },
-  card:        { background: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.07)', overflow: 'hidden' },
-  imagen:      { width: '100%', maxHeight: '260px', objectFit: 'cover' },
-  cardBody:    { padding: '20px' },
-  cardHeader:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' },
-  cardTitulo:  { fontSize: '17px', fontWeight: '700', color: '#1a1a2e', flex: 1 },
-  fecha:       { fontSize: '12px', color: '#888', whiteSpace: 'nowrap', marginLeft: '12px' },
-  descripcion: { fontSize: '14px', color: '#444', lineHeight: '1.6', marginBottom: '16px' },
-  cardFooter:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  autor:       { fontSize: '13px', color: '#666' },
-  // Modal
+  btnEditar: {
+    padding: '5px 12px', backgroundColor: 'transparent',
+    color: DARK, border: `1px solid ${DARK}`,
+    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
+  },
+  btnEliminar: {
+    padding: '5px 12px', backgroundColor: 'transparent',
+    color: '#c0392b', border: '1px solid #c0392b',
+    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
+  },
+  btnCancelar: {
+    padding: '10px 20px', backgroundColor: '#ece6da', color: DARK,
+    border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer',
+  },
+  btnCerrar: {
+    background: 'none', border: 'none', fontSize: '18px',
+    cursor: 'pointer', color: '#9a8866', padding: '4px',
+    lineHeight: 1,
+  },
+
+  // Overlay compartido
   overlay: {
     position: 'fixed', inset: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(44,24,16,0.55)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    zIndex: 1000,
+    zIndex: 1000, padding: '20px',
   },
+
+  // Modal crear / editar
   modal: {
-    background: 'white', borderRadius: '12px',
-    padding: '32px', width: '100%', maxWidth: '480px',
-    boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
+    background: 'white', borderRadius: '14px',
+    width: '100%', maxWidth: '520px',
+    boxShadow: '0 12px 40px rgba(44,24,16,0.25)',
+    maxHeight: '90vh', overflowY: 'auto',
   },
+  modalHeader: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    padding: '20px 24px 0',
+  },
+  modalTitulo: { fontSize: '17px', fontWeight: '700', color: DARK, margin: 0 },
+  form: {
+    display: 'flex', flexDirection: 'column', gap: '12px',
+    padding: '16px 24px 24px',
+  },
+  label: { fontSize: '12px', fontWeight: '700', color: '#9a8866', textTransform: 'uppercase', letterSpacing: '0.05em' },
+  input: {
+    padding: '10px 14px', borderRadius: '8px',
+    border: '1px solid #e8e0d0', fontSize: '14px',
+    outline: 'none', fontFamily: 'inherit', color: DARK,
+    backgroundColor: '#faf7f2',
+  },
+
+  // Modal detalle
+  modalDetalle: {
+    background: 'white', borderRadius: '14px',
+    width: '100%', maxWidth: '680px',
+    boxShadow: '0 12px 40px rgba(44,24,16,0.25)',
+    maxHeight: '90vh', overflowY: 'auto',
+  },
+  detalleImagen: {
+    width: '100%', maxHeight: '320px',
+    objectFit: 'cover', borderRadius: '14px 14px 0 0',
+  },
+  detalleBody:    { padding: '28px 32px', position: 'relative' },
+  detalleFecha:   { fontSize: '12px', color: GOLD, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' },
+  detalleTitulo:  { fontSize: '26px', fontWeight: '700', color: DARK, margin: '0 0 10px', lineHeight: '1.3' },
+  detalleAutor:   { fontSize: '13px', color: '#9a8866', marginBottom: '16px' },
+  separador:      { height: '1px', backgroundColor: '#e8e0d0', marginBottom: '20px' },
+  detalleContenido: { fontSize: '15px', color: '#3a2a1a', lineHeight: '1.8', whiteSpace: 'pre-wrap' },
+  detalleAcciones:  { display: 'flex', gap: '8px', marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e8e0d0' },
 }
