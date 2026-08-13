@@ -3,10 +3,11 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import logo from '../assets/logo.png'
 import nazareni from '../assets/nazareni.png'
+import sidebarBg from '../assets/sidebar.jpg'
 
 const GOLD  = '#c9a84c'
 const DARK  = '#2c1810'
-const CREAM = '#f5f0e8'
+const CREAM = '#efe3d7'
 
 const navItems = [
   { to: '/',              icon: '🛖',  label: 'Inicio' },
@@ -156,7 +157,7 @@ const ss = {
     width: '240px',
     flexShrink: 0,
     height: '100vh',
-    background: 'linear-gradient(180deg, #1f140f 0%, #2a1d19 100%)',
+    background: `linear-gradient(180deg, rgba(17,12,9,0.92), rgba(35,21,18,0.76)), url(${sidebarBg}) center/cover no-repeat`,
     borderRight: '1px solid rgba(201,168,76,0.22)',
     display: 'flex',
     flexDirection: 'column',

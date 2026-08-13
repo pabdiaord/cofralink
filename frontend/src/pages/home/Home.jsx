@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import escudo from '../../assets/escudo.png'
 import api from '../../api/axios'
+import bienvenida from '../../assets/bienvenida.jpg'
+import footer from '../../assets/footer.jpg'
 
 const GOLD  = '#c9a84c'
 const DARK  = '#2c1810'
-const CREAM = '#f5f0e8'
+const CREAM = '#efe3d7'
 
 const CARACTER_LABEL = {
   NAZARENO:      'Nazareno',
@@ -118,6 +120,45 @@ export default function Home() {
         />
       </div>
 
+      <footer style={hs.footer}>
+        <div style={hs.footerOverlay} />
+        <div style={hs.footerContent}>
+          <div style={hs.footerBrand}>
+            <img src={escudo} alt="Escudo de la Hermandad" style={hs.footerLogo} />
+            <div>
+              <p style={hs.footerEyebrow}>Cofralink</p>
+              <h3 style={hs.footerTitle}>Perdón de Alcalá</h3>
+            </div>
+          </div>
+
+          <div style={hs.footerColumn}>
+            <p style={hs.footerHeading}>Contacto</p>
+            <a href="mailto:cofralinkperdon@gmail.com" style={hs.footerLink}>cofralinkperdon@gmail.com</a>
+            <a href="tel:+34900000000" style={hs.footerLink}>+34 693 271 545</a>
+            <span style={hs.footerLink}>Pasaje Nuestra Señora de las Angustias • Alcalá de Guadaíra, Sevilla</span>
+          </div>
+
+          <div style={hs.footerColumn}>
+            <p style={hs.footerHeading}>Redes sociales</p>
+            <a href="https://www.instagram.com/hermandadperdon/" target="_blank" rel="noreferrer" style={hs.footerLink}>Instagram</a>
+            <a href="https://www.facebook.com/perdondealcala/" target="_blank" rel="noreferrer" style={hs.footerLink}>Facebook</a>
+            <a href="https://x.com/JuventudPerdon" target="_blank" rel="noreferrer" style={hs.footerLink}>X (antes Twitter)</a>
+          </div>
+
+          <div style={hs.footerColumn}>
+            <p style={hs.footerHeading}>
+              #PerdónDeAlcalá
+            </p>
+            <p style={hs.footerHeading}>
+              #ReinaAngustias
+            </p>
+            <p style={hs.footerHeading}>
+              #MartesSantoAlcalá
+            </p>
+          </div>
+        </div>
+      </footer>
+
     </div>
   )
 }
@@ -159,14 +200,14 @@ const hs = {
     padding: '24px',
     maxWidth: '1180px',
     margin: '0 auto',
-    background: '#f4efe9',
+    background: '#efe3d7',
     borderRadius: '24px',
     boxShadow: '0 18px 45px rgba(44, 24, 16, 0.08)',
   },
 
   // Banner
   banner: {
-    background: 'linear-gradient(135deg, #2f1d16 0%, #3d261d 100%)',
+    background: `linear-gradient(135deg, rgba(25,17,15,0.88), rgba(65,42,26,0.72)), url(${bienvenida}) center/cover no-repeat`,
     borderRadius: '22px',
     padding: '30px 34px',
     marginBottom: '18px',
@@ -291,4 +332,84 @@ const hs = {
   accesoIcon: { fontSize: '28px', marginBottom: '12px', color: '#b68d3d' },
   accesoTitulo: { fontSize: '18px', fontWeight: '700', color: DARK, margin: '0 0 8px' },
   accesoDesc: { fontSize: '13px', color: '#6d564d', lineHeight: '1.55', margin: 0 },
+
+  footer: {
+    position: 'relative',
+    marginTop: '28px',
+    borderRadius: '24px',
+    overflow: 'hidden',
+    background: `linear-gradient(135deg, rgba(25,17,15,0.88), rgba(65,42,26,0.78)), url(${footer}) center/cover no-repeat`,
+    minHeight: '240px',
+    boxShadow: '0 18px 35px rgba(44, 24, 16, 0.12)',
+  },
+  footerOverlay: {
+    position: 'absolute',
+    inset: 0,
+    background: 'linear-gradient(90deg, rgba(16,11,11,0.85), rgba(29,20,15,0.3), rgba(16,11,11,0.78))',
+  },
+  footerContent: {
+    position: 'relative',
+    zIndex: 1,
+    display: 'grid',
+    gridTemplateColumns: '1.3fr 1fr 1fr 1.4fr',
+    gap: '26px',
+    padding: '32px 28px',
+    alignItems: 'start',
+  },
+  footerBrand: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    minHeight: '84px',
+  },
+  footerLogo: {
+    width: '64px',
+    height: '64px',
+    objectFit: 'contain',
+    borderRadius: '50%',
+    background: 'rgba(255,255,255,0.08)',
+    padding: '8px',
+  },
+  footerEyebrow: {
+    margin: 0,
+    color: '#e2c779',
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+    fontSize: '10px',
+    fontWeight: '700',
+  },
+  footerTitle: {
+    margin: '6px 0 0',
+    color: '#fffaf4',
+    fontSize: '32px',
+    fontWeight: '800',
+    letterSpacing: '-0.04em',
+  },
+  footerColumn: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  footerHeading: {
+    margin: 0,
+    color: '#e9c980',
+    fontSize: '12px',
+    fontWeight: '800',
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+  },
+  footerLink: {
+    color: '#f3e7d5',
+    fontSize: '14px',
+    lineHeight: '1.5',
+    textDecoration: 'none',
+    opacity: 0.92,
+  },
+  footerText: {
+    margin: 0,
+    color: '#f3e7d5',
+    fontSize: '14px',
+    lineHeight: '1.7',
+    opacity: 0.92,
+  },
 }
