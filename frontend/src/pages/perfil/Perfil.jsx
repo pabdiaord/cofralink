@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
+import nazarenoIcon from '../../assets/nazareno.png'
+import costaleroIcon from '../../assets/costalero.png'
+import miembroJuntaIcon from '../../assets/miembroDeJunta.png'
 
 const CARACTER_INFO = {
-  NAZARENO:      { label: 'Nazareno',        emoji: '🕯️', desc: 'Desfila en el cortejo portando el cirio o la cruz de guía.' },
-  COSTALERO:     { label: 'Costalero',       emoji: '💪', desc: 'Porta un paso  durante la estación de penitencia.' },
-  MIEMBRO_JUNTA: { label: 'Junta de Gobierno', emoji: '📋', desc: 'Forma parte del gobierno de la hermandad.' },
+  NAZARENO:      { label: 'Nazareno',        icon: nazarenoIcon, desc: 'Desfila en el cortejo portando el cirio o la cruz de guía.' },
+  COSTALERO:     { label: 'Costalero',       icon: costaleroIcon, desc: 'Porta un paso durante la estación de penitencia.' },
+  MIEMBRO_JUNTA: { label: 'Junta de Gobierno', icon: miembroJuntaIcon, desc: 'Forma parte del gobierno de la hermandad.' },
 }
 
 const ESTADO_CUOTA_INFO = {
@@ -75,7 +78,7 @@ export default function Perfil() {
       {/* ── Cabecera con escudo ── */}
       <div style={styles.hero}>
         <div style={styles.escudo}>
-          {usuario?.is_staff ? '⚜️' : (caracter?.emoji || '⛪')}
+          {usuario?.is_staff ? '⚜️' : (caracter?.icon ? <img src={caracter.icon} alt={caracter.label} style={styles.heroIcon} /> : '⛪')}
         </div>
         <div style={styles.heroInfo}>
           {hermano ? (
@@ -219,7 +222,7 @@ export default function Perfil() {
                   <h2 style={styles.cardTitulo}>Carácter en la hermandad</h2>
                 </div>
                 <div style={styles.caracterBox}>
-                  <span style={styles.caracterEmoji}>{caracter.emoji}</span>
+                  <img src={caracter.icon} alt={caracter.label} style={styles.caracterIcon} />
                   <div>
                     <div style={styles.caracterLabel}>{caracter.label}</div>
                     <div style={styles.caracterDesc}>{caracter.desc}</div>
@@ -283,17 +286,29 @@ const styles = {
 
   // Hero
   hero: {
-    background: `linear-gradient(135deg, ${DARK} 0%, #2d2d4e 100%)`,
+    background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`,
     padding: '40px 32px',
     display: 'flex', alignItems: 'center', gap: '28px',
     borderBottom: `3px solid ${GOLD}`,
+    boxShadow: 'inset 0 0 0 1px rgba(201,168,76,0.18)',
   },
   escudo: {
-    width: '88px', height: '88px', borderRadius: '50%',
-    backgroundColor: 'rgba(201,168,76,0.15)',
+    width: '92px', height: '92px', borderRadius: '50%',
+    background: `radial-gradient(circle at 30% 30%, rgba(255,236,178,0.28), rgba(201,168,76,0.08) 45%, rgba(0,0,0,0.1) 100%)`,
     border: `2px solid ${GOLD}`,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: '40px', flexShrink: 0,
+    overflow: 'hidden',
+    boxShadow: '0 0 0 4px rgba(201,168,76,0.08), 0 12px 24px rgba(0,0,0,0.18)',
+  },
+  heroIcon: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    display: 'block',
+    padding: '6px',
+    background: 'rgba(255,255,255,0.04)',
+    boxSizing: 'border-box',
   },
   heroInfo: {},
   heroNombre: { color: 'white', fontSize: '24px', fontWeight: '700', margin: '0 0 6px' },
@@ -344,7 +359,14 @@ const styles = {
     padding: '14px', backgroundColor: '#faf7f2',
     borderRadius: '8px', border: `1px solid ${BORDER}`,
   },
-  caracterEmoji: { fontSize: '32px', flexShrink: 0 },
+  caracterIcon: {
+    width: '42px',
+    height: '42px',
+    objectFit: 'contain',
+    flexShrink: 0,
+    display: 'block',
+    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.10))',
+  },
   caracterLabel: { fontWeight: '700', color: DARK, fontSize: '15px', marginBottom: '4px' },
   caracterDesc:  { fontSize: '13px', color: '#666', lineHeight: '1.5' },
 
