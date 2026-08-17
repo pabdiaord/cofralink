@@ -466,14 +466,14 @@ function BurbujaMensaje({ msg, onEliminar, mostrarNombre = false }) {
 // ESTILOS
 // ══════════════════════════════════════════════════════════
 const styles = {
-  page: { padding: '24px', maxWidth: '1100px', margin: '0 auto', height: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column' },
+  page: { padding: '32px', maxWidth: '1440px', width: '100%', margin: '0 auto', height: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column' },
 
   tabs: { display: 'flex', gap: '8px', marginBottom: '16px', flexShrink: 0 },
   tab: {
     padding: '10px 22px', borderRadius: '8px', border: '1px solid #ddd',
     background: 'white', color: '#555', cursor: 'pointer', fontSize: '14px', fontWeight: '500',
   },
-  tabActivo: { backgroundColor: '#1a1a2e', color: 'white', borderColor: '#1a1a2e' },
+  tabActivo: {     background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white', borderColor: '#1a1a2e' },
 
   chatWrap: {
     flex: 1, display: 'flex', flexDirection: 'column',
@@ -481,7 +481,7 @@ const styles = {
     boxShadow: '0 2px 10px rgba(0,0,0,0.08)', overflow: 'hidden',
   },
   chatHeader: {
-    padding: '16px 20px', backgroundColor: '#1a1a2e',
+    padding: '16px 20px',     background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`,
     display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0,
   },
   chatHeaderTitle: { color: 'white', fontWeight: '700', fontSize: '15px' },
@@ -501,13 +501,13 @@ const styles = {
   },
   btnEnviar: {
     width: '44px', height: '44px', borderRadius: '50%',
-    backgroundColor: '#1a1a2e', color: 'white', border: 'none',
+        background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white', border: 'none',
     cursor: 'pointer', fontSize: '16px', display: 'flex',
     alignItems: 'center', justifyContent: 'center',
   },
 
   burbuja: { padding: '8px 14px', borderRadius: '16px', maxWidth: '100%', wordBreak: 'break-word' },
-  burbujaPropia: { backgroundColor: '#1a1a2e', color: 'white', borderBottomRightRadius: '4px' },
+  burbujaPropia: {     background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white', borderBottomRightRadius: '4px' },
   burbujaAjena:  { backgroundColor: 'white', color: '#111', borderBottomLeftRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
   burbujaAutor:  { fontSize: '11px', color: '#555', marginBottom: '2px', paddingLeft: '4px', fontWeight: '600' },
   burbujaTexto:  { margin: 0, fontSize: '14px', lineHeight: '1.4' },

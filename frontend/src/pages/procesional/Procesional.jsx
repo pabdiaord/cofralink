@@ -287,7 +287,7 @@ export default function Procesional() {
 }
 
 const styles = {
-  page:    { padding: '24px', maxWidth: '800px', margin: '0 auto' },
+  page:    { padding: '32px', maxWidth: '1440px', width: '100%', margin: '0 auto' },
   header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
   titulo:  { fontSize: '22px', fontWeight: '700', color: '#1a1a2e' },
   count:   { fontSize: '16px', fontWeight: '400', color: '#888' },
@@ -329,7 +329,7 @@ const styles = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', backgroundColor: '#1a1a2e', color: 'white',
+    padding: '10px 20px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white',
     border: 'none', borderRadius: '8px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
   },
