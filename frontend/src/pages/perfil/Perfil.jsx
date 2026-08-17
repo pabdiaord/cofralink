@@ -339,7 +339,7 @@ const styles = {
   },
   formBtns: { display: 'flex', gap: '10px', marginTop: '4px' },
   btnGuardar: {
-    padding: '10px 20px', backgroundColor: DARK, color: 'white',
+    padding: '10px 20px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white',
     border: 'none', borderRadius: '8px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '600',
   },
@@ -372,7 +372,7 @@ const styles = {
 
   // Tarjeta de hermano
   tarjeta: {
-    background: `linear-gradient(135deg, ${DARK} 0%, #2d2d4e 100%)`,
+    background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`,
     borderRadius: '12px', padding: '20px',
     border: `1px solid ${GOLD}`, boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
   },

@@ -609,7 +609,7 @@ const s = {
     padding: '6px 12px', borderRadius: '6px', border: '1px solid #ddd',
     background: 'white', cursor: 'pointer', fontSize: '12px', color: '#555', fontWeight: '500',
   },
-  vistaBtnActivo: { backgroundColor: '#1a1a2e', color: 'white', borderColor: '#1a1a2e' },
+  vistaBtnActivo: {     background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white', borderColor: '#1a1a2e' },
 
   // Formulario
   form: {
@@ -640,7 +640,7 @@ const s = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', backgroundColor: '#1a1a2e', color: 'white',
+    padding: '10px 20px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white',
     border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', fontWeight: '600',
   },
   btnEditar: {
@@ -652,7 +652,7 @@ const s = {
     border: '1px solid #e53e3e', borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
   },
   btnInscribirse: {
-    padding: '7px 16px', backgroundColor: '#1a1a2e', color: 'white',
+    padding: '7px 16px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white',
     border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: '600',
   },
   btnCancelar: {
@@ -693,13 +693,13 @@ const s = {
     gap: '2px', background: '#e5e7eb', borderRadius: '10px', overflow: 'hidden',
   },
   calDiaNombre: {
-    background: '#1a1a2e', color: 'white', textAlign: 'center',
+    background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white', textAlign: 'center',
     padding: '8px 4px', fontSize: '12px', fontWeight: '700',
   },
   calCelda: { background: 'white', minHeight: '100px', padding: '6px', cursor: 'pointer', transition: 'background 0.15s' },
   calCeldaActiva: { background: 'white' },
   calCeldaVacia:  { background: '#f9fafb', cursor: 'default' },
-  calCeldaHoy:    { background: '#1a1a2e' },
+  calCeldaHoy:    { background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)` },
   calCeldaSeleccionada: { background: '#f0f4ff', outline: '2px solid #1a1a2e' },
   calNumDia: { fontSize: '13px', fontWeight: '700', color: '#1a1a2e', display: 'block', marginBottom: '4px' },
   calEventsWrap: { display: 'flex', flexDirection: 'column', gap: '2px' },

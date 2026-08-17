@@ -329,7 +329,7 @@ const styles = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', backgroundColor: '#1a1a2e', color: 'white',
+    padding: '10px 20px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white',
     border: 'none', borderRadius: '8px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
   },

@@ -7,7 +7,7 @@ import sidebarBg from '../assets/sidebar.jpg'
 
 const GOLD  = '#c9a84c'
 const DARK  = '#2c1810'
-const CREAM = '#efe3d7'
+const CREAM = '#5c4033 '
 
 const navItems = [
   { to: '/',              icon: '🛖',  label: 'Inicio' },
