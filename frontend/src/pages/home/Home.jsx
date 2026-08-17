@@ -16,6 +16,32 @@ const CARACTER_LABEL = {
   MIEMBRO_JUNTA: 'Junta de Gobierno',
 }
 
+function useCuentaAtras(fechaObjetivo) {
+  const calcular = () => {
+    const ahora    = new Date()
+    const objetivo = new Date(fechaObjetivo)
+    const diff     = objetivo - ahora
+
+    if (diff <= 0) return { dias: 0, horas: 0, minutos: 0, segundos: 0 }
+
+    return {
+      dias:     Math.floor(diff / (1000 * 60 * 60 * 24)),
+      horas:    Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+      minutos:  Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+      segundos: Math.floor((diff % (1000 * 60)) / 1000),
+    }
+  }
+
+  const [tiempo, setTiempo] = useState(calcular)
+
+  useEffect(() => {
+    const interval = setInterval(() => setTiempo(calcular()), 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return tiempo
+}
+
 export default function Home() {
   const { usuario } = useAuth()
   const navigate    = useNavigate()
@@ -81,8 +107,7 @@ export default function Home() {
 
       {/* ── Tarjetas de datos ── */}
       <div style={hs.statsGrid}>
-        <StatCard icon="📅" label="AÑO FUNDACIONAL" value="1986" />
-        <StatCard icon="📜" label="LEMA"             value="LXX Veces VII" />
+        <CuentaAtrasCard />
         <StatCard icon="👤" label="TU ROL"           value={rolVisible} />
         <StatCard icon="🛡️"  label="ESTADO"           value={estadoVisible}
           valueColor={hermano?.estado_cuota === 'NO_PAGADO' ? '#b45309' : '#2d7a45'} />
@@ -178,6 +203,34 @@ function StatCard({ icon, label, value, valueColor }) {
   )
 }
 
+function CuentaAtrasCard() {
+  const { dias, horas, minutos, segundos } = useCuentaAtras('2027-03-23T00:00:00')
+
+  return (
+    <div style={hs.cuentaCard}>
+      <div style={hs.cuentaHeader}>
+        <span style={hs.statLabel}>MARTES SANTO · 23 MAR 2027</span>
+        <span style={{ fontSize: '16px' }}>⏳</span>
+      </div>
+      <div style={hs.cuentaGrid}>
+        {[
+          { valor: dias,     etiqueta: 'días' },
+          { valor: horas,    etiqueta: 'horas' },
+          { valor: minutos,  etiqueta: 'min' },
+          { valor: segundos, etiqueta: 'seg' },
+        ].map(({ valor, etiqueta }) => (
+          <div key={etiqueta} style={hs.cuentaItem}>
+            <span style={hs.cuentaNumero}>
+              {String(valor).padStart(2, '0')}
+            </span>
+            <span style={hs.cuentaEtiqueta}>{etiqueta}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function AccesoCard({ icon, titulo, desc, onClick }) {
   const [hover, setHover] = useState(false)
   return (
@@ -197,13 +250,15 @@ function AccesoCard({ icon, titulo, desc, onClick }) {
 // ── Estilos ───────────────────────────────────────────────────────
 const hs = {
   page: {
-    padding: '24px',
-    maxWidth: '1180px',
-    margin: '0 auto',
-    background: '#efe3d7',
-    borderRadius: '24px',
-    boxShadow: '0 18px 45px rgba(44, 24, 16, 0.08)',
-  },
+  padding: '32px',
+  maxWidth: '1440px',
+  width: '100%',
+  margin: '0 auto',
+  background: '#efe3d7',
+  borderRadius: '24px',
+  boxShadow: '0 18px 45px rgba(44, 24, 16, 0.08)',
+  boxSizing: 'border-box',
+},
 
   // Banner
   banner: {
@@ -275,7 +330,7 @@ const hs = {
   // Stats
   statsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+    gridTemplateColumns: '2fr 1fr 1fr',  // ← cuenta atrás más ancha
     gap: '16px',
     marginBottom: '18px',
   },
@@ -411,5 +466,52 @@ const hs = {
     fontSize: '14px',
     lineHeight: '1.7',
     opacity: 0.92,
+  },
+  // Cuenta atrás
+  cuentaCard: {
+    background: '#f9f5f1',
+    borderRadius: '18px',
+    padding: '18px 24px',
+    border: '1px solid rgba(44,24,16,0.08)',
+    boxShadow: '0 10px 20px rgba(44,24,16,0.04)',
+    minHeight: '120px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  cuentaHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '14px',
+  },
+  cuentaGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '8px',
+  },
+  cuentaItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    background: DARK,
+    borderRadius: '10px',
+    padding: '8px 4px',
+  },
+  cuentaNumero: {
+    fontSize: '22px',
+    fontWeight: '800',
+    color: GOLD,
+    lineHeight: 1,
+    letterSpacing: '-0.02em',
+    fontVariantNumeric: 'tabular-nums',
+  },
+  cuentaEtiqueta: {
+    fontSize: '9px',
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.55)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+    marginTop: '4px',
   },
 }

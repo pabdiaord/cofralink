@@ -466,7 +466,7 @@ function BurbujaMensaje({ msg, onEliminar, mostrarNombre = false }) {
 // ESTILOS
 // ══════════════════════════════════════════════════════════
 const styles = {
-  page: { padding: '24px', maxWidth: '1100px', margin: '0 auto', height: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column' },
+  page: { padding: '32px', maxWidth: '1440px', width: '100%', margin: '0 auto', height: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column' },
 
   tabs: { display: 'flex', gap: '8px', marginBottom: '16px', flexShrink: 0 },
   tab: {

@@ -575,7 +575,7 @@ function CalendarioSemana({ eventos, fechaRef, setFechaRef, usuario, onEditar, o
 // ESTILOS
 // ══════════════════════════════════════════════════════
 const s = {
-  page:    { padding: '24px', maxWidth: '1100px', margin: '0 auto' },
+  page:    { padding: '32px', maxWidth: '1440px', width: '100%', margin: '0 auto' },
   header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
   titulo:  { fontSize: '22px', fontWeight: '700', color: '#1a1a2e' },
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },

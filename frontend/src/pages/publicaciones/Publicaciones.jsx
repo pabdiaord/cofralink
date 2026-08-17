@@ -345,7 +345,7 @@ export default function Publicaciones() {
 
 // ── Estilos ───────────────────────────────────────────────────────
 const ps = {
-  page:    { padding: '28px 32px', maxWidth: '860px', margin: '0 auto' },
+  page:    { padding: '28px 32px', maxWidth: '1110px', width: '100%', margin: '0 auto' },
   header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
   titulo:  { fontSize: '22px', fontWeight: '700', color: DARK },
   info:    { textAlign: 'center', color: '#888', marginTop: '40px' },

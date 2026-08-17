@@ -353,7 +353,7 @@ export default function Hermanos() {
 }
 
 const styles = {
-  page:    { padding: '24px', maxWidth: '960px', margin: '0 auto' },
+  page:    { padding: '32px', maxWidth: '1440px', width: '100%', margin: '0 auto' },
   header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
   titulo:  { fontSize: '22px', fontWeight: '700', color: '#1a1a2e' },
   count:   { fontSize: '16px', fontWeight: '400', color: '#888' },
