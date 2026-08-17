@@ -151,13 +151,14 @@ export default function Home() {
           <div style={hs.footerBrand}>
             <img src={escudo} alt="Escudo de la Hermandad" style={hs.footerLogo} />
             <div>
-              <p style={hs.footerEyebrow}>hazte</p>
-              <h3 style={hs.footerTitle}>HERMANO</h3>
+              <p style={hs.footerEyebrow}>No te digo siete veces, si,</p>
+              <h3 style={hs.footerTitle}>LXX VECES VII</h3>
             </div>
           </div>
 
           <div style={hs.footerColumn}>
             <p style={hs.footerHeading}>Contacto</p>
+            <a href="mailto:hermandadperdonalcala@gmail.com" style={hs.footerLink}>hermandadperdonalcala@gmail.com</a>
             <a href="mailto:cofralinkperdon@gmail.com" style={hs.footerLink}>cofralinkperdon@gmail.com</a>
             <a href="tel:+34900000000" style={hs.footerLink}>+34 693 271 545</a>
             <span style={hs.footerLink}>Pasaje Nuestra Señora de las Angustias • Alcalá de Guadaíra • Sevilla</span>
