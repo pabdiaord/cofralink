@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 const ESTADOS = {
   pendiente:  { label: 'Pendiente',  color: '#d69e2e', bg: '#fffff0' },
@@ -17,6 +18,8 @@ export default function Procesional() {
   const [enviando, setEnviando]       = useState(false)
   const [editando, setEditando]       = useState(null)
   const [guardando, setGuardando]     = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingAction, setPendingAction] = useState(null)
 
   const formVacio = { paso: '', fecha: '', tramo: '' }
   const [form, setForm]         = useState(formVacio)
@@ -45,22 +48,61 @@ export default function Procesional() {
   }
 
   // ── Crear papeleta (hermano) ──────────────────────────────────────
+  const openConfirm = (action, payload = null) => {
+    setPendingAction({ action, payload })
+    setConfirmOpen(true)
+  }
+
+  const executePendingAction = async () => {
+    if (!pendingAction) return
+    const { action, payload } = pendingAction
+    setConfirmOpen(false)
+
+    if (action === 'create-papeleta') {
+      setEnviando(true)
+      try {
+        await api.post('/papeletas/', form)
+        setForm(formVacio)
+        setMostrarForm(false)
+        await recargar()
+      } catch (err) {
+        const msg = err.response?.data?.detail ||
+                    Object.values(err.response?.data || {}).flat().join(' ') ||
+                    'Error al solicitar la papeleta.'
+        setError(msg)
+      } finally {
+        setEnviando(false)
+      }
+    }
+
+    if (action === 'edit-papeleta') {
+      setGuardando(true)
+      try {
+        await api.patch(`/papeletas/${payload.id}/`, payload.data)
+        setEditando(null)
+        await recargar()
+      } catch {
+        setError('Error al actualizar la papeleta.')
+      } finally {
+        setGuardando(false)
+      }
+    }
+
+    if (action === 'delete-papeleta') {
+      try {
+        await api.delete(`/papeletas/${payload}/`)
+        setPapeletas(prev => prev.filter(p => p.id !== payload))
+      } catch {
+        setError('Error al eliminar la papeleta.')
+      }
+    }
+
+    setPendingAction(null)
+  }
+
   const handleSubmit = async e => {
     e.preventDefault()
-    setEnviando(true)
-    try {
-      await api.post('/papeletas/', form)
-      setForm(formVacio)
-      setMostrarForm(false)
-      await recargar()
-    } catch (err) {
-      const msg = err.response?.data?.detail ||
-                  Object.values(err.response?.data || {}).flat().join(' ') ||
-                  'Error al solicitar la papeleta.'
-      setError(msg)
-    } finally {
-      setEnviando(false)
-    }
+    openConfirm('create-papeleta')
   }
 
   // ── Abrir edición (admin: aprobar/rechazar/asignar tramo) ─────────
@@ -77,27 +119,12 @@ export default function Procesional() {
   // ── Guardar edición ───────────────────────────────────────────────
   const handleGuardarEdicion = async e => {
     e.preventDefault()
-    setGuardando(true)
-    try {
-      await api.patch(`/papeletas/${editando.id}/`, formEdit)
-      setEditando(null)
-      await recargar()
-    } catch {
-      setError('Error al actualizar la papeleta.')
-    } finally {
-      setGuardando(false)
-    }
+    openConfirm('edit-papeleta', { id: editando.id, data: formEdit })
   }
 
   // ── Eliminar ──────────────────────────────────────────────────────
   const handleEliminar = async id => {
-    if (!window.confirm('¿Eliminar esta papeleta?')) return
-    try {
-      await api.delete(`/papeletas/${id}/`)
-      setPapeletas(prev => prev.filter(p => p.id !== id))
-    } catch {
-      setError('Error al eliminar la papeleta.')
-    }
+    openConfirm('delete-papeleta', id)
   }
 
   if (cargando) return <p style={styles.info}>Cargando papeletas...</p>
@@ -122,6 +149,20 @@ export default function Procesional() {
       </div>
 
       {error && <p style={styles.error}>{error}</p>}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={pendingAction?.action === 'delete-papeleta' ? 'Eliminar papeleta' : pendingAction?.action === 'create-papeleta' ? 'Solicitar papeleta' : 'Guardar cambios'}
+        message={pendingAction?.action === 'delete-papeleta'
+          ? '¿Seguro que quieres eliminar esta papeleta?'
+          : pendingAction?.action === 'create-papeleta'
+            ? '¿Quieres enviar esta solicitud de papeleta?'
+            : '¿Deseas guardar los cambios de esta papeleta?'}
+        confirmText={pendingAction?.action === 'delete-papeleta' ? 'Eliminar' : 'Confirmar'}
+        danger={pendingAction?.action === 'delete-papeleta'}
+        onConfirm={executePendingAction}
+        onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
+      />
 
       {/* Formulario solicitud (solo hermano) */}
       {mostrarForm && !usuario?.is_staff && (
@@ -295,24 +336,24 @@ const styles = {
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
 
   form: {
-    background: 'white', borderRadius: '10px', padding: '24px',
-    marginBottom: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+    background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '24px',
+    marginBottom: '24px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', border: '1px solid rgba(117, 82, 52, 0.15)',
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
-  formTitulo: { fontSize: '16px', fontWeight: '700', color: '#1a1a2e', marginBottom: '4px' },
-  label: { fontSize: '13px', fontWeight: '600', color: '#444', display: 'block', marginBottom: '4px' },
+  formTitulo: { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },
+  label: { fontSize: '13px', fontWeight: '700', color: '#7d5f42', display: 'block', marginBottom: '4px', letterSpacing: '0.08em', textTransform: 'uppercase' },
   input: {
-    width: '100%', padding: '10px 14px', borderRadius: '8px',
-    border: '1px solid #ddd', fontSize: '14px',
-    outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+    width: '100%', padding: '10px 14px', borderRadius: '10px',
+    border: '1px solid rgba(117, 82, 52, 0.2)', fontSize: '14px',
+    outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', backgroundColor: 'rgba(255,255,255,0.54)',
   },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
 
   // Cards
   lista:    { display: 'flex', flexDirection: 'column', gap: '14px' },
   card: {
-    background: 'white', borderRadius: '10px', padding: '20px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.07)',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px', padding: '20px',
+    boxShadow: '0 10px 20px rgba(44,24,16,0.06)', border: '1px solid rgba(117, 82, 52, 0.12)',
   },
   cardTop:   { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' },
   cardTitulo:{ fontSize: '17px', fontWeight: '700', color: '#1a1a2e', marginBottom: '4px' },

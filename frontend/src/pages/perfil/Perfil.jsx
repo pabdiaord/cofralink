@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import nazarenoIcon from '../../assets/nazareno.png'
 import costaleroIcon from '../../assets/costalero.png'
 import miembroJuntaIcon from '../../assets/miembroDeJunta.png'
@@ -24,6 +25,8 @@ export default function Perfil() {
   const [guardando, setGuardando] = useState(false)
   const [error, setError]         = useState('')
   const [exito, setExito]         = useState('')
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingAction, setPendingAction] = useState(null)
   const [form, setForm] = useState({ direccion: '', email: '' })
 
   useEffect(() => {
@@ -50,21 +53,38 @@ export default function Perfil() {
     return () => { activo = false }
   }, [usuario])
 
+  const openConfirm = (action) => {
+    setPendingAction({ action })
+    setConfirmOpen(true)
+  }
+
+  const executePendingAction = async () => {
+    if (!pendingAction) return
+    const { action } = pendingAction
+    setConfirmOpen(false)
+
+    if (action === 'save-perfil') {
+      setGuardando(true)
+      setError(''); setExito('')
+      try {
+        await api.patch('/mi-perfil/', form)
+        setHermano(prev => ({ ...prev, direccion: form.direccion }))
+        setEditando(false)
+        setExito('Perfil actualizado correctamente.')
+        setTimeout(() => setExito(''), 3000)
+      } catch {
+        setError('Error al guardar los cambios.')
+      } finally {
+        setGuardando(false)
+      }
+    }
+
+    setPendingAction(null)
+  }
+
   const handleGuardar = async e => {
     e.preventDefault()
-    setGuardando(true)
-    setError(''); setExito('')
-    try {
-      await api.patch('/mi-perfil/', form)
-      setHermano(prev => ({ ...prev, direccion: form.direccion }))
-      setEditando(false)
-      setExito('Perfil actualizado correctamente.')
-      setTimeout(() => setExito(''), 3000)
-    } catch {
-      setError('Error al guardar los cambios.')
-    } finally {
-      setGuardando(false)
-    }
+    openConfirm('save-perfil')
   }
 
   if (cargando) return <p style={styles.info}>Cargando perfil...</p>
@@ -101,6 +121,15 @@ export default function Perfil() {
 
       {exito && <div style={styles.exito}>✅ {exito}</div>}
       {error && <div style={styles.errorBox}>⚠️ {error}</div>}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Guardar cambios"
+        message="¿Quieres guardar los cambios del perfil con los datos actuales?"
+        confirmText="Guardar"
+        onConfirm={executePendingAction}
+        onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
+      />
 
       <div style={styles.grid}>
 

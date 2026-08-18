@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../api/axios'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 const CARACTERES = {
   NAZARENO:      '🕯️ Nazareno',
@@ -17,10 +18,14 @@ export default function Hermanos() {
   const [cargando, setCargando]       = useState(true)
   const [error, setError]             = useState('')
   const [busqueda, setBusqueda]       = useState('')
+  const [filtroEstado, setFiltroEstado] = useState('TODOS')
+  const [filtroCaracter, setFiltroCaracter] = useState('TODOS')
   const [mostrarForm, setMostrarForm] = useState(false)
   const [enviando, setEnviando]       = useState(false)
   const [editando, setEditando]       = useState(null)
   const [guardando, setGuardando]     = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingAction, setPendingAction] = useState(null)
 
   const formVacio = {
     nombre: '', apellidos: '', direccion: '',
@@ -51,30 +56,76 @@ export default function Hermanos() {
     setHermanos(res.data)
   }
 
+  const totalHermanos = hermanos.length
+  const totalPagados = hermanos.filter(h => h.estado_cuota === 'PAGADO').length
+  const totalPendientes = hermanos.filter(h => h.estado_cuota === 'NO_PAGADO').length
+  const totalNazarenos = hermanos.filter(h => h.caracter === 'NAZARENO').length
+  const totalCostaleros = hermanos.filter(h => h.caracter === 'COSTALERO').length
+  const totalJunta = hermanos.filter(h => h.caracter === 'MIEMBRO_JUNTA').length
+
   //Crear
- const handleSubmit = async e => {
-    e.preventDefault()
-    setEnviando(true)
-    setError('')
-    try {
-      await api.post('/hermanos/crear-completo/', {
-        nombre:         form.nombre,
-        apellidos:      form.apellidos,
-        direccion:      form.direccion,
-        numero_hermano: form.numero_hermano,
-        estado_cuota:   form.estado_cuota,
-        caracter:       form.caracter,
-      })
-      setForm(formVacio)
-      setMostrarForm(false)
-      await recargar()
-    } catch (err) {
-      const data = err.response?.data
-      const msg  = data?.error || Object.values(data || {}).flat().join(' ') || 'Error al crear el hermano.'
-      setError(msg)
-    } finally {
-      setEnviando(false)
+const openConfirm = (action, payload = null) => {
+    setPendingAction({ action, payload })
+    setConfirmOpen(true)
+  }
+
+  const executePendingAction = async () => {
+    if (!pendingAction) return
+    const { action, payload } = pendingAction
+    setConfirmOpen(false)
+
+    if (action === 'create-hermano') {
+      setEnviando(true)
+      setError('')
+      try {
+        await api.post('/hermanos/crear-completo/', {
+          nombre:         form.nombre,
+          apellidos:      form.apellidos,
+          direccion:      form.direccion,
+          numero_hermano: form.numero_hermano,
+          estado_cuota:   form.estado_cuota,
+          caracter:       form.caracter,
+        })
+        setForm(formVacio)
+        setMostrarForm(false)
+        await recargar()
+      } catch (err) {
+        const data = err.response?.data
+        const msg  = data?.error || Object.values(data || {}).flat().join(' ') || 'Error al crear el hermano.'
+        setError(msg)
+      } finally {
+        setEnviando(false)
+      }
     }
+
+    if (action === 'edit-hermano') {
+      setGuardando(true)
+      try {
+        await api.patch(`/hermanos/${payload.id}/`, payload.data)
+        setEditando(null)
+        await recargar()
+      } catch {
+        setError('Error al editar el hermano.')
+      } finally {
+        setGuardando(false)
+      }
+    }
+
+    if (action === 'delete-hermano') {
+      try {
+        await api.delete(`/hermanos/${payload.id}/`)
+        await recargar()
+      } catch {
+        setError('Error al dar de baja al hermano.')
+      }
+    }
+
+    setPendingAction(null)
+  }
+
+  const handleSubmit = async e => {
+    e.preventDefault()
+    openConfirm('create-hermano')
   }
 
   // Abrir edición
@@ -93,35 +144,23 @@ export default function Hermanos() {
   //Guardar edición
   const handleGuardarEdicion = async e => {
     e.preventDefault()
-    setGuardando(true)
-    try {
-      await api.patch(`/hermanos/${editando.id}/`, formEdit)
-      setEditando(null)
-      await recargar()
-    } catch {
-      setError('Error al editar el hermano.')
-    } finally {
-      setGuardando(false)
-    }
+    openConfirm('edit-hermano', { id: editando.id, data: formEdit })
   }
 
   //Dar de baja
   const handleBaja = async h => {
-    if (!window.confirm(`¿Dar de baja a ${h.nombre} ${h.apellidos}? Esta acción desactivará su cuenta.`)) return
-    try {
-      await api.delete(`/hermanos/${h.id}/`)
-      await recargar()
-    } catch {
-      setError('Error al dar de baja al hermano.')
-    }
+    openConfirm('delete-hermano', { id: h.id, nombre: `${h.nombre} ${h.apellidos}` })
   }
 
-  //Filtro búsqueda
-  const hermonosFiltrados = hermanos.filter(h =>
-    `${h.nombre} ${h.apellidos} ${h.numero_hermano}`
-      .toLowerCase()
-      .includes(busqueda.toLowerCase())
-  )
+  //Filtro búsqueda y filtros rápidos
+  const hermonosFiltrados = hermanos.filter(h => {
+    const texto = `${h.nombre} ${h.apellidos} ${h.numero_hermano}`.toLowerCase()
+    const coincideBusqueda = texto.includes(busqueda.toLowerCase())
+    const coincideEstado = filtroEstado === 'TODOS' || h.estado_cuota === filtroEstado
+    const coincideCaracter = filtroCaracter === 'TODOS' || h.caracter === filtroCaracter
+
+    return coincideBusqueda && coincideEstado && coincideCaracter
+  })
 
   if (cargando) return <p style={styles.info}>Cargando hermanos...</p>
 
@@ -138,13 +177,69 @@ export default function Hermanos() {
 
       {error && <p style={styles.error}>{error}</p>}
 
-      {/* Buscador */}
-      <input
-        style={{ ...styles.input, marginBottom: '20px' }}
-        placeholder="🔍 Buscar por nombre o número..."
-        value={busqueda}
-        onChange={e => setBusqueda(e.target.value)}
+      <ConfirmDialog
+        open={confirmOpen}
+        title={pendingAction?.action === 'delete-hermano' ? 'Dar de baja' : pendingAction?.action === 'create-hermano' ? 'Crear hermano' : 'Guardar cambios'}
+        message={pendingAction?.action === 'delete-hermano'
+          ? `¿Seguro que quieres dar de baja a ${pendingAction.payload?.nombre}? Esta acción desactivará su cuenta.`
+          : pendingAction?.action === 'create-hermano'
+            ? '¿Quieres crear este nuevo hermano con los datos introducidos?'
+            : '¿Deseas guardar los cambios del hermano?'}
+        confirmText={pendingAction?.action === 'delete-hermano' ? 'Dar de baja' : 'Confirmar'}
+        danger={pendingAction?.action === 'delete-hermano'}
+        onConfirm={executePendingAction}
+        onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
       />
+
+      <div style={styles.filtersPanel}>
+        <div style={styles.filterBlock}>
+          <span style={styles.filterLabel}>Estado de cuota</span>
+          <div style={styles.chipRow}>
+            {['TODOS', 'PAGADO', 'NO_PAGADO'].map(opcion => (
+              <button
+                key={opcion}
+                type="button"
+                onClick={() => setFiltroEstado(opcion)}
+                style={{
+                  ...styles.filterChip,
+                  ...(filtroEstado === opcion ? styles.filterChipActive : {}),
+                }}
+              >
+                {opcion === 'TODOS' ? 'Todos' : opcion === 'PAGADO' ? 'Pagados' : 'Pendientes'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={styles.filterBlock}>
+          <span style={styles.filterLabel}>Carácter</span>
+          <div style={styles.chipRow}>
+            {['TODOS', 'NAZARENO', 'COSTALERO', 'MIEMBRO_JUNTA'].map(opcion => (
+              <button
+                key={opcion}
+                type="button"
+                onClick={() => setFiltroCaracter(opcion)}
+                style={{
+                  ...styles.filterChip,
+                  ...(filtroCaracter === opcion ? styles.filterChipActive : {}),
+                }}
+              >
+                {opcion === 'TODOS' ? 'Todos' : opcion === 'NAZARENO' ? 'Nazarenos' : opcion === 'COSTALERO' ? 'Costaleros' : 'Junta'}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Buscador */}
+      <div style={styles.searchWrap}>
+        <input
+          style={styles.input}
+          placeholder="🔍 Buscar por nombre o número..."
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+        />
+      </div>
 
       {/* Formulario nuevo hermano */}
       {mostrarForm && (
@@ -219,9 +314,15 @@ export default function Hermanos() {
         </form>
       )}
 
+      <div style={styles.resultMeta}>
+        <span>
+          Mostrando <strong>{hermonosFiltrados.length}</strong> de <strong>{totalHermanos}</strong> hermanos
+        </span>
+      </div>
+
       {/* Tabla de hermanos */}
       {hermonosFiltrados.length === 0 ? (
-        <p style={styles.info}>No se encontraron hermanos.</p>
+        <p style={styles.info}>No se encontraron hermanos con esos filtros.</p>
       ) : (
         <div style={styles.tabla}>
           {/* Cabecera tabla */}
@@ -360,63 +461,114 @@ const styles = {
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
   nota:    { fontSize: '12px', color: '#888', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '6px' },
+  filtersPanel: {
+    background: 'linear-gradient(135deg, rgba(255,250,245,0.96), rgba(244,234,222,0.9))',
+    border: '1px solid rgba(117, 82, 52, 0.15)',
+    borderRadius: '18px',
+    padding: '18px 18px 12px',
+    boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)',
+    marginBottom: '18px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '14px',
+  },
+  filterBlock: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  filterLabel: { fontSize: '10px', fontWeight: '800', color: '#7d5f42', letterSpacing: '0.15em', textTransform: 'uppercase' },
+  chipRow: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
+  filterChip: {
+    border: '1px solid rgba(117, 82, 52, 0.25)',
+    background: 'rgba(255,255,255,0.45)',
+    color: '#3d2a20',
+    borderRadius: '999px',
+    fontSize: '12px',
+    padding: '8px 13px',
+    cursor: 'pointer',
+    fontWeight: '700',
+    letterSpacing: '0.02em',
+    transition: 'all 0.18s ease',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
+  },
+  filterChipActive: {
+    background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)',
+    borderColor: '#2c1810',
+    color: '#f5e6c8',
+    boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
+    transform: 'translateY(-1px)',
+  },
+  searchWrap: {
+    marginBottom: '18px',
+  },
+  resultMeta: {
+    fontSize: '13px',
+    color: '#5c4d46',
+    marginBottom: '12px',
+    padding: '8px 12px',
+    borderRadius: '10px',
+    background: 'rgba(201,168,76,0.08)',
+    border: '1px solid rgba(201,168,76,0.2)',
+    display: 'inline-block',
+  },
 
   form: {
-    background: 'white', borderRadius: '10px', padding: '24px',
-    marginBottom: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+    background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '24px',
+    marginBottom: '24px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', border: '1px solid rgba(117, 82, 52, 0.14)',
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
-  formTitulo: { fontSize: '16px', fontWeight: '700', color: '#1a1a2e', marginBottom: '4px' },
-  label:  { fontSize: '13px', fontWeight: '600', color: '#444', display: 'block', marginBottom: '4px' },
+  formTitulo: { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },
+  label:  { fontSize: '13px', fontWeight: '700', color: '#7d5f42', display: 'block', marginBottom: '4px', letterSpacing: '0.08em', textTransform: 'uppercase' },
   input: {
-    width: '100%', padding: '10px 14px', borderRadius: '8px',
-    border: '1px solid #ddd', fontSize: '14px',
-    outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+    width: '100%', padding: '10px 14px', borderRadius: '10px',
+    border: '1px solid rgba(117, 82, 52, 0.2)', fontSize: '14px',
+    outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', backgroundColor: 'rgba(255,255,255,0.54)',
   },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
   grid3: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' },
 
   // Tabla
   tabla: {
-    background: 'white', borderRadius: '10px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.07)', overflow: 'hidden',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px',
+    boxShadow: '0 12px 24px rgba(44,24,16,0.06)', overflow: 'hidden', border: '1px solid rgba(117, 82, 52, 0.12)',
   },
   tablaHeader: {
     display: 'flex', alignItems: 'center', gap: '12px',
-    padding: '12px 20px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`,
-    color: 'white', fontSize: '13px', fontWeight: '600',
+    padding: '12px 20px', background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)',
+    color: '#f5e6c8', fontSize: '13px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase',
   },
   fila: {
     display: 'flex', alignItems: 'center', gap: '12px',
-    padding: '14px 20px', borderBottom: '1px solid #f0f0f0',
+    padding: '14px 20px', borderBottom: '1px solid rgba(117, 82, 52, 0.08)',
     fontSize: '14px',
   },
   badge: {
     display: 'inline-block', padding: '3px 10px',
     borderRadius: '20px', fontSize: '12px',
-    fontWeight: '600', color: 'white',
+    fontWeight: '700', color: 'white',
   },
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white',
-    border: 'none', borderRadius: '8px', fontSize: '14px',
-    cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
+    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)', color: 'white',
+    border: 'none', borderRadius: '10px', fontSize: '14px',
+    cursor: 'pointer', fontWeight: '700', alignSelf: 'flex-start', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
   },
   btnEditar: {
     padding: '5px 12px', backgroundColor: 'transparent',
-    color: '#1a1a2e', border: '1px solid #1a1a2e',
-    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
+    color: '#2c1810', border: '1px solid rgba(44,24,16,0.7)',
+    borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: '700',
   },
   btnEliminar: {
     padding: '5px 12px', backgroundColor: 'transparent',
-    color: '#e53e3e', border: '1px solid #e53e3e',
-    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
+    color: '#b3261e', border: '1px solid rgba(179, 38, 30, 0.7)',
+    borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: '700',
   },
   btnCancelar: {
-    padding: '10px 20px', backgroundColor: '#eee', color: '#333',
-    border: 'none', borderRadius: '8px', fontSize: '14px',
-    cursor: 'pointer', fontWeight: '600',
+    padding: '10px 20px', backgroundColor: '#efe4d9', color: '#2c1810',
+    border: 'none', borderRadius: '10px', fontSize: '14px',
+    cursor: 'pointer', fontWeight: '700',
   },
 
   // Modal
@@ -425,7 +577,7 @@ const styles = {
     display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
   },
   modal: {
-    background: 'white', borderRadius: '12px', padding: '32px',
-    width: '100%', maxWidth: '520px', boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,245,241,0.98))', borderRadius: '18px', padding: '32px',
+    width: '100%', maxWidth: '520px', boxShadow: '0 10px 28px rgba(44,24,16,0.18)', border: '1px solid rgba(117, 82, 52, 0.12)',
   },
 }

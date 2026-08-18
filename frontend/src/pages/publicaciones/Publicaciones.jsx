@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 const DARK  = '#2c1810'
 const GOLD  = '#c9a84c'
@@ -16,6 +17,8 @@ export default function Publicaciones() {
   const [modalCrear, setModalCrear]     = useState(false)
   const [modalDetalle, setModalDetalle] = useState(null) // pub seleccionada
   const [editando, setEditando]         = useState(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingAction, setPendingAction] = useState(null)
 
   // Formularios
   const [form, setForm]         = useState({ titular: '', descripcion: '', imagen: null })
@@ -46,25 +49,68 @@ export default function Publicaciones() {
   }
 
   // ── Crear ─────────────────────────────────────────────────────
+  const openConfirm = (action, payload = null) => {
+    setPendingAction({ action, payload })
+    setConfirmOpen(true)
+  }
+
+  const executePendingAction = async () => {
+    if (!pendingAction) return
+    const { action, payload } = pendingAction
+    setConfirmOpen(false)
+
+    if (action === 'create-publicacion') {
+      setEnviando(true)
+      try {
+        const data = new FormData()
+        data.append('titular',     form.titular)
+        data.append('descripcion', form.descripcion)
+        if (form.imagen) data.append('imagen', form.imagen)
+        await api.post('/publicaciones/', data, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        setForm({ titular: '', descripcion: '', imagen: null })
+        setModalCrear(false)
+        await recargar()
+      } catch {
+        setError('Error al crear la publicación.')
+      } finally {
+        setEnviando(false)
+      }
+    }
+
+    if (action === 'edit-publicacion') {
+      setGuardando(true)
+      try {
+        await api.patch(`/publicaciones/${payload.id}/`, payload.data)
+        setEditando(null)
+        if (modalDetalle?.id === payload.id) {
+          setModalDetalle({ ...modalDetalle, ...payload.data })
+        }
+        await recargar()
+      } catch {
+        setError('Error al editar la publicación.')
+      } finally {
+        setGuardando(false)
+      }
+    }
+
+    if (action === 'delete-publicacion') {
+      try {
+        await api.delete(`/publicaciones/${payload}/`)
+        setPublicaciones(prev => prev.filter(p => p.id !== payload))
+        if (modalDetalle?.id === payload) setModalDetalle(null)
+      } catch {
+        setError('Error al eliminar la publicación.')
+      }
+    }
+
+    setPendingAction(null)
+  }
+
   const handleSubmit = async e => {
     e.preventDefault()
-    setEnviando(true)
-    try {
-      const data = new FormData()
-      data.append('titular',     form.titular)
-      data.append('descripcion', form.descripcion)
-      if (form.imagen) data.append('imagen', form.imagen)
-      await api.post('/publicaciones/', data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-      setForm({ titular: '', descripcion: '', imagen: null })
-      setModalCrear(false)
-      await recargar()
-    } catch {
-      setError('Error al crear la publicación.')
-    } finally {
-      setEnviando(false)
-    }
+    openConfirm('create-publicacion')
   }
 
   // ── Editar ────────────────────────────────────────────────────
@@ -76,33 +122,13 @@ export default function Publicaciones() {
 
   const handleGuardarEdicion = async e => {
     e.preventDefault()
-    setGuardando(true)
-    try {
-      await api.patch(`/publicaciones/${editando.id}/`, formEdit)
-      setEditando(null)
-      // Si el detalle estaba abierto con esa pub, actualizarlo
-      if (modalDetalle?.id === editando.id) {
-        setModalDetalle({ ...modalDetalle, ...formEdit })
-      }
-      await recargar()
-    } catch {
-      setError('Error al editar la publicación.')
-    } finally {
-      setGuardando(false)
-    }
+    openConfirm('edit-publicacion', { id: editando.id, data: formEdit })
   }
 
   // ── Eliminar ──────────────────────────────────────────────────
   const handleEliminar = async (id, e) => {
     e.stopPropagation()
-    if (!window.confirm('¿Eliminar esta publicación?')) return
-    try {
-      await api.delete(`/publicaciones/${id}/`)
-      setPublicaciones(prev => prev.filter(p => p.id !== id))
-      if (modalDetalle?.id === id) setModalDetalle(null)
-    } catch {
-      setError('Error al eliminar la publicación.')
-    }
+    openConfirm('delete-publicacion', id)
   }
 
   // ── URL imagen ────────────────────────────────────────────────
@@ -125,6 +151,20 @@ export default function Publicaciones() {
       </div>
 
       {error && <p style={ps.error}>{error}</p>}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={pendingAction?.action === 'delete-publicacion' ? 'Eliminar publicación' : pendingAction?.action === 'create-publicacion' ? 'Crear publicación' : 'Guardar cambios'}
+        message={pendingAction?.action === 'delete-publicacion'
+          ? '¿Seguro que quieres eliminar esta publicación?'
+          : pendingAction?.action === 'create-publicacion'
+            ? '¿Quieres publicar esta noticia con el contenido actual?'
+            : '¿Deseas guardar los cambios de esta publicación?'}
+        confirmText={pendingAction?.action === 'delete-publicacion' ? 'Eliminar' : 'Confirmar'}
+        danger={pendingAction?.action === 'delete-publicacion'}
+        onConfirm={executePendingAction}
+        onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
+      />
 
       {/* ── Lista de publicaciones ── */}
       {publicaciones.length === 0 ? (
@@ -354,10 +394,10 @@ const ps = {
   // Lista
   lista: { display: 'flex', flexDirection: 'column', gap: '16px' },
   card: {
-    background: 'white', borderRadius: '12px',
-    boxShadow: '0 2px 8px rgba(44,24,16,0.08)',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px',
+    boxShadow: '0 12px 24px rgba(44,24,16,0.06)',
     overflow: 'hidden', cursor: 'pointer',
-    border: '1px solid #e8e0d0',
+    border: '1px solid rgba(117, 82, 52, 0.12)',
     transition: 'box-shadow 0.2s, transform 0.2s',
   },
   imagen:      { width: '100%', maxHeight: '240px', objectFit: 'cover' },
@@ -372,19 +412,19 @@ const ps = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', backgroundColor: DARK, color: 'white',
-    border: 'none', borderRadius: '8px', fontSize: '14px',
-    cursor: 'pointer', fontWeight: '600',
+    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)', color: 'white',
+    border: 'none', borderRadius: '10px', fontSize: '14px',
+    cursor: 'pointer', fontWeight: '700', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
   },
   btnEditar: {
     padding: '5px 12px', backgroundColor: 'transparent',
-    color: DARK, border: `1px solid ${DARK}`,
-    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
+    color: '#2c1810', border: '1px solid rgba(44,24,16,0.7)',
+    borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: '700',
   },
   btnEliminar: {
     padding: '5px 12px', backgroundColor: 'transparent',
-    color: '#c0392b', border: '1px solid #c0392b',
-    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
+    color: '#b3261e', border: '1px solid rgba(179, 38, 30, 0.7)',
+    borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: '700',
   },
   btnCancelar: {
     padding: '10px 20px', backgroundColor: '#ece6da', color: DARK,

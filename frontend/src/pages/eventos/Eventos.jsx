@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 const TIPOS = {
   TODOS:   { label: 'Todos',     emoji: '📋' },
@@ -29,6 +30,8 @@ export default function Eventos() {
   const [enviando, setEnviando]         = useState(false)
   const [editando, setEditando]         = useState(null)
   const [guardando, setGuardando]       = useState(false)
+  const [confirmOpen, setConfirmOpen]   = useState(false)
+  const [pendingAction, setPendingAction] = useState(null)
 
   // ── Filtros ────────────────────────────────────────────────────
   const [busqueda, setBusqueda]         = useState('')
@@ -90,6 +93,65 @@ export default function Eventos() {
     finally { setEnviando(false) }
   }
 
+  const openConfirm = (action, payload = null) => {
+    setPendingAction({ action, payload })
+    setConfirmOpen(true)
+  }
+
+  const executePendingAction = async () => {
+    if (!pendingAction) return
+    const { action, payload } = pendingAction
+    setConfirmOpen(false)
+
+    if (action === 'delete-evento') {
+      try {
+        await api.delete(`/eventos/${payload}/`)
+        setEventos(prev => prev.filter(e => e.id !== payload))
+      } catch { setError('Error al eliminar.') }
+      setPendingAction(null)
+      return
+    }
+
+    if (action === 'create-evento') {
+      setEnviando(true)
+      try {
+        await api.post('/eventos/', form)
+        setForm({ nombre_evento: '', tipo_evento: 'CULTO', fecha: '', lugar: '', descripcion: '' })
+        setMostrarForm(false)
+        await recargar()
+      } catch { setError('Error al crear el evento.') }
+      finally { setEnviando(false) }
+      setPendingAction(null)
+      return
+    }
+
+    if (action === 'edit-evento') {
+      setGuardando(true)
+      try {
+        await api.patch(`/eventos/${payload.id}/`, payload.data)
+        setEditando(null)
+        await recargar()
+      } catch { setError('Error al editar.') }
+      finally { setGuardando(false) }
+      setPendingAction(null)
+      return
+    }
+
+    if (action === 'inscribe-evento') {
+      try {
+        await api.post(`/eventos/${payload}/inscribirse/`)
+        await recargar()
+        setError('')
+      } catch (err) {
+        setError(err.response?.data?.error || 'Error al inscribirse.')
+      }
+      setPendingAction(null)
+      return
+    }
+
+    setPendingAction(null)
+  }
+
   // ── Editar ────────────────────────────────────────────────────
   const abrirEdicion = ev => {
     setEditando(ev)
@@ -104,33 +166,17 @@ export default function Eventos() {
 
   const handleGuardarEdicion = async e => {
     e.preventDefault()
-    setGuardando(true)
-    try {
-      await api.patch(`/eventos/${editando.id}/`, formEdit)
-      setEditando(null)
-      await recargar()
-    } catch { setError('Error al editar.') }
-    finally { setGuardando(false) }
+    openConfirm('edit-evento', { id: editando.id, data: formEdit })
   }
 
   // ── Eliminar ──────────────────────────────────────────────────
   const handleEliminar = async id => {
-    if (!window.confirm('¿Eliminar este evento?')) return
-    try {
-      await api.delete(`/eventos/${id}/`)
-      setEventos(prev => prev.filter(e => e.id !== id))
-    } catch { setError('Error al eliminar.') }
+    openConfirm('delete-evento', id)
   }
 
   // ── Inscribirse ───────────────────────────────────────────────
   const handleInscribirse = async id => {
-    try {
-      await api.post(`/eventos/${id}/inscribirse/`)
-      await recargar()
-      alert('✅ Inscripción confirmada.')
-    } catch (err) {
-      alert(err.response?.data?.error || 'Error al inscribirse.')
-    }
+    openConfirm('inscribe-evento', id)
   }
 
   if (cargando) return <p style={s.info}>Cargando eventos...</p>
@@ -150,11 +196,30 @@ export default function Eventos() {
 
       {error && <p style={s.error}>{error}</p>}
 
+      <ConfirmDialog
+        open={confirmOpen}
+        title={pendingAction?.action === 'delete-evento' ? 'Eliminar evento' : pendingAction?.action === 'create-evento' ? 'Crear evento' : pendingAction?.action === 'edit-evento' ? 'Guardar cambios' : 'Confirmar inscripción'}
+        message={pendingAction?.action === 'delete-evento'
+          ? '¿Seguro que quieres eliminar este evento? Esta acción no se puede deshacer.'
+          : pendingAction?.action === 'create-evento'
+            ? '¿Quieres crear este evento con los datos introducidos?'
+            : pendingAction?.action === 'edit-evento'
+              ? '¿Deseas guardar los cambios realizados en este evento?'
+              : '¿Quieres inscribirte a este evento?'}
+        confirmText={pendingAction?.action === 'delete-evento' ? 'Eliminar' : pendingAction?.action === 'inscribe-evento' ? 'Inscribirse' : 'Confirmar'}
+        danger={pendingAction?.action === 'delete-evento'}
+        onConfirm={executePendingAction}
+        onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
+      />
+
       {/* ── Formulario nuevo evento ── */}
       {mostrarForm && (
         <FormEvento
           form={form} setForm={setForm}
-          onSubmit={handleSubmit} enviando={enviando}
+          onSubmit={e => {
+            e.preventDefault()
+            openConfirm('create-evento')
+          }} enviando={enviando}
           titulo="Nuevo evento" btnLabel="Crear evento"
         />
       )}
@@ -586,57 +651,58 @@ const s = {
   filtrosBar: {
     display: 'flex', flexWrap: 'wrap', gap: '12px',
     alignItems: 'center', marginBottom: '12px',
-    padding: '14px 16px', backgroundColor: 'white',
-    borderRadius: '10px', boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
+    padding: '16px 18px', background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))',
+    borderRadius: '18px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)',
+    border: '1px solid rgba(117, 82, 52, 0.16)',
   },
   searchWrap: {
     display: 'flex', alignItems: 'center', gap: '8px',
-    border: '1px solid #ddd', borderRadius: '8px',
-    padding: '6px 12px', flex: '1', minWidth: '200px',
-    backgroundColor: '#fafafa',
+    border: '1px solid rgba(117, 82, 52, 0.2)', borderRadius: '12px',
+    padding: '8px 12px', flex: '1', minWidth: '200px',
+    background: 'rgba(255,255,255,0.48)',
   },
-  searchIcon:  { fontSize: '14px', color: '#888' },
-  searchInput: { border: 'none', outline: 'none', fontSize: '14px', flex: 1, backgroundColor: 'transparent' },
-  clearBtn:    { border: 'none', background: 'none', cursor: 'pointer', color: '#888', fontSize: '12px' },
+  searchIcon:  { fontSize: '14px', color: '#7d5f42' },
+  searchInput: { border: 'none', outline: 'none', fontSize: '14px', flex: 1, backgroundColor: 'transparent', color: '#2c1810' },
+  clearBtn:    { border: 'none', background: 'none', cursor: 'pointer', color: '#7d5f42', fontSize: '12px' },
   tipoFiltros: { display: 'flex', gap: '6px', flexWrap: 'wrap' },
   tipoBtn: {
-    padding: '5px 12px', borderRadius: '20px', border: '1px solid #ddd',
-    background: 'white', cursor: 'pointer', fontSize: '12px', fontWeight: '500', color: '#555',
+    padding: '7px 12px', borderRadius: '999px', border: '1px solid rgba(117, 82, 52, 0.22)',
+    background: 'rgba(255,255,255,0.48)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', color: '#3d2a20',
   },
-  tipoBtnActivo: { fontWeight: '700' },
+  tipoBtnActivo: { fontWeight: '700', transform: 'translateY(-1px)' },
   vistaToggle: { display: 'flex', gap: '4px', marginLeft: 'auto' },
   vistaBtn: {
-    padding: '6px 12px', borderRadius: '6px', border: '1px solid #ddd',
-    background: 'white', cursor: 'pointer', fontSize: '12px', color: '#555', fontWeight: '500',
+    padding: '7px 12px', borderRadius: '10px', border: '1px solid rgba(117, 82, 52, 0.22)',
+    background: 'rgba(255,255,255,0.48)', cursor: 'pointer', fontSize: '12px', color: '#3d2a20', fontWeight: '700',
   },
-  vistaBtnActivo: {     background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white', borderColor: '#1a1a2e' },
+  vistaBtnActivo: { background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)', color: '#f5e6c8', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)' },
 
   // Formulario
   form: {
-    background: 'white', borderRadius: '10px', padding: '20px',
-    marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+    background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '22px',
+    marginBottom: '20px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', border: '1px solid rgba(117, 82, 52, 0.14)',
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
-  formTitulo: { fontSize: '16px', fontWeight: '700', color: '#1a1a2e', marginBottom: '4px' },
-  label: { fontSize: '13px', fontWeight: '600', color: '#444' },
+  formTitulo: { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },
+  label: { fontSize: '13px', fontWeight: '700', color: '#7d5f42', letterSpacing: '0.08em', textTransform: 'uppercase' },
   input: {
-    padding: '10px 14px', borderRadius: '8px', border: '1px solid #ddd',
-    fontSize: '14px', outline: 'none', fontFamily: 'inherit',
+    padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(117, 82, 52, 0.2)',
+    fontSize: '14px', outline: 'none', fontFamily: 'inherit', backgroundColor: 'rgba(255,255,255,0.52)',
   },
 
   // Cards lista
   lista: { display: 'flex', flexDirection: 'column', gap: '14px' },
-  card:  { background: 'white', borderRadius: '10px', padding: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' },
+  card:  { background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px', padding: '18px', boxShadow: '0 10px 20px rgba(44,24,16,0.06)', border: '1px solid rgba(117, 82, 52, 0.12)' },
   cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' },
   badge: {
     display: 'inline-block', padding: '4px 12px', borderRadius: '20px',
-    fontSize: '12px', fontWeight: '600', border: '1px solid',
+    fontSize: '12px', fontWeight: '700', border: '1px solid',
   },
-  cardTitulo:  { fontSize: '16px', fontWeight: '700', color: '#1a1a2e', marginBottom: '8px' },
-  meta:        { display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px', color: '#555', marginBottom: '8px' },
-  descripcion: { fontSize: '13px', color: '#666', lineHeight: '1.5', marginBottom: '10px' },
+  cardTitulo:  { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '8px' },
+  meta:        { display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px', color: '#5d4a3d', marginBottom: '8px' },
+  descripcion: { fontSize: '13px', color: '#5a4a3a', lineHeight: '1.5', marginBottom: '10px' },
   cardFooter:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  inscritos:   { fontSize: '13px', color: '#777' },
+  inscritos:   { fontSize: '13px', color: '#7c5d49' },
 
   // Botones
   btnPrimary: {
