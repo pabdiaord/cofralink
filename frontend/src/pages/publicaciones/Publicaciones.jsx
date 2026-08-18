@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 const DARK  = '#2c1810'
 const GOLD  = '#c9a84c'
@@ -16,6 +17,8 @@ export default function Publicaciones() {
   const [modalCrear, setModalCrear]     = useState(false)
   const [modalDetalle, setModalDetalle] = useState(null) // pub seleccionada
   const [editando, setEditando]         = useState(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingAction, setPendingAction] = useState(null)
 
   // Formularios
   const [form, setForm]         = useState({ titular: '', descripcion: '', imagen: null })
@@ -46,25 +49,68 @@ export default function Publicaciones() {
   }
 
   // ── Crear ─────────────────────────────────────────────────────
+  const openConfirm = (action, payload = null) => {
+    setPendingAction({ action, payload })
+    setConfirmOpen(true)
+  }
+
+  const executePendingAction = async () => {
+    if (!pendingAction) return
+    const { action, payload } = pendingAction
+    setConfirmOpen(false)
+
+    if (action === 'create-publicacion') {
+      setEnviando(true)
+      try {
+        const data = new FormData()
+        data.append('titular',     form.titular)
+        data.append('descripcion', form.descripcion)
+        if (form.imagen) data.append('imagen', form.imagen)
+        await api.post('/publicaciones/', data, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        setForm({ titular: '', descripcion: '', imagen: null })
+        setModalCrear(false)
+        await recargar()
+      } catch {
+        setError('Error al crear la publicación.')
+      } finally {
+        setEnviando(false)
+      }
+    }
+
+    if (action === 'edit-publicacion') {
+      setGuardando(true)
+      try {
+        await api.patch(`/publicaciones/${payload.id}/`, payload.data)
+        setEditando(null)
+        if (modalDetalle?.id === payload.id) {
+          setModalDetalle({ ...modalDetalle, ...payload.data })
+        }
+        await recargar()
+      } catch {
+        setError('Error al editar la publicación.')
+      } finally {
+        setGuardando(false)
+      }
+    }
+
+    if (action === 'delete-publicacion') {
+      try {
+        await api.delete(`/publicaciones/${payload}/`)
+        setPublicaciones(prev => prev.filter(p => p.id !== payload))
+        if (modalDetalle?.id === payload) setModalDetalle(null)
+      } catch {
+        setError('Error al eliminar la publicación.')
+      }
+    }
+
+    setPendingAction(null)
+  }
+
   const handleSubmit = async e => {
     e.preventDefault()
-    setEnviando(true)
-    try {
-      const data = new FormData()
-      data.append('titular',     form.titular)
-      data.append('descripcion', form.descripcion)
-      if (form.imagen) data.append('imagen', form.imagen)
-      await api.post('/publicaciones/', data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
-      setForm({ titular: '', descripcion: '', imagen: null })
-      setModalCrear(false)
-      await recargar()
-    } catch {
-      setError('Error al crear la publicación.')
-    } finally {
-      setEnviando(false)
-    }
+    openConfirm('create-publicacion')
   }
 
   // ── Editar ────────────────────────────────────────────────────
@@ -76,33 +122,13 @@ export default function Publicaciones() {
 
   const handleGuardarEdicion = async e => {
     e.preventDefault()
-    setGuardando(true)
-    try {
-      await api.patch(`/publicaciones/${editando.id}/`, formEdit)
-      setEditando(null)
-      // Si el detalle estaba abierto con esa pub, actualizarlo
-      if (modalDetalle?.id === editando.id) {
-        setModalDetalle({ ...modalDetalle, ...formEdit })
-      }
-      await recargar()
-    } catch {
-      setError('Error al editar la publicación.')
-    } finally {
-      setGuardando(false)
-    }
+    openConfirm('edit-publicacion', { id: editando.id, data: formEdit })
   }
 
   // ── Eliminar ──────────────────────────────────────────────────
   const handleEliminar = async (id, e) => {
     e.stopPropagation()
-    if (!window.confirm('¿Eliminar esta publicación?')) return
-    try {
-      await api.delete(`/publicaciones/${id}/`)
-      setPublicaciones(prev => prev.filter(p => p.id !== id))
-      if (modalDetalle?.id === id) setModalDetalle(null)
-    } catch {
-      setError('Error al eliminar la publicación.')
-    }
+    openConfirm('delete-publicacion', id)
   }
 
   // ── URL imagen ────────────────────────────────────────────────
@@ -125,6 +151,20 @@ export default function Publicaciones() {
       </div>
 
       {error && <p style={ps.error}>{error}</p>}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={pendingAction?.action === 'delete-publicacion' ? 'Eliminar publicación' : pendingAction?.action === 'create-publicacion' ? 'Crear publicación' : 'Guardar cambios'}
+        message={pendingAction?.action === 'delete-publicacion'
+          ? '¿Seguro que quieres eliminar esta publicación?'
+          : pendingAction?.action === 'create-publicacion'
+            ? '¿Quieres publicar esta noticia con el contenido actual?'
+            : '¿Deseas guardar los cambios de esta publicación?'}
+        confirmText={pendingAction?.action === 'delete-publicacion' ? 'Eliminar' : 'Confirmar'}
+        danger={pendingAction?.action === 'delete-publicacion'}
+        onConfirm={executePendingAction}
+        onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
+      />
 
       {/* ── Lista de publicaciones ── */}
       {publicaciones.length === 0 ? (

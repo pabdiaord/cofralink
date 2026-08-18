@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../api/axios'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 const CARACTERES = {
   NAZARENO:      '🕯️ Nazareno',
@@ -23,6 +24,8 @@ export default function Hermanos() {
   const [enviando, setEnviando]       = useState(false)
   const [editando, setEditando]       = useState(null)
   const [guardando, setGuardando]     = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingAction, setPendingAction] = useState(null)
 
   const formVacio = {
     nombre: '', apellidos: '', direccion: '',
@@ -61,29 +64,68 @@ export default function Hermanos() {
   const totalJunta = hermanos.filter(h => h.caracter === 'MIEMBRO_JUNTA').length
 
   //Crear
- const handleSubmit = async e => {
-    e.preventDefault()
-    setEnviando(true)
-    setError('')
-    try {
-      await api.post('/hermanos/crear-completo/', {
-        nombre:         form.nombre,
-        apellidos:      form.apellidos,
-        direccion:      form.direccion,
-        numero_hermano: form.numero_hermano,
-        estado_cuota:   form.estado_cuota,
-        caracter:       form.caracter,
-      })
-      setForm(formVacio)
-      setMostrarForm(false)
-      await recargar()
-    } catch (err) {
-      const data = err.response?.data
-      const msg  = data?.error || Object.values(data || {}).flat().join(' ') || 'Error al crear el hermano.'
-      setError(msg)
-    } finally {
-      setEnviando(false)
+const openConfirm = (action, payload = null) => {
+    setPendingAction({ action, payload })
+    setConfirmOpen(true)
+  }
+
+  const executePendingAction = async () => {
+    if (!pendingAction) return
+    const { action, payload } = pendingAction
+    setConfirmOpen(false)
+
+    if (action === 'create-hermano') {
+      setEnviando(true)
+      setError('')
+      try {
+        await api.post('/hermanos/crear-completo/', {
+          nombre:         form.nombre,
+          apellidos:      form.apellidos,
+          direccion:      form.direccion,
+          numero_hermano: form.numero_hermano,
+          estado_cuota:   form.estado_cuota,
+          caracter:       form.caracter,
+        })
+        setForm(formVacio)
+        setMostrarForm(false)
+        await recargar()
+      } catch (err) {
+        const data = err.response?.data
+        const msg  = data?.error || Object.values(data || {}).flat().join(' ') || 'Error al crear el hermano.'
+        setError(msg)
+      } finally {
+        setEnviando(false)
+      }
     }
+
+    if (action === 'edit-hermano') {
+      setGuardando(true)
+      try {
+        await api.patch(`/hermanos/${payload.id}/`, payload.data)
+        setEditando(null)
+        await recargar()
+      } catch {
+        setError('Error al editar el hermano.')
+      } finally {
+        setGuardando(false)
+      }
+    }
+
+    if (action === 'delete-hermano') {
+      try {
+        await api.delete(`/hermanos/${payload.id}/`)
+        await recargar()
+      } catch {
+        setError('Error al dar de baja al hermano.')
+      }
+    }
+
+    setPendingAction(null)
+  }
+
+  const handleSubmit = async e => {
+    e.preventDefault()
+    openConfirm('create-hermano')
   }
 
   // Abrir edición
@@ -102,27 +144,12 @@ export default function Hermanos() {
   //Guardar edición
   const handleGuardarEdicion = async e => {
     e.preventDefault()
-    setGuardando(true)
-    try {
-      await api.patch(`/hermanos/${editando.id}/`, formEdit)
-      setEditando(null)
-      await recargar()
-    } catch {
-      setError('Error al editar el hermano.')
-    } finally {
-      setGuardando(false)
-    }
+    openConfirm('edit-hermano', { id: editando.id, data: formEdit })
   }
 
   //Dar de baja
   const handleBaja = async h => {
-    if (!window.confirm(`¿Dar de baja a ${h.nombre} ${h.apellidos}? Esta acción desactivará su cuenta.`)) return
-    try {
-      await api.delete(`/hermanos/${h.id}/`)
-      await recargar()
-    } catch {
-      setError('Error al dar de baja al hermano.')
-    }
+    openConfirm('delete-hermano', { id: h.id, nombre: `${h.nombre} ${h.apellidos}` })
   }
 
   //Filtro búsqueda y filtros rápidos
@@ -149,6 +176,20 @@ export default function Hermanos() {
       </div>
 
       {error && <p style={styles.error}>{error}</p>}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={pendingAction?.action === 'delete-hermano' ? 'Dar de baja' : pendingAction?.action === 'create-hermano' ? 'Crear hermano' : 'Guardar cambios'}
+        message={pendingAction?.action === 'delete-hermano'
+          ? `¿Seguro que quieres dar de baja a ${pendingAction.payload?.nombre}? Esta acción desactivará su cuenta.`
+          : pendingAction?.action === 'create-hermano'
+            ? '¿Quieres crear este nuevo hermano con los datos introducidos?'
+            : '¿Deseas guardar los cambios del hermano?'}
+        confirmText={pendingAction?.action === 'delete-hermano' ? 'Dar de baja' : 'Confirmar'}
+        danger={pendingAction?.action === 'delete-hermano'}
+        onConfirm={executePendingAction}
+        onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
+      />
 
       <div style={styles.filtersPanel}>
         <div style={styles.filterBlock}>

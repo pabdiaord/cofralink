@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 export default function Comunicaciones() {
   const { usuario } = useAuth()
@@ -259,6 +260,8 @@ function ChatGeneral() {
   const [texto, setTexto]             = useState('')
   const [enviando, setEnviando]       = useState(false)
   const [selectorMsg, setSelectorMsg] = useState(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingAction, setPendingAction] = useState(null)
   const bottomRef                     = useRef(null)
 
   useEffect(() => {
@@ -275,23 +278,44 @@ function ChatGeneral() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [mensajes])
 
+  const openConfirm = (action, payload = null) => {
+    setPendingAction({ action, payload })
+    setConfirmOpen(true)
+  }
+
+  const executePendingAction = async () => {
+    if (!pendingAction) return
+    const { action, payload } = pendingAction
+    setConfirmOpen(false)
+
+    if (action === 'create-chat-general') {
+      setEnviando(true)
+      try {
+        await api.post('/chat-general/', { contenido: texto.trim() })
+        setTexto('')
+        const res = await api.get('/chat-general/')
+        setMensajes(res.data)
+      } finally {
+        setEnviando(false)
+      }
+    }
+
+    if (action === 'delete-chat-general') {
+      await api.delete(`/chat-general/${payload}/`)
+      setMensajes(prev => prev.filter(m => m.id !== payload))
+    }
+
+    setPendingAction(null)
+  }
+
   const handleEnviar = async e => {
     e.preventDefault()
     if (!texto.trim() || !usuario?.is_staff) return
-    setEnviando(true)
-    try {
-      await api.post('/chat-general/', { contenido: texto.trim() })
-      setTexto('')
-      const res = await api.get('/chat-general/')
-      setMensajes(res.data)
-    } finally {
-      setEnviando(false)
-    }
+    openConfirm('create-chat-general')
   }
 
   const handleEliminar = async id => {
-    await api.delete(`/chat-general/${id}/`)
-    setMensajes(prev => prev.filter(m => m.id !== id))
+    openConfirm('delete-chat-general', id)
   }
 
   const handleReaccionar = async (mensajeId, emoji) => {
@@ -311,6 +335,18 @@ function ChatGeneral() {
             : 'Solo la Junta de Gobierno puede publicar · puedes reaccionar a los mensajes'}
         </span>
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={pendingAction?.action === 'delete-chat-general' ? 'Eliminar comunicado' : 'Publicar comunicado'}
+        message={pendingAction?.action === 'delete-chat-general'
+          ? '¿Seguro que quieres eliminar este comunicado del canal?'
+          : '¿Quieres publicar este comunicado para toda la hermandad?'}
+        confirmText={pendingAction?.action === 'delete-chat-general' ? 'Eliminar' : 'Publicar'}
+        danger={pendingAction?.action === 'delete-chat-general'}
+        onConfirm={executePendingAction}
+        onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
+      />
 
       <div style={styles.chatBody}>
         {mensajes.length === 0 && (

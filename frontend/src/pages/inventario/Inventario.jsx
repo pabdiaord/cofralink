@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../../api/axios'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 const TIPOS = {
   IMAGEN: { label: 'Imagen devocional', emoji: '🕍' },
@@ -54,6 +55,8 @@ export default function Inventario() {
   const [editando, setEditando]       = useState(null)
   const [formEdit, setFormEdit]       = useState({})
   const [guardando, setGuardando]     = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingAction, setPendingAction] = useState(null)
 
   //Cargar objetos del tipo elegido 
   useEffect(() => {
@@ -80,19 +83,58 @@ export default function Inventario() {
   }
 
   //Crear nuevo objeto
+  const openConfirm = (action, payload = null) => {
+    setPendingAction({ action, payload })
+    setConfirmOpen(true)
+  }
+
+  const executePendingAction = async () => {
+    if (!pendingAction) return
+    const { action, payload } = pendingAction
+    setConfirmOpen(false)
+
+    if (action === 'create-inventario') {
+      setEnviando(true)
+      try {
+        await api.post(`/${ENDPOINTS[tipoActivo]}/`, { ...form, tipo_objeto: tipoActivo })
+        setForm(formBase(tipoActivo))
+        setMostrarForm(false)
+        await recargar()
+      } catch {
+        setError('Error al crear el objeto.')
+      } finally {
+        setEnviando(false)
+      }
+    }
+
+    if (action === 'edit-inventario') {
+      setGuardando(true)
+      try {
+        await api.patch(`/${ENDPOINTS[tipoActivo]}/${payload.id}/`, payload.data)
+        setEditando(null)
+        await recargar()
+      } catch {
+        setError('Error al editar el objeto.')
+      } finally {
+        setGuardando(false)
+      }
+    }
+
+    if (action === 'delete-inventario') {
+      try {
+        await api.delete(`/${ENDPOINTS[tipoActivo]}/${payload}/`)
+        setObjetos(prev => prev.filter(o => o.id !== payload))
+      } catch {
+        setError('Error al eliminar el objeto.')
+      }
+    }
+
+    setPendingAction(null)
+  }
+
   const handleSubmit = async e => {
     e.preventDefault()
-    setEnviando(true)
-    try {
-      await api.post(`/${ENDPOINTS[tipoActivo]}/`, { ...form, tipo_objeto: tipoActivo })
-      setForm(formBase(tipoActivo))
-      setMostrarForm(false)
-      await recargar()
-    } catch {
-      setError('Error al crear el objeto.')
-    } finally {
-      setEnviando(false)
-    }
+    openConfirm('create-inventario')
   }
 
   // Abrir edición
@@ -104,27 +146,12 @@ export default function Inventario() {
   // Guardar edición
   const handleGuardarEdicion = async e => {
     e.preventDefault()
-    setGuardando(true)
-    try {
-      await api.patch(`/${ENDPOINTS[tipoActivo]}/${editando.id}/`, formEdit)
-      setEditando(null)
-      await recargar()
-    } catch {
-      setError('Error al editar el objeto.')
-    } finally {
-      setGuardando(false)
-    }
+    openConfirm('edit-inventario', { id: editando.id, data: formEdit })
   }
 
   // Eliminar objeto
   const handleEliminar = async id => {
-    if (!window.confirm('¿Eliminar este objeto del inventario?')) return
-    try {
-      await api.delete(`/${ENDPOINTS[tipoActivo]}/${id}/`)
-      setObjetos(prev => prev.filter(o => o.id !== id))
-    } catch {
-      setError('Error al eliminar el objeto.')
-    }
+    openConfirm('delete-inventario', id)
   }
 
   // Cambiar tipo de objeto
@@ -150,6 +177,20 @@ export default function Inventario() {
       </div>
 
       {error && <p style={styles.error}>{error}</p>}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={pendingAction?.action === 'delete-inventario' ? 'Eliminar elemento' : pendingAction?.action === 'create-inventario' ? 'Crear elemento' : 'Guardar cambios'}
+        message={pendingAction?.action === 'delete-inventario'
+          ? '¿Seguro que quieres eliminar este elemento del inventario?'
+          : pendingAction?.action === 'create-inventario'
+            ? '¿Deseas añadir este nuevo elemento al inventario?'
+            : '¿Deseas guardar los cambios realizados en este elemento?'}
+        confirmText={pendingAction?.action === 'delete-inventario' ? 'Eliminar' : 'Confirmar'}
+        danger={pendingAction?.action === 'delete-inventario'}
+        onConfirm={executePendingAction}
+        onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
+      />
 
       {/* Tabs de tipo */}
       <div style={styles.tabs}>

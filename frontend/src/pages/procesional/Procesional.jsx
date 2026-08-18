@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 const ESTADOS = {
   pendiente:  { label: 'Pendiente',  color: '#d69e2e', bg: '#fffff0' },
@@ -17,6 +18,8 @@ export default function Procesional() {
   const [enviando, setEnviando]       = useState(false)
   const [editando, setEditando]       = useState(null)
   const [guardando, setGuardando]     = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingAction, setPendingAction] = useState(null)
 
   const formVacio = { paso: '', fecha: '', tramo: '' }
   const [form, setForm]         = useState(formVacio)
@@ -45,22 +48,61 @@ export default function Procesional() {
   }
 
   // ── Crear papeleta (hermano) ──────────────────────────────────────
+  const openConfirm = (action, payload = null) => {
+    setPendingAction({ action, payload })
+    setConfirmOpen(true)
+  }
+
+  const executePendingAction = async () => {
+    if (!pendingAction) return
+    const { action, payload } = pendingAction
+    setConfirmOpen(false)
+
+    if (action === 'create-papeleta') {
+      setEnviando(true)
+      try {
+        await api.post('/papeletas/', form)
+        setForm(formVacio)
+        setMostrarForm(false)
+        await recargar()
+      } catch (err) {
+        const msg = err.response?.data?.detail ||
+                    Object.values(err.response?.data || {}).flat().join(' ') ||
+                    'Error al solicitar la papeleta.'
+        setError(msg)
+      } finally {
+        setEnviando(false)
+      }
+    }
+
+    if (action === 'edit-papeleta') {
+      setGuardando(true)
+      try {
+        await api.patch(`/papeletas/${payload.id}/`, payload.data)
+        setEditando(null)
+        await recargar()
+      } catch {
+        setError('Error al actualizar la papeleta.')
+      } finally {
+        setGuardando(false)
+      }
+    }
+
+    if (action === 'delete-papeleta') {
+      try {
+        await api.delete(`/papeletas/${payload}/`)
+        setPapeletas(prev => prev.filter(p => p.id !== payload))
+      } catch {
+        setError('Error al eliminar la papeleta.')
+      }
+    }
+
+    setPendingAction(null)
+  }
+
   const handleSubmit = async e => {
     e.preventDefault()
-    setEnviando(true)
-    try {
-      await api.post('/papeletas/', form)
-      setForm(formVacio)
-      setMostrarForm(false)
-      await recargar()
-    } catch (err) {
-      const msg = err.response?.data?.detail ||
-                  Object.values(err.response?.data || {}).flat().join(' ') ||
-                  'Error al solicitar la papeleta.'
-      setError(msg)
-    } finally {
-      setEnviando(false)
-    }
+    openConfirm('create-papeleta')
   }
 
   // ── Abrir edición (admin: aprobar/rechazar/asignar tramo) ─────────
@@ -77,27 +119,12 @@ export default function Procesional() {
   // ── Guardar edición ───────────────────────────────────────────────
   const handleGuardarEdicion = async e => {
     e.preventDefault()
-    setGuardando(true)
-    try {
-      await api.patch(`/papeletas/${editando.id}/`, formEdit)
-      setEditando(null)
-      await recargar()
-    } catch {
-      setError('Error al actualizar la papeleta.')
-    } finally {
-      setGuardando(false)
-    }
+    openConfirm('edit-papeleta', { id: editando.id, data: formEdit })
   }
 
   // ── Eliminar ──────────────────────────────────────────────────────
   const handleEliminar = async id => {
-    if (!window.confirm('¿Eliminar esta papeleta?')) return
-    try {
-      await api.delete(`/papeletas/${id}/`)
-      setPapeletas(prev => prev.filter(p => p.id !== id))
-    } catch {
-      setError('Error al eliminar la papeleta.')
-    }
+    openConfirm('delete-papeleta', id)
   }
 
   if (cargando) return <p style={styles.info}>Cargando papeletas...</p>
@@ -122,6 +149,20 @@ export default function Procesional() {
       </div>
 
       {error && <p style={styles.error}>{error}</p>}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={pendingAction?.action === 'delete-papeleta' ? 'Eliminar papeleta' : pendingAction?.action === 'create-papeleta' ? 'Solicitar papeleta' : 'Guardar cambios'}
+        message={pendingAction?.action === 'delete-papeleta'
+          ? '¿Seguro que quieres eliminar esta papeleta?'
+          : pendingAction?.action === 'create-papeleta'
+            ? '¿Quieres enviar esta solicitud de papeleta?'
+            : '¿Deseas guardar los cambios de esta papeleta?'}
+        confirmText={pendingAction?.action === 'delete-papeleta' ? 'Eliminar' : 'Confirmar'}
+        danger={pendingAction?.action === 'delete-papeleta'}
+        onConfirm={executePendingAction}
+        onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
+      />
 
       {/* Formulario solicitud (solo hermano) */}
       {mostrarForm && !usuario?.is_staff && (

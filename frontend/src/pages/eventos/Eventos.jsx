@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 const TIPOS = {
   TODOS:   { label: 'Todos',     emoji: '📋' },
@@ -29,6 +30,8 @@ export default function Eventos() {
   const [enviando, setEnviando]         = useState(false)
   const [editando, setEditando]         = useState(null)
   const [guardando, setGuardando]       = useState(false)
+  const [confirmOpen, setConfirmOpen]   = useState(false)
+  const [pendingAction, setPendingAction] = useState(null)
 
   // ── Filtros ────────────────────────────────────────────────────
   const [busqueda, setBusqueda]         = useState('')
@@ -90,6 +93,53 @@ export default function Eventos() {
     finally { setEnviando(false) }
   }
 
+  const openConfirm = (action, payload = null) => {
+    setPendingAction({ action, payload })
+    setConfirmOpen(true)
+  }
+
+  const executePendingAction = async () => {
+    if (!pendingAction) return
+    const { action, payload } = pendingAction
+    setConfirmOpen(false)
+
+    if (action === 'delete-evento') {
+      try {
+        await api.delete(`/eventos/${payload}/`)
+        setEventos(prev => prev.filter(e => e.id !== payload))
+      } catch { setError('Error al eliminar.') }
+      setPendingAction(null)
+      return
+    }
+
+    if (action === 'create-evento') {
+      setEnviando(true)
+      try {
+        await api.post('/eventos/', form)
+        setForm({ nombre_evento: '', tipo_evento: 'CULTO', fecha: '', lugar: '', descripcion: '' })
+        setMostrarForm(false)
+        await recargar()
+      } catch { setError('Error al crear el evento.') }
+      finally { setEnviando(false) }
+      setPendingAction(null)
+      return
+    }
+
+    if (action === 'edit-evento') {
+      setGuardando(true)
+      try {
+        await api.patch(`/eventos/${payload.id}/`, payload.data)
+        setEditando(null)
+        await recargar()
+      } catch { setError('Error al editar.') }
+      finally { setGuardando(false) }
+      setPendingAction(null)
+      return
+    }
+
+    setPendingAction(null)
+  }
+
   // ── Editar ────────────────────────────────────────────────────
   const abrirEdicion = ev => {
     setEditando(ev)
@@ -104,22 +154,12 @@ export default function Eventos() {
 
   const handleGuardarEdicion = async e => {
     e.preventDefault()
-    setGuardando(true)
-    try {
-      await api.patch(`/eventos/${editando.id}/`, formEdit)
-      setEditando(null)
-      await recargar()
-    } catch { setError('Error al editar.') }
-    finally { setGuardando(false) }
+    openConfirm('edit-evento', { id: editando.id, data: formEdit })
   }
 
   // ── Eliminar ──────────────────────────────────────────────────
   const handleEliminar = async id => {
-    if (!window.confirm('¿Eliminar este evento?')) return
-    try {
-      await api.delete(`/eventos/${id}/`)
-      setEventos(prev => prev.filter(e => e.id !== id))
-    } catch { setError('Error al eliminar.') }
+    openConfirm('delete-evento', id)
   }
 
   // ── Inscribirse ───────────────────────────────────────────────
@@ -150,11 +190,28 @@ export default function Eventos() {
 
       {error && <p style={s.error}>{error}</p>}
 
+      <ConfirmDialog
+        open={confirmOpen}
+        title={pendingAction?.action === 'delete-evento' ? 'Eliminar evento' : pendingAction?.action === 'create-evento' ? 'Crear evento' : 'Guardar cambios'}
+        message={pendingAction?.action === 'delete-evento'
+          ? '¿Seguro que quieres eliminar este evento? Esta acción no se puede deshacer.'
+          : pendingAction?.action === 'create-evento'
+            ? '¿Quieres crear este evento con los datos introducidos?'
+            : '¿Deseas guardar los cambios realizados en este evento?'}
+        confirmText={pendingAction?.action === 'delete-evento' ? 'Eliminar' : 'Confirmar'}
+        danger={pendingAction?.action === 'delete-evento'}
+        onConfirm={executePendingAction}
+        onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
+      />
+
       {/* ── Formulario nuevo evento ── */}
       {mostrarForm && (
         <FormEvento
           form={form} setForm={setForm}
-          onSubmit={handleSubmit} enviando={enviando}
+          onSubmit={e => {
+            e.preventDefault()
+            openConfirm('create-evento')
+          }} enviando={enviando}
           titulo="Nuevo evento" btnLabel="Crear evento"
         />
       )}
