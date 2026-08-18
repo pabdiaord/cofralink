@@ -137,6 +137,18 @@ export default function Eventos() {
       return
     }
 
+    if (action === 'inscribe-evento') {
+      try {
+        await api.post(`/eventos/${payload}/inscribirse/`)
+        await recargar()
+        setError('')
+      } catch (err) {
+        setError(err.response?.data?.error || 'Error al inscribirse.')
+      }
+      setPendingAction(null)
+      return
+    }
+
     setPendingAction(null)
   }
 
@@ -164,13 +176,7 @@ export default function Eventos() {
 
   // ── Inscribirse ───────────────────────────────────────────────
   const handleInscribirse = async id => {
-    try {
-      await api.post(`/eventos/${id}/inscribirse/`)
-      await recargar()
-      alert('✅ Inscripción confirmada.')
-    } catch (err) {
-      alert(err.response?.data?.error || 'Error al inscribirse.')
-    }
+    openConfirm('inscribe-evento', id)
   }
 
   if (cargando) return <p style={s.info}>Cargando eventos...</p>
@@ -192,13 +198,15 @@ export default function Eventos() {
 
       <ConfirmDialog
         open={confirmOpen}
-        title={pendingAction?.action === 'delete-evento' ? 'Eliminar evento' : pendingAction?.action === 'create-evento' ? 'Crear evento' : 'Guardar cambios'}
+        title={pendingAction?.action === 'delete-evento' ? 'Eliminar evento' : pendingAction?.action === 'create-evento' ? 'Crear evento' : pendingAction?.action === 'edit-evento' ? 'Guardar cambios' : 'Confirmar inscripción'}
         message={pendingAction?.action === 'delete-evento'
           ? '¿Seguro que quieres eliminar este evento? Esta acción no se puede deshacer.'
           : pendingAction?.action === 'create-evento'
             ? '¿Quieres crear este evento con los datos introducidos?'
-            : '¿Deseas guardar los cambios realizados en este evento?'}
-        confirmText={pendingAction?.action === 'delete-evento' ? 'Eliminar' : 'Confirmar'}
+            : pendingAction?.action === 'edit-evento'
+              ? '¿Deseas guardar los cambios realizados en este evento?'
+              : '¿Quieres inscribirte a este evento?'}
+        confirmText={pendingAction?.action === 'delete-evento' ? 'Eliminar' : pendingAction?.action === 'inscribe-evento' ? 'Inscribirse' : 'Confirmar'}
         danger={pendingAction?.action === 'delete-evento'}
         onConfirm={executePendingAction}
         onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
