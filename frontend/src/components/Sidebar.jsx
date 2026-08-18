@@ -15,6 +15,7 @@ const navItems = [
   { to: '/eventos',       icon: '📅', label: 'Calendario' },
   { to: '/procesional',   icon: '⛪', label: 'Papeleta de sitio' },
   { to: '/comunicaciones',icon: '💬', label: 'Chat' },
+  { to: '/solicitud-ingreso', icon: '📄', label: 'Solicitud ingreso' },
 ]
 
 const adminItems = [

@@ -12,6 +12,7 @@ import Procesional    from './pages/procesional/Procesional'
 import Comunicaciones from './pages/comunicaciones/Comunicaciones'
 import Navbar         from './components/Navbar'
 import Perfil from './pages/perfil/Perfil'
+import SolicitudIngreso from './pages/solicitud/SolicitudIngreso'
 
 
 // Ruta protegida: redirige al login si no hay sesión
@@ -50,6 +51,9 @@ function AppRoutes() {
       }/>
       <Route path="/perfil" element={
         <RutaProtegida><Perfil /></RutaProtegida>
+      }/>
+      <Route path="/solicitud-ingreso" element={
+        <RutaProtegida><SolicitudIngreso /></RutaProtegida>
       }/>
     </Routes>
   )
