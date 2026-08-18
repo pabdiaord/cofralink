@@ -354,10 +354,10 @@ const ps = {
   // Lista
   lista: { display: 'flex', flexDirection: 'column', gap: '16px' },
   card: {
-    background: 'white', borderRadius: '12px',
-    boxShadow: '0 2px 8px rgba(44,24,16,0.08)',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px',
+    boxShadow: '0 12px 24px rgba(44,24,16,0.06)',
     overflow: 'hidden', cursor: 'pointer',
-    border: '1px solid #e8e0d0',
+    border: '1px solid rgba(117, 82, 52, 0.12)',
     transition: 'box-shadow 0.2s, transform 0.2s',
   },
   imagen:      { width: '100%', maxHeight: '240px', objectFit: 'cover' },
@@ -372,19 +372,19 @@ const ps = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', backgroundColor: DARK, color: 'white',
-    border: 'none', borderRadius: '8px', fontSize: '14px',
-    cursor: 'pointer', fontWeight: '600',
+    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)', color: 'white',
+    border: 'none', borderRadius: '10px', fontSize: '14px',
+    cursor: 'pointer', fontWeight: '700', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
   },
   btnEditar: {
     padding: '5px 12px', backgroundColor: 'transparent',
-    color: DARK, border: `1px solid ${DARK}`,
-    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
+    color: '#2c1810', border: '1px solid rgba(44,24,16,0.7)',
+    borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: '700',
   },
   btnEliminar: {
     padding: '5px 12px', backgroundColor: 'transparent',
-    color: '#c0392b', border: '1px solid #c0392b',
-    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
+    color: '#b3261e', border: '1px solid rgba(179, 38, 30, 0.7)',
+    borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: '700',
   },
   btnCancelar: {
     padding: '10px 20px', backgroundColor: '#ece6da', color: DARK,

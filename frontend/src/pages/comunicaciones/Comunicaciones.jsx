@@ -470,25 +470,26 @@ const styles = {
 
   tabs: { display: 'flex', gap: '8px', marginBottom: '16px', flexShrink: 0 },
   tab: {
-    padding: '10px 22px', borderRadius: '8px', border: '1px solid #ddd',
-    background: 'white', color: '#555', cursor: 'pointer', fontSize: '14px', fontWeight: '500',
+    padding: '10px 22px', borderRadius: '12px', border: '1px solid rgba(117, 82, 52, 0.18)',
+    background: 'rgba(255,255,255,0.6)', color: '#3d2a20', cursor: 'pointer', fontSize: '14px', fontWeight: '700',
+    boxShadow: '0 8px 16px rgba(44, 24, 16, 0.04)',
   },
-  tabActivo: {     background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white', borderColor: '#1a1a2e' },
+  tabActivo: { background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)', color: '#f5e6c8', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)' },
 
   chatWrap: {
     flex: 1, display: 'flex', flexDirection: 'column',
-    background: 'white', borderRadius: '12px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.08)', overflow: 'hidden',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(244,233,220,0.96))', borderRadius: '18px',
+    boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', overflow: 'hidden', border: '1px solid rgba(117, 82, 52, 0.12)',
   },
   chatHeader: {
-    padding: '16px 20px',     background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`,
+    padding: '16px 20px',     background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)',
     display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0,
   },
-  chatHeaderTitle: { color: 'white', fontWeight: '700', fontSize: '15px' },
-  chatHeaderSub:   { color: '#aab', fontSize: '12px' },
+  chatHeaderTitle: { color: '#f5e6c8', fontWeight: '700', fontSize: '15px' },
+  chatHeaderSub:   { color: 'rgba(255,255,255,0.7)', fontSize: '12px' },
   chatBody: {
     flex: 1, overflowY: 'auto', padding: '16px',
-    backgroundColor: '#f0ece4', display: 'flex', flexDirection: 'column',
+    background: 'linear-gradient(180deg, rgba(247,240,232,0.9), rgba(239,227,215,0.88))', display: 'flex', flexDirection: 'column',
   },
   chatVacio: { textAlign: 'center', color: '#888', marginTop: '40px', fontSize: '14px' },
   chatInput: {

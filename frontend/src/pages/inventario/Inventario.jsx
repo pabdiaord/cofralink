@@ -294,42 +294,42 @@ const styles = {
   // Tabs
   tabs: { display: 'flex', gap: '8px', marginBottom: '20px' },
   tab: {
-    padding: '8px 18px', borderRadius: '8px', border: '1px solid #ddd',
-    background: 'white', color: '#555', cursor: 'pointer',
-    fontSize: '14px', fontWeight: '500',
+    padding: '8px 18px', borderRadius: '12px', border: '1px solid rgba(117, 82, 52, 0.18)',
+    background: 'rgba(255,255,255,0.6)', color: '#3d2a20', cursor: 'pointer',
+    fontSize: '14px', fontWeight: '700', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.04)',
   },
   tabActivo: {
-    background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white', borderColor: '#1a1a2e',
+    background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)', color: '#f5e6c8', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
   },
 
   // Formulario
   form: {
-    background: 'white', borderRadius: '10px', padding: '24px',
-    marginBottom: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+    background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '24px',
+    marginBottom: '24px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', border: '1px solid rgba(117, 82, 52, 0.15)',
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
-  formTitulo: { fontSize: '16px', fontWeight: '700', color: '#1a1a2e', marginBottom: '4px' },
-  label: { fontSize: '13px', fontWeight: '600', color: '#444', display: 'block', marginBottom: '4px' },
+  formTitulo: { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },
+  label: { fontSize: '13px', fontWeight: '700', color: '#7d5f42', display: 'block', marginBottom: '4px', letterSpacing: '0.08em', textTransform: 'uppercase' },
   input: {
-    width: '100%', padding: '10px 14px', borderRadius: '8px',
-    border: '1px solid #ddd', fontSize: '14px',
-    outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+    width: '100%', padding: '10px 14px', borderRadius: '10px',
+    border: '1px solid rgba(117, 82, 52, 0.2)', fontSize: '14px',
+    outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', backgroundColor: 'rgba(255,255,255,0.54)',
   },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
 
   // Tabla
   tabla: {
-    background: 'white', borderRadius: '10px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.07)', overflow: 'hidden',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px',
+    boxShadow: '0 12px 24px rgba(44,24,16,0.06)', overflow: 'hidden', border: '1px solid rgba(117, 82, 52, 0.12)',
   },
   tablaHeader: {
     display: 'flex', alignItems: 'center', gap: '12px',
-    padding: '12px 20px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`,
-    color: 'white', fontSize: '13px', fontWeight: '600',
+    padding: '12px 20px', background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)',
+    color: '#f5e6c8', fontSize: '13px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase',
   },
   fila: {
     display: 'flex', alignItems: 'center', gap: '12px',
-    padding: '14px 20px', borderBottom: '1px solid #f0f0f0', fontSize: '14px',
+    padding: '14px 20px', borderBottom: '1px solid rgba(117, 82, 52, 0.08)', fontSize: '14px',
   },
 
   // Botones

@@ -295,24 +295,24 @@ const styles = {
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
 
   form: {
-    background: 'white', borderRadius: '10px', padding: '24px',
-    marginBottom: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+    background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '24px',
+    marginBottom: '24px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', border: '1px solid rgba(117, 82, 52, 0.15)',
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
-  formTitulo: { fontSize: '16px', fontWeight: '700', color: '#1a1a2e', marginBottom: '4px' },
-  label: { fontSize: '13px', fontWeight: '600', color: '#444', display: 'block', marginBottom: '4px' },
+  formTitulo: { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },
+  label: { fontSize: '13px', fontWeight: '700', color: '#7d5f42', display: 'block', marginBottom: '4px', letterSpacing: '0.08em', textTransform: 'uppercase' },
   input: {
-    width: '100%', padding: '10px 14px', borderRadius: '8px',
-    border: '1px solid #ddd', fontSize: '14px',
-    outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+    width: '100%', padding: '10px 14px', borderRadius: '10px',
+    border: '1px solid rgba(117, 82, 52, 0.2)', fontSize: '14px',
+    outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', backgroundColor: 'rgba(255,255,255,0.54)',
   },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
 
   // Cards
   lista:    { display: 'flex', flexDirection: 'column', gap: '14px' },
   card: {
-    background: 'white', borderRadius: '10px', padding: '20px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.07)',
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px', padding: '20px',
+    boxShadow: '0 10px 20px rgba(44,24,16,0.06)', border: '1px solid rgba(117, 82, 52, 0.12)',
   },
   cardTop:   { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' },
   cardTitulo:{ fontSize: '17px', fontWeight: '700', color: '#1a1a2e', marginBottom: '4px' },
