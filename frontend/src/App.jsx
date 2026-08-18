@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Layout        from './components/Layout'
+import ErrorBoundary from './components/ErrorBoundary'
 import Home          from './pages/home/Home'
 import Login          from './pages/auth/Login'
 import Registro       from './pages/auth/Registro'
@@ -13,6 +14,7 @@ import Comunicaciones from './pages/comunicaciones/Comunicaciones'
 import Navbar         from './components/Navbar'
 import Perfil from './pages/perfil/Perfil'
 import SolicitudIngreso from './pages/solicitud/SolicitudIngreso'
+import Error404 from './pages/error/Error404'
 
 
 // Ruta protegida: redirige al login si no hay sesión
@@ -55,16 +57,21 @@ function AppRoutes() {
       <Route path="/solicitud-ingreso" element={
         <RutaProtegida><SolicitudIngreso /></RutaProtegida>
       }/>
+      
+      {/* Ruta catch-all para 404 */}
+      <Route path="*" element={<Error404 />} />
     </Routes>
   )
 }
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }
