@@ -15,6 +15,8 @@ import Navbar         from './components/Navbar'
 import Perfil from './pages/perfil/Perfil'
 import SolicitudIngreso from './pages/solicitud/SolicitudIngreso'
 import Error404 from './pages/error/Error404'
+import CambiarPassword from './pages/auth/CambiarPassword'
+
 
 
 // Ruta protegida: redirige al login si no hay sesión
@@ -60,6 +62,7 @@ function AppRoutes() {
       
       {/* Ruta catch-all para 404 */}
       <Route path="*" element={<Error404 />} />
+      <Route path="/cambiar-password/:uid/:token" element={<CambiarPassword />} />
     </Routes>
   )
 }

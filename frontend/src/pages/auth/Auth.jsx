@@ -106,10 +106,16 @@ export default function Auth({ initialTab = 'login' }) {
 function FormLogin() {
   const { login }   = useAuth()
   const navigate    = useNavigate()
-  const [form, setForm]       = useState({ email: '', password: '' })
-  const [error, setError]     = useState('')
+  const [form, setForm]         = useState({ email: '', password: '' })
+  const [error, setError]       = useState('')
   const [cargando, setCargando] = useState(false)
-  const [verPass, setVerPass] = useState(false)
+  const [verPass, setVerPass]   = useState(false)
+
+  // ── Flujo cambio de contraseña ──
+  const [modalPass, setModalPass]     = useState(false)
+  const [emailReset, setEmailReset]   = useState('')
+  const [enviandoReset, setEnviandoReset] = useState(false)
+  const [mensajeReset, setMensajeReset]   = useState('')
 
   const handleSubmit = async e => {
     e.preventDefault()
@@ -125,44 +131,96 @@ function FormLogin() {
     }
   }
 
+  const handleSolicitarReset = async e => {
+    e.preventDefault()
+    setEnviandoReset(true)
+    try {
+      const res = await api.post('/auth/solicitar-cambio-password/', { email: emailReset })
+      setMensajeReset(res.data.mensaje)
+    } catch {
+      setMensajeReset('Si el correo está registrado, recibirás un enlace en breve.')
+    } finally {
+      setEnviandoReset(false)
+    }
+  }
+
   return (
-    <form onSubmit={handleSubmit} style={as.form}>
-
-      <div style={as.campo}>
-        <label style={as.label}>CORREO ELECTRÓNICO</label>
-        <input
-          type="email" value={form.email} required
-          style={as.input} placeholder="tu@hermandad.es"
-          onChange={e => setForm({ ...form, email: e.target.value })}
-        />
-      </div>
-
-      <div style={as.campo}>
-        <label style={as.label}>CONTRASEÑA</label>
-        <div style={as.passWrap}>
+    <>
+      <form onSubmit={handleSubmit} style={as.form}>
+        <div style={as.campo}>
+          <label style={as.label}>CORREO ELECTRÓNICO</label>
           <input
-            type={verPass ? 'text' : 'password'}
-            value={form.password} required
-            style={{ ...as.input, paddingRight: '42px' }}
-            placeholder="••••••••"
-            onChange={e => setForm({ ...form, password: e.target.value })}
+            type="email" value={form.email} required
+            style={as.input} placeholder="tu@hermandad.es"
+            onChange={e => setForm({ ...form, email: e.target.value })}
           />
-          <button
-            type="button" style={as.eyeBtn}
-            onClick={() => setVerPass(!verPass)}
-          >
-            {verPass ? '🙈' : '👁'}
-          </button>
         </div>
-      </div>
 
-      {error && <p style={as.error}>{error}</p>}
+        <div style={as.campo}>
+          <label style={as.label}>CONTRASEÑA</label>
+          <div style={as.passWrap}>
+            <input
+              type={verPass ? 'text' : 'password'}
+              value={form.password} required
+              style={{ ...as.input, paddingRight: '42px' }}
+              placeholder="••••••••"
+              onChange={e => setForm({ ...form, password: e.target.value })}
+            />
+            <button type="button" style={as.eyeBtn} onClick={() => setVerPass(!verPass)}>
+              {verPass ? '🙈' : '👁'}
+            </button>
+          </div>
+        </div>
 
-      <button type="submit" disabled={cargando} style={as.btnSubmit}>
-        {cargando ? 'ENTRANDO...' : 'INICIAR SESIÓN  ›'}
-      </button>
+        {error && <p style={as.error}>{error}</p>}
 
-    </form>
+        <button type="submit" disabled={cargando} style={as.btnSubmit}>
+          {cargando ? 'ENTRANDO...' : 'INICIAR SESIÓN  ›'}
+        </button>
+
+        {/* Enlace cambio de contraseña */}
+        <button
+          type="button"
+          style={as.linkPass}
+          onClick={() => { setModalPass(true); setMensajeReset('') }}
+        >
+          ¿Primera vez o has olvidado tu contraseña?
+        </button>
+      </form>
+
+      {/* Modal solicitud de cambio */}
+      {modalPass && (
+        <div style={as.overlay} onClick={() => setModalPass(false)}>
+          <div style={as.modalPass} onClick={e => e.stopPropagation()}>
+            <button style={as.modalCerrar} onClick={() => setModalPass(false)}>✕</button>
+            <h3 style={as.modalTitulo}>Cambiar contraseña</h3>
+            <p style={as.modalDesc}>
+              Introduce tu correo y te enviaremos un enlace para establecer una nueva contraseña.
+            </p>
+
+            {mensajeReset ? (
+              <div style={as.mensajeReset}>
+                <p>📬 {mensajeReset}</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSolicitarReset} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={as.campo}>
+                  <label style={as.label}>CORREO ELECTRÓNICO</label>
+                  <input
+                    type="email" value={emailReset} required
+                    style={as.input} placeholder="tu@hermandad.es"
+                    onChange={e => setEmailReset(e.target.value)}
+                  />
+                </div>
+                <button type="submit" disabled={enviandoReset} style={as.btnSubmit}>
+                  {enviandoReset ? 'ENVIANDO...' : 'ENVIAR ENLACE'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
@@ -357,4 +415,30 @@ const as = {
     fontSize: '12px', color: '#9a8866', textAlign: 'center',
     lineHeight: '1.5', margin: 0,
   },
+  linkPass: {
+  background: 'none', border: 'none', cursor: 'pointer',
+  fontSize: '12px', color: '#9a8866', textAlign: 'center',
+  textDecoration: 'underline', padding: '4px 0', fontFamily: 'inherit',
+},
+overlay: {
+  position: 'fixed', inset: 0, backgroundColor: 'rgba(44,24,16,0.5)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  zIndex: 1000, padding: '20px',
+},
+modalPass: {
+  backgroundColor: CREAM, borderRadius: '14px', padding: '28px',
+  width: '100%', maxWidth: '360px', position: 'relative',
+  boxShadow: '0 12px 40px rgba(44,24,16,0.25)',
+},
+modalCerrar: {
+  position: 'absolute', top: '12px', right: '14px',
+  background: 'none', border: 'none', fontSize: '18px',
+  cursor: 'pointer', color: '#9a8866',
+},
+modalTitulo: { fontSize: '18px', fontWeight: '700', color: DARK, margin: '0 0 8px' },
+modalDesc:   { fontSize: '13px', color: '#7a6a58', margin: '0 0 16px', lineHeight: '1.5' },
+mensajeReset: {
+  padding: '14px', backgroundColor: '#f0fff4', borderRadius: '8px',
+  border: '1px solid #c6f6d5', fontSize: '13px', color: '#2d7a45', textAlign: 'center',
+},
 }

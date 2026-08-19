@@ -31,11 +31,10 @@ class CrearHermanoCompletoView(APIView):
 
     @transaction.atomic
     def post(self, request):
-        data = request.data
-
-        # Validaciones básicas
+        data   = request.data
         numero = data.get('numero_hermano')
-        nombre = data.get('nombre', '').lower().replace(' ', '')
+        nombre = data.get('nombre', '').strip()
+        email  = data.get('email', '').strip()
 
         if not numero or not nombre:
             return Response(
@@ -43,29 +42,34 @@ class CrearHermanoCompletoView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Generar credenciales automáticas
-        username = f"{nombre}{numero}"
-        email    = f"hermano{numero}@cofralink.com"
-        password = 'Cofralink123!'
-
-        # Comprobar si el email ya existe
-        if Usuario.objects.filter(email=email).exists():
+        if not email:
             return Response(
-                {'error': f'Ya existe un hermano con número {numero}.'},
+                {'error': 'El email del hermano es obligatorio.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Crear usuario
-        usuario = Usuario.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
+        if Usuario.objects.filter(email=email).exists():
+            return Response(
+                {'error': 'Ya existe un usuario registrado con ese email.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Username generado automáticamente
+        username = (
+            nombre.lower()
+            .replace(' ', '')
+            + str(numero)
         )
 
-        # Crear hermano vinculado al usuario
+        usuario = Usuario.objects.create_user(
+            username = username,
+            email    = email,
+            password = 'Cofralink123!',
+        )
+
         hermano = Hermano.objects.create(
             usuario        = usuario,
-            nombre         = data.get('nombre', ''),
+            nombre         = nombre,
             apellidos      = data.get('apellidos', ''),
             direccion      = data.get('direccion', ''),
             numero_hermano = numero,
@@ -77,7 +81,6 @@ class CrearHermanoCompletoView(APIView):
             HermanoSerializer(hermano).data,
             status=status.HTTP_201_CREATED
         )
-
 class MiPerfilView(APIView):
     """El hermano consulta y edita su propio perfil."""
     permission_classes = [permissions.IsAuthenticated]
