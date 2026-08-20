@@ -88,6 +88,8 @@ export default function SolicitudIngreso() {
           <span style={styles.lineMid} />
           <span style={styles.label}>Teléfono</span>
           <span style={styles.lineMid} />
+          <span style={styles.label}>Correo Electrónico</span>
+          <span style={styles.lineMid} />
         </div>
 
         <div style={styles.formRowLong}>
