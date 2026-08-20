@@ -1,18 +1,32 @@
 from rest_framework import serializers
 from .models import Evento, Inscripcion
+from apps.hermanos.models import Hermano
 
 class EventoSerializer(serializers.ModelSerializer):
     total_inscritos = serializers.SerializerMethodField()
+    ya_inscrito = serializers.SerializerMethodField()
 
     class Meta:
         model  = Evento
         fields = (
             'id', 'nombre_evento', 'tipo_evento',
-            'fecha', 'lugar', 'descripcion', 'total_inscritos',
+            'fecha', 'lugar', 'descripcion', 'total_inscritos', 'ya_inscrito',
         )
 
     def get_total_inscritos(self, obj):
         return obj.inscripciones.filter(estado='confirmada').count()
+
+    def get_ya_inscrito(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+
+        try:
+            hermano = request.user.hermano
+        except Hermano.DoesNotExist:
+            return False
+
+        return obj.inscripciones.filter(hermano=hermano).exists()
 
 class InscripcionSerializer(serializers.ModelSerializer):
     hermano_nombre = serializers.CharField(source='hermano.nombre', read_only=True)

@@ -39,6 +39,7 @@ export default function Eventos() {
 
   // ── Vista: 'lista' | 'mes' | 'semana' ──────────────────────────
   const [vista, setVista]               = useState('lista')
+  const [seccionLista, setSeccionLista] = useState('proximos')
   const [fechaRef, setFechaRef]         = useState(new Date())
 
   const [form, setForm] = useState({
@@ -79,6 +80,10 @@ export default function Eventos() {
                           ev.lugar.toLowerCase().includes(busqueda.toLowerCase())
     return matchTipo && matchBusqueda
   })
+  const ahora = new Date()
+  const eventosFuturos = eventosFiltrados.filter(ev => new Date(ev.fecha) >= ahora)
+  const eventosPasados = eventosFiltrados.filter(ev => new Date(ev.fecha) < ahora)
+  const eventosDeLista = seccionLista === 'proximos' ? eventosFuturos : eventosPasados
 
   // ── Crear ─────────────────────────────────────────────────────
   const handleSubmit = async e => {
@@ -280,20 +285,37 @@ export default function Eventos() {
 
       {/* ── Contador de resultados ── */}
       <p style={s.contador}>
-        {eventosFiltrados.length === 0
+        {eventosDeLista.length === 0
           ? 'No hay eventos con estos filtros.'
-          : `${eventosFiltrados.length} evento${eventosFiltrados.length !== 1 ? 's' : ''} encontrado${eventosFiltrados.length !== 1 ? 's' : ''}`}
+          : `${eventosDeLista.length} evento${eventosDeLista.length !== 1 ? 's' : ''} encontrado${eventosDeLista.length !== 1 ? 's' : ''}`}
       </p>
 
       {/* ── Contenido según vista ── */}
       {vista === 'lista' && (
-        <ListaEventos
-          eventos={eventosFiltrados}
-          usuario={usuario}
-          onEditar={abrirEdicion}
-          onEliminar={handleEliminar}
-          onInscribirse={handleInscribirse}
-        />
+        <>
+          <div style={s.listaSecciones}>
+            <button
+              style={{ ...s.listaSeccionBtn, ...(seccionLista === 'proximos' ? s.listaSeccionBtnActivo : {}) }}
+              onClick={() => setSeccionLista('proximos')}
+            >
+              Próximos eventos ({eventosFuturos.length})
+            </button>
+            <button
+              style={{ ...s.listaSeccionBtn, ...(seccionLista === 'pasados' ? s.listaSeccionBtnActivo : {}) }}
+              onClick={() => setSeccionLista('pasados')}
+            >
+              Eventos ya sucedidos ({eventosPasados.length})
+            </button>
+          </div>
+          <ListaEventos
+            eventos={eventosDeLista}
+            usuario={usuario}
+            esPasado={seccionLista === 'pasados'}
+            onEditar={abrirEdicion}
+            onEliminar={handleEliminar}
+            onInscribirse={handleInscribirse}
+          />
+        </>
       )}
 
       {vista === 'mes' && (
@@ -393,17 +415,18 @@ function FormEvento({ form, setForm, onSubmit, enviando, titulo, btnLabel, extra
 // ══════════════════════════════════════════════════════
 // COMPONENTE: Lista de eventos
 // ══════════════════════════════════════════════════════
-function ListaEventos({ eventos, usuario, onEditar, onEliminar, onInscribirse }) {
+function ListaEventos({ eventos, usuario, esPasado, onEditar, onEliminar, onInscribirse }) {
   if (eventos.length === 0) return null
   return (
     <div style={s.lista}>
       {eventos.map(ev => <TarjetaEvento key={ev.id} ev={ev} usuario={usuario}
+        esPasado={esPasado}
         onEditar={onEditar} onEliminar={onEliminar} onInscribirse={onInscribirse} />)}
     </div>
   )
 }
 
-function TarjetaEvento({ ev, usuario, onEditar, onEliminar, onInscribirse }) {
+function TarjetaEvento({ ev, usuario, esPasado, onEditar, onEliminar, onInscribirse }) {
   const col = colorTipo[ev.tipo_evento] || {}
   return (
     <div style={{ ...s.card, borderLeft: `4px solid ${col.border || '#ccc'}` }}>
@@ -427,8 +450,14 @@ function TarjetaEvento({ ev, usuario, onEditar, onEliminar, onInscribirse }) {
       {ev.descripcion && <p style={s.descripcion}>{ev.descripcion}</p>}
       <div style={s.cardFooter}>
         <span style={s.inscritos}>👥 {ev.total_inscritos} inscritos</span>
-        {!usuario?.is_staff && (
-          <button style={s.btnInscribirse} onClick={() => onInscribirse(ev.id)}>Inscribirme</button>
+        {!usuario?.is_staff && !esPasado && (
+          <button
+            style={{ ...s.btnInscribirse, ...(ev.ya_inscrito ? s.btnInscrito : {}) }}
+            onClick={() => !ev.ya_inscrito && onInscribirse(ev.id)}
+            disabled={ev.ya_inscrito}
+          >
+            {ev.ya_inscrito ? 'Ya estás inscrito' : 'Inscribirme'}
+          </button>
         )}
       </div>
     </div>
@@ -614,8 +643,12 @@ function CalendarioSemana({ eventos, fechaRef, setFechaRef, usuario, onEditar, o
                       </div>
                       <div style={s.semanaEventoLugar}>📍 {ev.lugar}</div>
                       {!usuario?.is_staff && (
-                        <button style={s.semanaEventoBtn} onClick={() => onInscribirse(ev.id)}>
-                          Inscribirme
+                        <button
+                          style={{ ...s.semanaEventoBtn, ...(ev.ya_inscrito ? s.btnInscrito : {}) }}
+                          onClick={() => !ev.ya_inscrito && onInscribirse(ev.id)}
+                          disabled={ev.ya_inscrito}
+                        >
+                          {ev.ya_inscrito ? 'Ya estás inscrito' : 'Inscribirme'}
                         </button>
                       )}
                       {usuario?.is_staff && (
@@ -692,6 +725,12 @@ const s = {
 
   // Cards lista
   lista: { display: 'flex', flexDirection: 'column', gap: '14px' },
+  listaSecciones: { display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' },
+  listaSeccionBtn: {
+    padding: '8px 14px', borderRadius: '10px', border: '1px solid rgba(117, 82, 52, 0.22)',
+    background: 'rgba(255,255,255,0.55)', cursor: 'pointer', fontSize: '13px', color: '#5d4a3d', fontWeight: '600',
+  },
+  listaSeccionBtnActivo: { background: '#4b2d1f', color: '#f5e6c8', borderColor: '#4b2d1f' },
   card:  { background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px', padding: '18px', boxShadow: '0 10px 20px rgba(44,24,16,0.06)', border: '1px solid rgba(117, 82, 52, 0.12)' },
   cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' },
   badge: {
@@ -721,6 +760,7 @@ const s = {
     padding: '7px 16px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white',
     border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: '600',
   },
+  btnInscrito: { background: '#d8d2cc', color: '#655d57', cursor: 'default' },
   btnCancelar: {
     padding: '10px 20px', backgroundColor: '#eee', color: '#333',
     border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', fontWeight: '600',
