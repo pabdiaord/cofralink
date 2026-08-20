@@ -15,6 +15,12 @@ class HermanoViewSet(viewsets.ModelViewSet):
     serializer_class   = HermanoSerializer
     permission_classes = [EsAdmin]
 
+    @transaction.atomic
+    def perform_destroy(self, instance):
+        usuario_id = instance.usuario_id
+        instance.delete()
+        Usuario.objects.filter(pk=usuario_id).delete()
+
     def get_queryset(self):
         qs = super().get_queryset()
         nombre = self.request.query_params.get('nombre')

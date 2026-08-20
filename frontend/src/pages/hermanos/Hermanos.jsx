@@ -182,7 +182,7 @@ const openConfirm = (action, payload = null) => {
         open={confirmOpen}
         title={pendingAction?.action === 'delete-hermano' ? 'Dar de baja' : pendingAction?.action === 'create-hermano' ? 'Crear hermano' : 'Guardar cambios'}
         message={pendingAction?.action === 'delete-hermano'
-          ? `¿Seguro que quieres dar de baja a ${pendingAction.payload?.nombre}? Esta acción desactivará su cuenta.`
+          ? `¿Seguro que quieres dar de baja a ${pendingAction.payload?.nombre}? Esta acción eliminará también su cuenta de usuario.`
           : pendingAction?.action === 'create-hermano'
             ? '¿Quieres crear este nuevo hermano con los datos introducidos?'
             : '¿Deseas guardar los cambios del hermano?'}
