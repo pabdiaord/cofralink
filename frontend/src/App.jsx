@@ -4,7 +4,6 @@ import Layout        from './components/Layout'
 import ErrorBoundary from './components/ErrorBoundary'
 import Home          from './pages/home/Home'
 import Login          from './pages/auth/Login'
-import Registro       from './pages/auth/Registro'
 import Hermanos       from './pages/hermanos/Hermanos'
 import Eventos        from './pages/eventos/Eventos'
 import Publicaciones  from './pages/publicaciones/Publicaciones'
@@ -15,6 +14,8 @@ import Navbar         from './components/Navbar'
 import Perfil from './pages/perfil/Perfil'
 import SolicitudIngreso from './pages/solicitud/SolicitudIngreso'
 import Error404 from './pages/error/Error404'
+import CambiarPassword from './pages/auth/CambiarPassword'
+
 
 
 // Ruta protegida: redirige al login si no hay sesión
@@ -28,7 +29,6 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login"    element={<Login />} />
-      <Route path="/registro" element={<Registro />} />
 
       <Route path="/" element={
         <RutaProtegida><Home /></RutaProtegida>
@@ -60,6 +60,7 @@ function AppRoutes() {
       
       {/* Ruta catch-all para 404 */}
       <Route path="*" element={<Error404 />} />
+      <Route path="/cambiar-password/:uid/:token" element={<CambiarPassword />} />
     </Routes>
   )
 }

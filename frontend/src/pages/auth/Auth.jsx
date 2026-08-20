@@ -31,7 +31,7 @@ export default function Auth({ initialTab = 'login' }) {
           <img src={escudo} alt="Escudo" style={as.escudo} />
 
           <div style={as.hermandadInfo}>
-            <p style={as.hermandadLabel}>HERMANDAD Y COFRADÍA</p>
+            <p style={as.hermandadLabel}>HERMANDAD</p>
             <h2 style={as.hermandadNombre}>
               Santísimo Cristo<br />del Perdón
             </h2>
@@ -60,7 +60,6 @@ export default function Auth({ initialTab = 'login' }) {
             <div style={as.logoBox}>
               <img src={logo} alt="CofraLink" style={as.logoImg} />
             </div>
-            <h1 style={as.appName}>CofraLink</h1>
             <p style={as.appSub}>PLATAFORMA DE GESTIÓN COFRADE</p>
           </div>
 
@@ -71,21 +70,6 @@ export default function Auth({ initialTab = 'login' }) {
             <div style={as.lineaGris} />
           </div>
 
-          {/* Tabs */}
-          <div style={as.tabs}>
-            <button
-              style={{ ...as.tabBtn, ...(tab === 'login' ? as.tabActivo : {}) }}
-              onClick={() => setTab('login')}
-            >
-              Entrar
-            </button>
-            <button
-              style={{ ...as.tabBtn, ...(tab === 'registro' ? as.tabActivo : {}) }}
-              onClick={() => setTab('registro')}
-            >
-              Crear cuenta
-            </button>
-          </div>
 
           {/* Formulario activo */}
           {tab === 'login'
@@ -106,10 +90,16 @@ export default function Auth({ initialTab = 'login' }) {
 function FormLogin() {
   const { login }   = useAuth()
   const navigate    = useNavigate()
-  const [form, setForm]       = useState({ email: '', password: '' })
-  const [error, setError]     = useState('')
+  const [form, setForm]         = useState({ email: '', password: '' })
+  const [error, setError]       = useState('')
   const [cargando, setCargando] = useState(false)
-  const [verPass, setVerPass] = useState(false)
+  const [verPass, setVerPass]   = useState(false)
+
+  // ── Flujo cambio de contraseña ──
+  const [modalPass, setModalPass]     = useState(false)
+  const [emailReset, setEmailReset]   = useState('')
+  const [enviandoReset, setEnviandoReset] = useState(false)
+  const [mensajeReset, setMensajeReset]   = useState('')
 
   const handleSubmit = async e => {
     e.preventDefault()
@@ -125,128 +115,99 @@ function FormLogin() {
     }
   }
 
-  return (
-    <form onSubmit={handleSubmit} style={as.form}>
-
-      <div style={as.campo}>
-        <label style={as.label}>CORREO ELECTRÓNICO</label>
-        <input
-          type="email" value={form.email} required
-          style={as.input} placeholder="tu@hermandad.es"
-          onChange={e => setForm({ ...form, email: e.target.value })}
-        />
-      </div>
-
-      <div style={as.campo}>
-        <label style={as.label}>CONTRASEÑA</label>
-        <div style={as.passWrap}>
-          <input
-            type={verPass ? 'text' : 'password'}
-            value={form.password} required
-            style={{ ...as.input, paddingRight: '42px' }}
-            placeholder="••••••••"
-            onChange={e => setForm({ ...form, password: e.target.value })}
-          />
-          <button
-            type="button" style={as.eyeBtn}
-            onClick={() => setVerPass(!verPass)}
-          >
-            {verPass ? '🙈' : '👁'}
-          </button>
-        </div>
-      </div>
-
-      {error && <p style={as.error}>{error}</p>}
-
-      <button type="submit" disabled={cargando} style={as.btnSubmit}>
-        {cargando ? 'ENTRANDO...' : 'INICIAR SESIÓN  ›'}
-      </button>
-
-    </form>
-  )
-}
-
-// ══════════════════════════════════════════════
-// FORMULARIO REGISTRO
-// ══════════════════════════════════════════════
-function FormRegistro({ onExito }) {
-  const [form, setForm]   = useState({ nombre: '', email: '', password: '' })
-  const [error, setError] = useState('')
-  const [cargando, setCargando] = useState(false)
-
-  const handleSubmit = async e => {
+  const handleSolicitarReset = async e => {
     e.preventDefault()
-    setError('')
-    setCargando(true)
-
-    // Generar username a partir del nombre
-    const username = form.nombre
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quitar tildes
-      .replace(/\s+/g, '.')
-      .slice(0, 30)
-
+    setEnviandoReset(true)
     try {
-      await api.post('/auth/registro/', {
-        username,
-        email:     form.email,
-        password:  form.password,
-        password2: form.password,
-      })
-      onExito()
-    } catch (err) {
-      const data = err.response?.data
-      const msg  = data ? Object.values(data).flat().join(' ') : 'Error al registrarse.'
-      setError(msg)
+      const res = await api.post('/auth/solicitar-cambio-password/', { email: emailReset })
+      setMensajeReset(res.data.mensaje)
+    } catch {
+      setMensajeReset('Si el correo está registrado, recibirás un enlace en breve.')
     } finally {
-      setCargando(false)
+      setEnviandoReset(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} style={as.form}>
+    <>
+      <form onSubmit={handleSubmit} style={as.form}>
+        <div style={as.campo}>
+          <label style={as.label}>CORREO ELECTRÓNICO</label>
+          <input
+            type="email" value={form.email} required
+            style={as.input} placeholder="tu@hermandad.es"
+            onChange={e => setForm({ ...form, email: e.target.value })}
+          />
+        </div>
 
-      <div style={as.campo}>
-        <label style={as.label}>NOMBRE COMPLETO</label>
-        <input
-          value={form.nombre} required
-          style={as.input} placeholder="Pablo García Rodríguez"
-          onChange={e => setForm({ ...form, nombre: e.target.value })}
-        />
-      </div>
+        <div style={as.campo}>
+          <label style={as.label}>CONTRASEÑA</label>
+          <div style={as.passWrap}>
+            <input
+              type={verPass ? 'text' : 'password'}
+              value={form.password} required
+              style={{ ...as.input, paddingRight: '42px' }}
+              placeholder="••••••••"
+              onChange={e => setForm({ ...form, password: e.target.value })}
+            />
+            <button type="button" style={as.eyeBtn} onClick={() => setVerPass(!verPass)}>
+              {verPass ? '🙈' : '👁'}
+            </button>
+          </div>
+        </div>
 
-      <div style={as.campo}>
-        <label style={as.label}>CORREO ELECTRÓNICO</label>
-        <input
-          type="email" value={form.email} required
-          style={as.input} placeholder="tu@hermandad.es"
-          onChange={e => setForm({ ...form, email: e.target.value })}
-        />
-      </div>
+        {error && <p style={as.error}>{error}</p>}
 
-      <div style={as.campo}>
-        <label style={as.label}>CONTRASEÑA</label>
-        <input
-          type="password" value={form.password} required
-          style={as.input} placeholder="••••••••"
-          onChange={e => setForm({ ...form, password: e.target.value })}
-        />
-      </div>
+        <button type="submit" disabled={cargando} style={as.btnSubmit}>
+          {cargando ? 'ENTRANDO...' : 'INICIAR SESIÓN  ›'}
+        </button>
 
-      {error && <p style={as.error}>{error}</p>}
+        {/* Enlace cambio de contraseña */}
+        <button
+          type="button"
+          style={as.linkPass}
+          onClick={() => { setModalPass(true); setMensajeReset('') }}
+        >
+          ¿Primera vez o has olvidado tu contraseña?
+        </button>
+      </form>
 
-      <button type="submit" disabled={cargando} style={as.btnSubmit}>
-        {cargando ? 'REGISTRANDO...' : 'CREAR CUENTA DE HERMANO'}
-      </button>
+      {/* Modal solicitud de cambio */}
+      {modalPass && (
+        <div style={as.overlay} onClick={() => setModalPass(false)}>
+          <div style={as.modalPass} onClick={e => e.stopPropagation()}>
+            <button style={as.modalCerrar} onClick={() => setModalPass(false)}>✕</button>
+            <h3 style={as.modalTitulo}>Cambiar contraseña</h3>
+            <p style={as.modalDesc}>
+              Introduce tu correo y te enviaremos un enlace para establecer una nueva contraseña.
+            </p>
 
-      <p style={as.nota}>
-        Al registrarte se te asigna el rol de hermano.
-        La Junta puede ascender tu rol más tarde.
-      </p>
-
-    </form>
+            {mensajeReset ? (
+              <div style={as.mensajeReset}>
+                <p>📬 {mensajeReset}</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSolicitarReset} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={as.campo}>
+                  <label style={as.label}>CORREO ELECTRÓNICO</label>
+                  <input
+                    type="email" value={emailReset} required
+                    style={as.input} placeholder="tu@hermandad.es"
+                    onChange={e => setEmailReset(e.target.value)}
+                  />
+                </div>
+                <button type="submit" disabled={enviandoReset} style={as.btnSubmit}>
+                  {enviandoReset ? 'ENVIANDO...' : 'ENVIAR ENLACE'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   )
 }
+
 
 // ══════════════════════════════════════════════
 // ESTILOS
@@ -301,11 +262,11 @@ const as = {
   // Logo
   logoWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' },
   logoBox: {
-    width: '64px', height: '64px', borderRadius: '16px',
+    width: '94px', height: '94px', borderRadius: '16px',
     backgroundColor: DARK, display: 'flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: '0 4px 16px rgba(44,24,16,0.25)',
   },
-  logoImg:  { width: '44px', height: '44px', objectFit: 'contain' },
+  logoImg:  { width: '84px', height: '84px', objectFit: 'contain' },
   appName:  { fontSize: '24px', fontWeight: '700', color: DARK, margin: 0, fontFamily: 'Georgia, serif' },
   appSub:   { fontSize: '10px', fontWeight: '700', color: GOLD, letterSpacing: '0.15em', margin: 0 },
 
@@ -357,4 +318,30 @@ const as = {
     fontSize: '12px', color: '#9a8866', textAlign: 'center',
     lineHeight: '1.5', margin: 0,
   },
+  linkPass: {
+  background: 'none', border: 'none', cursor: 'pointer',
+  fontSize: '12px', color: '#9a8866', textAlign: 'center',
+  textDecoration: 'underline', padding: '4px 0', fontFamily: 'inherit',
+},
+overlay: {
+  position: 'fixed', inset: 0, backgroundColor: 'rgba(44,24,16,0.5)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  zIndex: 1000, padding: '20px',
+},
+modalPass: {
+  backgroundColor: CREAM, borderRadius: '14px', padding: '28px',
+  width: '100%', maxWidth: '360px', position: 'relative',
+  boxShadow: '0 12px 40px rgba(44,24,16,0.25)',
+},
+modalCerrar: {
+  position: 'absolute', top: '12px', right: '14px',
+  background: 'none', border: 'none', fontSize: '18px',
+  cursor: 'pointer', color: '#9a8866',
+},
+modalTitulo: { fontSize: '18px', fontWeight: '700', color: DARK, margin: '0 0 8px' },
+modalDesc:   { fontSize: '13px', color: '#7a6a58', margin: '0 0 16px', lineHeight: '1.5' },
+mensajeReset: {
+  padding: '14px', backgroundColor: '#f0fff4', borderRadius: '8px',
+  border: '1px solid #c6f6d5', fontSize: '13px', color: '#2d7a45', textAlign: 'center',
+},
 }

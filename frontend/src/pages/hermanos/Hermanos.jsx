@@ -28,9 +28,9 @@ export default function Hermanos() {
   const [pendingAction, setPendingAction] = useState(null)
 
   const formVacio = {
-    nombre: '', apellidos: '', direccion: '',
-    numero_hermano: '', estado_cuota: 'NO_PAGADO', caracter: 'NAZARENO',
-  }
+  nombre: '', apellidos: '', direccion: '', email: '',
+  numero_hermano: '', estado_cuota: 'NO_PAGADO', caracter: 'NAZARENO',
+}
   const [form, setForm]         = useState(formVacio)
   const [formEdit, setFormEdit] = useState(formVacio)
 
@@ -82,6 +82,7 @@ const openConfirm = (action, payload = null) => {
           nombre:         form.nombre,
           apellidos:      form.apellidos,
           direccion:      form.direccion,
+          email:          form.email,
           numero_hermano: form.numero_hermano,
           estado_cuota:   form.estado_cuota,
           caracter:       form.caracter,
@@ -181,7 +182,7 @@ const openConfirm = (action, payload = null) => {
         open={confirmOpen}
         title={pendingAction?.action === 'delete-hermano' ? 'Dar de baja' : pendingAction?.action === 'create-hermano' ? 'Crear hermano' : 'Guardar cambios'}
         message={pendingAction?.action === 'delete-hermano'
-          ? `¿Seguro que quieres dar de baja a ${pendingAction.payload?.nombre}? Esta acción desactivará su cuenta.`
+          ? `¿Seguro que quieres dar de baja a ${pendingAction.payload?.nombre}? Esta acción eliminará también su cuenta de usuario.`
           : pendingAction?.action === 'create-hermano'
             ? '¿Quieres crear este nuevo hermano con los datos introducidos?'
             : '¿Deseas guardar los cambios del hermano?'}
@@ -271,7 +272,13 @@ const openConfirm = (action, payload = null) => {
             onChange={e => setForm({ ...form, direccion: e.target.value })}
             placeholder="Dirección (opcional)"
           />
-
+          <label style={styles.label}>Email del hermano</label>
+          <input
+            type="email"
+            style={styles.input} value={form.email} required
+            onChange={e => setForm({ ...form, email: e.target.value })}
+            placeholder="hermano@ejemplo.com"
+          />
           <div style={styles.grid3}>
             <div>
               <label style={styles.label}>Nº Hermano</label>
@@ -305,7 +312,8 @@ const openConfirm = (action, payload = null) => {
           </div>
 
           <p style={styles.nota}>
-            💡 Se creará un usuario con email <strong>hermanoNUM@cofralink.com</strong> y contraseña temporal <strong>Cofralink123!</strong>
+            💡 Se creará un cuenta con el email indicado y contraseña temporal <strong>Cofralink123!</strong>.
+                El hermano deberá cambiarla al iniciar sesión por primera vez.
           </p>
 
           <button type="submit" disabled={enviando} style={styles.btnPrimary}>
