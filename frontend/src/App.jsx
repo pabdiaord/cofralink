@@ -4,7 +4,6 @@ import Layout        from './components/Layout'
 import ErrorBoundary from './components/ErrorBoundary'
 import Home          from './pages/home/Home'
 import Login          from './pages/auth/Login'
-import Registro       from './pages/auth/Registro'
 import Hermanos       from './pages/hermanos/Hermanos'
 import Eventos        from './pages/eventos/Eventos'
 import Publicaciones  from './pages/publicaciones/Publicaciones'
@@ -30,7 +29,6 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login"    element={<Login />} />
-      <Route path="/registro" element={<Registro />} />
 
       <Route path="/" element={
         <RutaProtegida><Home /></RutaProtegida>

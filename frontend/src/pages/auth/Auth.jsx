@@ -31,7 +31,7 @@ export default function Auth({ initialTab = 'login' }) {
           <img src={escudo} alt="Escudo" style={as.escudo} />
 
           <div style={as.hermandadInfo}>
-            <p style={as.hermandadLabel}>HERMANDAD Y COFRADÍA</p>
+            <p style={as.hermandadLabel}>HERMANDAD</p>
             <h2 style={as.hermandadNombre}>
               Santísimo Cristo<br />del Perdón
             </h2>
@@ -60,7 +60,6 @@ export default function Auth({ initialTab = 'login' }) {
             <div style={as.logoBox}>
               <img src={logo} alt="CofraLink" style={as.logoImg} />
             </div>
-            <h1 style={as.appName}>CofraLink</h1>
             <p style={as.appSub}>PLATAFORMA DE GESTIÓN COFRADE</p>
           </div>
 
@@ -71,21 +70,6 @@ export default function Auth({ initialTab = 'login' }) {
             <div style={as.lineaGris} />
           </div>
 
-          {/* Tabs */}
-          <div style={as.tabs}>
-            <button
-              style={{ ...as.tabBtn, ...(tab === 'login' ? as.tabActivo : {}) }}
-              onClick={() => setTab('login')}
-            >
-              Entrar
-            </button>
-            <button
-              style={{ ...as.tabBtn, ...(tab === 'registro' ? as.tabActivo : {}) }}
-              onClick={() => setTab('registro')}
-            >
-              Crear cuenta
-            </button>
-          </div>
 
           {/* Formulario activo */}
           {tab === 'login'
@@ -224,87 +208,6 @@ function FormLogin() {
   )
 }
 
-// ══════════════════════════════════════════════
-// FORMULARIO REGISTRO
-// ══════════════════════════════════════════════
-function FormRegistro({ onExito }) {
-  const [form, setForm]   = useState({ nombre: '', email: '', password: '' })
-  const [error, setError] = useState('')
-  const [cargando, setCargando] = useState(false)
-
-  const handleSubmit = async e => {
-    e.preventDefault()
-    setError('')
-    setCargando(true)
-
-    // Generar username a partir del nombre
-    const username = form.nombre
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quitar tildes
-      .replace(/\s+/g, '.')
-      .slice(0, 30)
-
-    try {
-      await api.post('/auth/registro/', {
-        username,
-        email:     form.email,
-        password:  form.password,
-        password2: form.password,
-      })
-      onExito()
-    } catch (err) {
-      const data = err.response?.data
-      const msg  = data ? Object.values(data).flat().join(' ') : 'Error al registrarse.'
-      setError(msg)
-    } finally {
-      setCargando(false)
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} style={as.form}>
-
-      <div style={as.campo}>
-        <label style={as.label}>NOMBRE COMPLETO</label>
-        <input
-          value={form.nombre} required
-          style={as.input} placeholder="Pablo García Rodríguez"
-          onChange={e => setForm({ ...form, nombre: e.target.value })}
-        />
-      </div>
-
-      <div style={as.campo}>
-        <label style={as.label}>CORREO ELECTRÓNICO</label>
-        <input
-          type="email" value={form.email} required
-          style={as.input} placeholder="tu@hermandad.es"
-          onChange={e => setForm({ ...form, email: e.target.value })}
-        />
-      </div>
-
-      <div style={as.campo}>
-        <label style={as.label}>CONTRASEÑA</label>
-        <input
-          type="password" value={form.password} required
-          style={as.input} placeholder="••••••••"
-          onChange={e => setForm({ ...form, password: e.target.value })}
-        />
-      </div>
-
-      {error && <p style={as.error}>{error}</p>}
-
-      <button type="submit" disabled={cargando} style={as.btnSubmit}>
-        {cargando ? 'REGISTRANDO...' : 'CREAR CUENTA DE HERMANO'}
-      </button>
-
-      <p style={as.nota}>
-        Al registrarte se te asigna el rol de hermano.
-        La Junta puede ascender tu rol más tarde.
-      </p>
-
-    </form>
-  )
-}
 
 // ══════════════════════════════════════════════
 // ESTILOS
@@ -359,11 +262,11 @@ const as = {
   // Logo
   logoWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' },
   logoBox: {
-    width: '64px', height: '64px', borderRadius: '16px',
+    width: '94px', height: '94px', borderRadius: '16px',
     backgroundColor: DARK, display: 'flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: '0 4px 16px rgba(44,24,16,0.25)',
   },
-  logoImg:  { width: '44px', height: '44px', objectFit: 'contain' },
+  logoImg:  { width: '84px', height: '84px', objectFit: 'contain' },
   appName:  { fontSize: '24px', fontWeight: '700', color: DARK, margin: 0, fontFamily: 'Georgia, serif' },
   appSub:   { fontSize: '10px', fontWeight: '700', color: GOLD, letterSpacing: '0.15em', margin: 0 },
 

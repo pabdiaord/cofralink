@@ -15,7 +15,7 @@ from .models import Usuario
 class RegistroView(generics.CreateAPIView):
     queryset           = Usuario.objects.all()
     serializer_class   = RegistroSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAdminUser]
 
 
 class PerfilView(generics.RetrieveUpdateAPIView):
