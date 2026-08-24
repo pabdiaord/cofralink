@@ -1,7 +1,11 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  // En producción se recomienda publicar el frontend y /api en el mismo
+  // origen. VITE_API_URL es pública: nunca debe contener secretos.
+  baseURL: import.meta.env.VITE_API_URL || (
+    import.meta.env.DEV ? 'http://localhost:8000/api' : '/api'
+  ),
 })
 
 // Añade el token JWT automáticamente a todas las peticiones

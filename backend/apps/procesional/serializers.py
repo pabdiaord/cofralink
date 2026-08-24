@@ -7,4 +7,12 @@ class PapeletaSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Papeleta
         fields = ('id', 'usuario', 'usuario_email', 'paso', 'fecha', 'tramo', 'estado')
+        # El solicitante nunca decide el resultado de su propia papeleta.
+        read_only_fields = ('usuario', 'estado')
+
+
+class PapeletaAdminSerializer(PapeletaSerializer):
+    """Serializer de gestión reservado para la Junta de Gobierno."""
+
+    class Meta(PapeletaSerializer.Meta):
         read_only_fields = ('usuario',)

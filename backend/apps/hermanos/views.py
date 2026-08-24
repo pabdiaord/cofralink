@@ -2,7 +2,10 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from apps.usuarios.models import Usuario
+from apps.usuarios.views import send_password_reset_email
 from .models import Hermano
 from .serializers import HermanoSerializer
 
@@ -54,6 +57,14 @@ class CrearHermanoCompletoView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        try:
+            validate_email(email)
+        except ValidationError:
+            return Response(
+                {'error': 'El email no tiene un formato válido.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         if Usuario.objects.filter(email=email).exists():
             return Response(
                 {'error': 'Ya existe un usuario registrado con ese email.'},
@@ -67,11 +78,11 @@ class CrearHermanoCompletoView(APIView):
             + str(numero)
         )
 
-        usuario = Usuario.objects.create_user(
-            username = username,
-            email    = email,
-            password = 'Cofralink123!',
-        )
+        # La cuenta no tiene una contraseña conocida. Solo podrá acceder tras
+        # usar el enlace individual de activación enviado a su correo.
+        usuario = Usuario(username=username, email=email)
+        usuario.set_unusable_password()
+        usuario.save()
 
         hermano = Hermano.objects.create(
             usuario        = usuario,
@@ -82,6 +93,16 @@ class CrearHermanoCompletoView(APIView):
             estado_cuota   = data.get('estado_cuota', 'NO_PAGADO'),
             caracter       = data.get('caracter', 'NAZARENO'),
         )
+
+        try:
+            send_password_reset_email(usuario)
+        except Exception:
+            # No dejamos una cuenta sin contraseña cuyo enlace no se entregó.
+            transaction.set_rollback(True)
+            return Response(
+                {'error': 'No se pudo enviar el email de activación. No se ha creado la cuenta.'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
         return Response(
             HermanoSerializer(hermano).data,

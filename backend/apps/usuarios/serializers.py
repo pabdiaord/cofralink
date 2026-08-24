@@ -28,4 +28,4 @@ class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Usuario
         fields = ('id', 'username', 'email', 'is_staff', 'is_active')
-        read_only_fields = ('is_staff',)
+        read_only_fields = ('is_staff', 'is_active')
