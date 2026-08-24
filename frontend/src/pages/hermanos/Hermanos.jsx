@@ -312,8 +312,8 @@ const openConfirm = (action, payload = null) => {
           </div>
 
           <p style={styles.nota}>
-            💡 Se creará un cuenta con el email indicado y contraseña temporal <strong>Cofralink123!</strong>.
-                El hermano deberá cambiarla al iniciar sesión por primera vez.
+            💡 Se enviará al email indicado un enlace único para que el hermano establezca su contraseña.
+            No se crea ninguna contraseña temporal y el enlace caduca en 24 horas.
           </p>
 
           <button type="submit" disabled={enviando} style={styles.btnPrimary}>

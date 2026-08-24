@@ -8,17 +8,46 @@ const DARK = '#2c1810'
 const GOLD = '#c9a84c'
 const CREAM = '#f5f0e8'
 
+function validarPasswordLocal(password) {
+  const errores = []
+  if (password.length < 12) {
+    errores.push('Debe tener al menos 12 caracteres.')
+  }
+  if (password && /^\d+$/.test(password)) {
+    errores.push('No puede estar formada únicamente por números.')
+  }
+  return errores
+}
+
 export default function CambiarPassword() {
   const { uid, token } = useParams()
   const navigate       = useNavigate()
   const [form, setForm]   = useState({ password1: '', password2: '' })
   const [error, setError] = useState('')
+  const [erroresPassword, setErroresPassword] = useState([])
+  const [mostrarValidacion, setMostrarValidacion] = useState(false)
   const [exito, setExito] = useState('')
   const [cargando, setCargando] = useState(false)
+
+  const actualizarPassword = password1 => {
+    setForm(prev => ({ ...prev, password1 }))
+    if (mostrarValidacion) {
+      setErroresPassword(validarPasswordLocal(password1))
+    }
+  }
 
   const handleSubmit = async e => {
     e.preventDefault()
     setError('')
+    setMostrarValidacion(true)
+
+    const erroresLocales = validarPasswordLocal(form.password1)
+    if (erroresLocales.length > 0) {
+      setErroresPassword(erroresLocales)
+      return
+    }
+
+    setErroresPassword([])
     if (form.password1 !== form.password2) {
       setError('Las contraseñas no coinciden.')
       return
@@ -33,7 +62,14 @@ export default function CambiarPassword() {
       setExito(res.data.mensaje)
       setTimeout(() => navigate('/login'), 3000)
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al cambiar la contraseña.')
+      const data = err.response?.data
+      const erroresServidor = data?.password1
+      if (Array.isArray(erroresServidor)) {
+        setErroresPassword(erroresServidor)
+        setError('Revisa los requisitos de la contraseña.')
+      } else {
+        setError(data?.error || 'Error al cambiar la contraseña.')
+      }
     } finally {
       setCargando(false)
     }
@@ -90,9 +126,25 @@ export default function CambiarPassword() {
                 <label style={cs.label}>NUEVA CONTRASEÑA</label>
                 <input
                   type="password" value={form.password1} required
-                  style={cs.input} placeholder="Mínimo 8 caracteres"
-                  onChange={e => setForm({ ...form, password1: e.target.value })}
+                  style={cs.input} placeholder="Mínimo 12 caracteres"
+                  autoComplete="new-password"
+                  aria-describedby="password-requisitos"
+                  onBlur={() => {
+                    setMostrarValidacion(true)
+                    setErroresPassword(validarPasswordLocal(form.password1))
+                  }}
+                  onChange={e => actualizarPassword(e.target.value)}
                 />
+                <p id="password-requisitos" style={cs.requisitos}>
+                  Usa al menos 12 caracteres; evita contraseñas comunes, solo numéricas o parecidas a tu email.
+                </p>
+                {mostrarValidacion && erroresPassword.length > 0 && (
+                  <ul style={cs.listaErrores} role="alert">
+                    {erroresPassword.map(errorPassword => (
+                      <li key={errorPassword}>{errorPassword}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <div style={cs.campo}>
@@ -100,6 +152,7 @@ export default function CambiarPassword() {
                 <input
                   type="password" value={form.password2} required
                   style={cs.input} placeholder="Repite la contraseña"
+                  autoComplete="new-password"
                   onChange={e => setForm({ ...form, password2: e.target.value })}
                 />
               </div>
@@ -153,6 +206,8 @@ const cs = {
   campo: { display: 'flex', flexDirection: 'column', gap: '6px' },
   label: { fontSize: '10px', fontWeight: '700', color: '#9a8866', letterSpacing: '0.12em' },
   input: { padding: '12px 14px', borderRadius: '8px', border: '1px solid #d8cfc4', fontSize: '14px', outline: 'none', backgroundColor: 'white', color: DARK, fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' },
+  requisitos: { fontSize: '11px', color: '#746653', margin: '2px 0 0', lineHeight: '1.4' },
+  listaErrores: { fontSize: '12px', color: '#c0392b', margin: '0', paddingLeft: '18px', lineHeight: '1.45' },
   error: { fontSize: '12px', color: '#c0392b', textAlign: 'center', margin: 0 },
   btnSubmit: { padding: '14px', backgroundColor: DARK, color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: '700', letterSpacing: '0.1em', marginTop: '4px' },
   exitoBox: { textAlign: 'center', padding: '24px', backgroundColor: '#f0fff4', borderRadius: '12px', border: '1px solid #c6f6d5' },

@@ -1,25 +1,75 @@
-from django.shortcuts import render
-from rest_framework import generics, permissions, status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenObtainPairView
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.encoding import force_bytes, force_str
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.core.mail import send_mail
 from django.conf import settings
-from .serializers import RegistroSerializer, UsuarioSerializer
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 from .models import Usuario
+from .serializers import RegistroSerializer, UsuarioSerializer
+from .throttles import (
+    LoginEmailThrottle,
+    LoginIPThrottle,
+    PasswordResetConfirmThrottle,
+    PasswordResetEmailThrottle,
+    PasswordResetIPThrottle,
+    TokenRefreshThrottle,
+)
+
+
+def password_reset_url(usuario):
+    """Construye una URL de restablecimiento desde configuración de confianza."""
+    token = PasswordResetTokenGenerator().make_token(usuario)
+    uid = urlsafe_base64_encode(force_bytes(usuario.pk))
+    return f'{settings.FRONTEND_URL}/cambiar-password/{uid}/{token}/'
+
+
+def send_password_reset_email(usuario):
+    """Envía el enlace de activación/restablecimiento sin registrar el token."""
+    enlace = password_reset_url(usuario)
+    send_mail(
+        subject='CofraLink — Cambio de contraseña',
+        message=(
+            'Hola,\n\n'
+            'Hemos recibido una solicitud para establecer la contraseña de tu cuenta en CofraLink.\n\n'
+            'Usa el siguiente enlace para continuar:\n\n'
+            f'{enlace}\n\n'
+            'Este enlace es válido durante 24 horas.\n\n'
+            'Si no esperabas este mensaje, puedes ignorarlo.\n\n'
+            'Hermandad del Santísimo Cristo del Perdón\n'
+            'CofraLink — Plataforma de Gestión Cofrade'
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[usuario.email],
+        fail_silently=False,
+    )
+
+
+class LoginView(TokenObtainPairView):
+    """Login con límites independientes por IP y por cuenta."""
+
+    throttle_classes = [LoginIPThrottle, LoginEmailThrottle]
+
+
+class RefreshTokenView(TokenRefreshView):
+    """Evita que un token de refresh robado se pruebe de forma masiva."""
+
+    throttle_classes = [TokenRefreshThrottle]
 
 
 class RegistroView(generics.CreateAPIView):
-    queryset           = Usuario.objects.all()
-    serializer_class   = RegistroSerializer
+    queryset = Usuario.objects.all()
+    serializer_class = RegistroSerializer
     permission_classes = [permissions.IsAdminUser]
 
 
 class PerfilView(generics.RetrieveUpdateAPIView):
-    serializer_class   = UsuarioSerializer
+    serializer_class = UsuarioSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
@@ -27,55 +77,38 @@ class PerfilView(generics.RetrieveUpdateAPIView):
 
 
 class SolicitarCambioPasswordView(APIView):
-    """El usuario introduce su email y recibe un enlace de cambio de contraseña."""
+    """Envía un enlace sin revelar si un correo está registrado."""
+
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [PasswordResetIPThrottle, PasswordResetEmailThrottle]
 
     def post(self, request):
         email = request.data.get('email', '').strip()
         if not email:
             return Response({'error': 'El email es obligatorio.'}, status=400)
 
-        # Respuesta siempre igual por seguridad (no revelar si el email existe)
-        mensaje = {'mensaje': 'Si el correo está registrado, recibirás un enlace en breve.'}
+        mensaje = {
+            'mensaje': 'Si el correo está registrado, recibirás un enlace en breve.'
+        }
 
         try:
             usuario = Usuario.objects.get(email=email)
         except Usuario.DoesNotExist:
             return Response(mensaje)
 
-        token_generator = PasswordResetTokenGenerator()
-        token = token_generator.make_token(usuario)
-        uid   = urlsafe_base64_encode(force_bytes(usuario.pk))
-
-        enlace = f"http://localhost:5173/cambiar-password/{uid}/{token}/"
-
-        send_mail(
-            subject='CofraLink — Cambio de contraseña',
-            message=(
-                f'Hola,\n\n'
-                f'Hemos recibido una solicitud para cambiar la contraseña de tu cuenta en CofraLink.\n\n'
-                f'Haz clic en el siguiente enlace para establecer tu nueva contraseña:\n\n'
-                f'{enlace}\n\n'
-                f'Este enlace es válido durante 24 horas.\n\n'
-                f'Si no has solicitado este cambio, puedes ignorar este correo.\n\n'
-                f'Hermandad del Santísimo Cristo del Perdón\n'
-                f'CofraLink — Plataforma de Gestión Cofrade'
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
-        )
-
+        send_password_reset_email(usuario)
         return Response(mensaje)
 
 
 class ConfirmarCambioPasswordView(APIView):
-    """Valida el token y establece la nueva contraseña."""
+    """Valida el token y aplica los validadores de contraseña de Django."""
+
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [PasswordResetConfirmThrottle]
 
     def post(self, request):
-        uid       = request.data.get('uid', '')
-        token     = request.data.get('token', '')
+        uid = request.data.get('uid', '')
+        token = request.data.get('token', '')
         password1 = request.data.get('password1', '')
         password2 = request.data.get('password2', '')
 
@@ -85,20 +118,20 @@ class ConfirmarCambioPasswordView(APIView):
         if password1 != password2:
             return Response({'error': 'Las contraseñas no coinciden.'}, status=400)
 
-        if len(password1) < 8:
-            return Response({'error': 'La contraseña debe tener al menos 8 caracteres.'}, status=400)
-
         try:
-            pk      = force_str(urlsafe_base64_decode(uid))
+            pk = force_str(urlsafe_base64_decode(uid))
             usuario = Usuario.objects.get(pk=pk)
         except (TypeError, ValueError, OverflowError, Usuario.DoesNotExist):
             return Response({'error': 'Enlace inválido o expirado.'}, status=400)
 
-        token_generator = PasswordResetTokenGenerator()
-        if not token_generator.check_token(usuario, token):
+        if not PasswordResetTokenGenerator().check_token(usuario, token):
             return Response({'error': 'El enlace ha expirado. Solicita uno nuevo.'}, status=400)
 
-        usuario.set_password(password1)
-        usuario.save()
+        try:
+            validate_password(password1, user=usuario)
+        except ValidationError as exc:
+            return Response({'password1': list(exc.messages)}, status=400)
 
+        usuario.set_password(password1)
+        usuario.save(update_fields=['password'])
         return Response({'mensaje': 'Contraseña cambiada correctamente. Ya puedes iniciar sesión.'})

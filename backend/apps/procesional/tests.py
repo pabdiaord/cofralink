@@ -61,6 +61,18 @@ class TestPapeletas(PapeletaTestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(res.data['estado'], 'pendiente')
 
+    def test_hermano_no_puede_elegir_estado_al_solicitar(self):
+        """Un hermano no puede crear una papeleta ya aprobada."""
+        self._auth_hermano()
+        res = self.client.post('/api/papeletas/', {
+            'paso': 'Paso de Palio',
+            'fecha': '2027-03-23',
+            'tramo': 'Tramo 1',
+            'estado': 'aprobada',
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.data['estado'], 'pendiente')
+
     def test_listar_papeletas_admin(self):
         """Admin ve todas las papeletas."""
         self._auth_admin()
@@ -108,6 +120,16 @@ class TestPapeletas(PapeletaTestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.papeleta.refresh_from_db()
         self.assertEqual(self.papeleta.estado, 'rechazada')
+
+    def test_hermano_no_puede_cambiar_el_estado_de_su_papeleta(self):
+        """El propietario no puede autoaprobarse una papeleta."""
+        self._auth_hermano()
+        res = self.client.patch(f'/api/papeletas/{self.papeleta.id}/', {
+            'estado': 'aprobada'
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.papeleta.refresh_from_db()
+        self.assertEqual(self.papeleta.estado, 'pendiente')
 
     def test_eliminar_papeleta(self):
         """Admin puede eliminar una papeleta."""

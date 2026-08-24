@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 from rest_framework import status
 from apps.usuarios.models import Usuario
@@ -43,6 +43,7 @@ class HermanoTestCase(TestCase):
             HTTP_AUTHORIZATION=f"Bearer {res.data['access']}")
 
 
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
 class TestCrearHermanoCompleto(HermanoTestCase):
 
     def test_crear_hermano_completo_admin(self):
@@ -60,6 +61,8 @@ class TestCrearHermanoCompleto(HermanoTestCase):
         self.assertTrue(Usuario.objects.filter(
             email='pedro@cofralink.com').exists())
         self.assertTrue(Hermano.objects.filter(numero_hermano=10).exists())
+        usuario = Usuario.objects.get(email='pedro@cofralink.com')
+        self.assertFalse(usuario.has_usable_password())
 
     def test_crear_hermano_completo_sin_admin(self):
         """Un hermano no puede crear otro hermano — debe recibir 403."""

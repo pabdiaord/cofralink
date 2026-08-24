@@ -1,4 +1,5 @@
 from django.test import TestCase, override_settings
+from django.core.cache import cache
 # from django.urls import reverse
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
@@ -6,6 +7,7 @@ from django.utils.http import urlsafe_base64_encode
 from rest_framework.test import APIClient
 from rest_framework import status
 from .models import Usuario
+from .throttles import LoginIPThrottle
 
 
 class UsuarioTestCase(TestCase):
@@ -64,6 +66,18 @@ class TestLogin(UsuarioTestCase):
             'password': 'Admin123!'
         }, format='json')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class TestRateLimiting(TestCase):
+
+    def setUp(self):
+        cache.clear()
+
+    def test_login_throttle_admite_intervalos_de_quince_minutos(self):
+        throttle = LoginIPThrottle()
+        requests, seconds = throttle.parse_rate('5/15minute')
+        self.assertEqual(requests, 5)
+        self.assertEqual(seconds, 15 * 60)
 
 
 class TestPerfil(UsuarioTestCase):
@@ -170,8 +184,8 @@ class TestRegistroSerializer(UsuarioTestCase):
         res = self.client.post('/api/auth/registro/', {
             'username':  'nuevo',
             'email':     'nuevo@cofralink.com',
-            'password':  'Pass1234!',
-            'password2': 'Pass1234!',
+            'password':  'Passphrase#2026!',
+            'password2': 'Passphrase#2026!',
         }, format='json')
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -181,7 +195,7 @@ class TestRegistroSerializer(UsuarioTestCase):
         res = self.client.post('/api/auth/registro/', {
             'username':  'nuevo',
             'email':     'nuevo@cofralink.com',
-            'password':  'Pass1234!',
+            'password':  'Passphrase#2026!',
             'password2': 'Pass1234!',
         }, format='json')
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
@@ -192,8 +206,8 @@ class TestRegistroSerializer(UsuarioTestCase):
         res = self.client.post('/api/auth/registro/', {
             'username':  'nuevousuario',
             'email':     'nuevousuario@cofralink.com',
-            'password':  'Pass1234!',
-            'password2': 'Pass1234!',
+            'password':  'Passphrase#2026!',
+            'password2': 'Passphrase#2026!',
         }, format='json')
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertTrue(Usuario.objects.filter(
