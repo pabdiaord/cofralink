@@ -103,11 +103,6 @@ export default function Home() {
           <p style={hs.bannerLema}>Hermandad Franciscana del Santísimo Sacramento, Inmaculada Concepción
             y Cofradía de Nazarenos del Santísimo Cristo del Perdón, Nuestra Señora de las Angustias, Santa Clara de Asís y San Juan Evangelista</p>
           <h1 style={hs.bannerTitulo}>Bienvenido {nombre}</h1>
-          <p style={hs.bannerDesc}>
-            {usuario?.is_staff
-              ? 'Esta es tu área en CofraLink. Aquí encontrarás la comunicación con los hermanos, las notificaciones de la hermandad y tu actividad como miembro de la Junta de Gobierno.'
-              : 'Esta es tu área en CofraLink. Aquí encontrarás los eventos, las noticias y toda la información de tu hermandad.'}
-          </p>
         </div>
         <div style={hs.bannerEscudo}>
             <img src={escudo} alt="Escudo de la hermandad" style={hs.escudoImg} />
@@ -126,7 +121,7 @@ export default function Home() {
       <div style={hs.accesoGrid}>
         <AccesoCard
           icon="💬"
-          titulo="Chat con la hermandad"
+          titulo="Atención al hermano"
           desc={usuario?.is_staff
             ? 'Atiende las consultas de los hermanos y publica comunicados oficiales.'
             : 'Habla directamente con la Junta de Gobierno.'}
@@ -146,7 +141,7 @@ export default function Home() {
         />
         <AccesoCard
           icon="⛪"
-          titulo="Papeleta de sitio"
+          titulo="Reserva tu sitio"
           desc={usuario?.is_staff
             ? 'Gestiona las solicitudes de papeleta de los hermanos.'
             : 'Consulta o solicita tu papeleta para la estación de penitencia.'}
@@ -297,7 +292,7 @@ const hs = {
     fontWeight: '700',
     letterSpacing: '0.12em',
     textTransform: 'uppercase',
-    marginBottom: '12px',
+    marginBottom: '72px',
     textAlign: 'justify',
     lineHeight: '1.6',
   },
@@ -305,17 +300,9 @@ const hs = {
     color: '#fffaf5',
     fontSize: '54px',
     fontWeight: '700',
-    margin: '0 0 14px',
+    margin: 0,
     lineHeight: '1.05',
     letterSpacing: '-0.04em',
-  },
-  bannerDesc: {
-    color: 'rgba(255,255,255,0.76)',
-    fontSize: '15px',
-    lineHeight: '1.6',
-    maxWidth: '620px',
-    margin: 0,
-    textAlign: 'justify',
   },
   bannerEscudo: {
     width: '260px',
