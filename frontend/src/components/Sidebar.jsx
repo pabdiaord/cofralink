@@ -15,6 +15,7 @@ const navItems = [
   { to: '/eventos',       icon: '📅', label: 'Calendario' },
   { to: '/procesional',   icon: '⛪', label: 'Papeleta de sitio' },
   { to: '/comunicaciones',icon: '💬', label: 'Chat' },
+  { to: '/donaciones',     icon: '🪙', label: 'Donaciones' },
   { to: '/solicitud-ingreso', icon: '📄', label: 'Solicitud ingreso' },
 ]
 

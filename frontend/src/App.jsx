@@ -15,6 +15,8 @@ import Perfil from './pages/perfil/Perfil'
 import SolicitudIngreso from './pages/solicitud/SolicitudIngreso'
 import Error404 from './pages/error/Error404'
 import CambiarPassword from './pages/auth/CambiarPassword'
+import Donaciones from './pages/donaciones/Donaciones'
+import DonacionResultado from './pages/donaciones/DonacionResultado'
 
 
 
@@ -56,6 +58,12 @@ function AppRoutes() {
       }/>
       <Route path="/solicitud-ingreso" element={
         <RutaProtegida><SolicitudIngreso /></RutaProtegida>
+      }/>
+      <Route path="/donaciones" element={
+        <RutaProtegida><Donaciones /></RutaProtegida>
+      }/>
+      <Route path="/donaciones/resultado" element={
+        <RutaProtegida><DonacionResultado /></RutaProtegida>
       }/>
       
       {/* Ruta catch-all para 404 */}

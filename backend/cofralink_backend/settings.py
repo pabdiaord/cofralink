@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'apps.inventario',
     'apps.procesional',
     'apps.comunicaciones',
+    'apps.donaciones',
 ]
 
 MIDDLEWARE = [
@@ -252,6 +253,24 @@ EMAIL_HOST_USER = required_env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = required_env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 PASSWORD_RESET_TIMEOUT = 60 * 60 * 24
+
+# CofraLink se distribuye como TFG: la integración de Stripe está limitada de
+# forma deliberada a Sandboxes. El propio proceso no arranca si se intenta usar
+# una clave Live, incluso cuando DEBUG=False.
+STRIPE_ENVIRONMENT = os.getenv('STRIPE_ENVIRONMENT', 'sandbox').strip().lower()
+STRIPE_SECRET_KEY = required_env('STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_SECRET = required_env('STRIPE_WEBHOOK_SECRET')
+
+if STRIPE_ENVIRONMENT != 'sandbox':
+    raise ImproperlyConfigured(
+        'CofraLink solo permite STRIPE_ENVIRONMENT=sandbox para este TFG.'
+    )
+if not STRIPE_SECRET_KEY.startswith('sk_test_'):
+    raise ImproperlyConfigured(
+        'CofraLink solo admite claves Stripe de Sandbox con prefijo sk_test_.'
+    )
+if not STRIPE_WEBHOOK_SECRET.startswith('whsec_'):
+    raise ImproperlyConfigured('STRIPE_WEBHOOK_SECRET debe tener el prefijo whsec_.')
 
 # TRUST_X_FORWARDED_PROTO solo debe activarse cuando el proxy inverso sea de
 # confianza y elimine esa cabecera del cliente antes de reenviar la petición.
