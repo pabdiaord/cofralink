@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import escudo from '../../assets/escudo.png'
+import nazarenoIcon from '../../assets/nazareno.png'
+import costaleroIcon from '../../assets/costalero.png'
+import miembroJuntaIcon from '../../assets/miembroDeJunta.png'
 import api from '../../api/axios'
 import bienvenida from '../../assets/bienvenida.jpg'
 import footer from '../../assets/footer.jpg'
@@ -10,10 +13,10 @@ const GOLD  = '#c9a84c'
 const DARK  = '#2c1810'
 const CREAM = '#efe3d7'
 
-const CARACTER_LABEL = {
-  NAZARENO:      'Nazareno',
-  COSTALERO:     'Costalero',
-  MIEMBRO_JUNTA: 'Junta de Gobierno',
+const CARACTER_INFO = {
+  NAZARENO:      { label: 'Nazareno', icon: nazarenoIcon },
+  COSTALERO:     { label: 'Costalero', icon: costaleroIcon },
+  MIEMBRO_JUNTA: { label: 'Junta de Gobierno', icon: miembroJuntaIcon },
 }
 
 function useCuentaAtras(fechaObjetivo) {
@@ -76,9 +79,15 @@ export default function Home() {
     : (usuario?.username || usuario?.email?.split('@')[0] || 'Hermano')
 
   // Rol visible
+  const caracter = CARACTER_INFO[hermano?.caracter]
   const rolVisible = usuario?.is_staff
     ? 'Junta de Gobierno'
-    : (CARACTER_LABEL[hermano?.caracter] || 'Hermano')
+    : (caracter?.label || 'Hermano')
+  const iconoRol = usuario?.is_staff
+    ? '⚜️'
+    : (caracter?.icon
+      ? <img src={caracter.icon} alt={caracter.label} style={hs.statRoleImage} />
+      : '⛪')
 
   // Estado cuota
   const estadoVisible = hermano
@@ -94,11 +103,6 @@ export default function Home() {
           <p style={hs.bannerLema}>Hermandad Franciscana del Santísimo Sacramento, Inmaculada Concepción
             y Cofradía de Nazarenos del Santísimo Cristo del Perdón, Nuestra Señora de las Angustias, Santa Clara de Asís y San Juan Evangelista</p>
           <h1 style={hs.bannerTitulo}>Bienvenido {nombre}</h1>
-          <p style={hs.bannerDesc}>
-            {usuario?.is_staff
-              ? 'Esta es tu área en CofraLink. Aquí encontrarás la comunicación con los hermanos, las notificaciones de la hermandad y tu actividad como miembro de la Junta de Gobierno.'
-              : 'Esta es tu área en CofraLink. Aquí encontrarás los eventos, las noticias y toda la información de tu hermandad.'}
-          </p>
         </div>
         <div style={hs.bannerEscudo}>
             <img src={escudo} alt="Escudo de la hermandad" style={hs.escudoImg} />
@@ -108,8 +112,8 @@ export default function Home() {
       {/* ── Tarjetas de datos ── */}
       <div style={hs.statsGrid}>
         <CuentaAtrasCard />
-        <StatCard icon="👤" label="TU ROL"           value={rolVisible} />
-        <StatCard icon="🛡️"  label="ESTADO"           value={estadoVisible}
+        <StatCard icon={iconoRol} label="TU ROL"        value={rolVisible} />
+        <StatCard icon="🔔"  label="ESTADO"           value={estadoVisible}
           valueColor={hermano?.estado_cuota === 'NO_PAGADO' ? '#b45309' : '#2d7a45'} />
       </div>
 
@@ -117,14 +121,14 @@ export default function Home() {
       <div style={hs.accesoGrid}>
         <AccesoCard
           icon="💬"
-          titulo="Chat con la hermandad"
+          titulo="Atención al hermano"
           desc={usuario?.is_staff
             ? 'Atiende las consultas de los hermanos y publica comunicados oficiales.'
             : 'Habla directamente con la Junta de Gobierno.'}
           onClick={() => navigate('/comunicaciones')}
         />
         <AccesoCard
-          icon="🔔"
+          icon="📰"
           titulo="Noticias y publicaciones"
           desc="Cabildos, cultos y avisos oficiales publicados por la Junta."
           onClick={() => navigate('/publicaciones')}
@@ -137,7 +141,7 @@ export default function Home() {
         />
         <AccesoCard
           icon="⛪"
-          titulo="Papeleta de sitio"
+          titulo="Reserva tu sitio"
           desc={usuario?.is_staff
             ? 'Gestiona las solicitudes de papeleta de los hermanos.'
             : 'Consulta o solicita tu papeleta para la estación de penitencia.'}
@@ -288,7 +292,7 @@ const hs = {
     fontWeight: '700',
     letterSpacing: '0.12em',
     textTransform: 'uppercase',
-    marginBottom: '12px',
+    marginBottom: '72px',
     textAlign: 'justify',
     lineHeight: '1.6',
   },
@@ -296,17 +300,9 @@ const hs = {
     color: '#fffaf5',
     fontSize: '54px',
     fontWeight: '700',
-    margin: '0 0 14px',
+    margin: 0,
     lineHeight: '1.05',
     letterSpacing: '-0.04em',
-  },
-  bannerDesc: {
-    color: 'rgba(255,255,255,0.76)',
-    fontSize: '15px',
-    lineHeight: '1.6',
-    maxWidth: '620px',
-    margin: 0,
-    textAlign: 'justify',
   },
   bannerEscudo: {
     width: '260px',
@@ -358,7 +354,8 @@ const hs = {
     color: '#8b725d',
     letterSpacing: '0.08em',
   },
-  statIcon: { fontSize: '16px', opacity: 0.78 },
+  statIcon: { fontSize: '24px', opacity: 0.9, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px' },
+  statRoleImage: { width: '34px', height: '34px', objectFit: 'contain', display: 'block', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.12))' },
   statValue: { fontSize: '24px', fontWeight: '700', color: DARK },
 
   // Acceso rápido

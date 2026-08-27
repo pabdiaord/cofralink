@@ -32,6 +32,7 @@ urlpatterns = [
     path('api/',                include('apps.inventario.urls')),
     path('api/',                include('apps.procesional.urls')),
     path('api/',                include('apps.comunicaciones.urls')),
+    path('api/donaciones/',     include('apps.donaciones.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

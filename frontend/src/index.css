@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Cormorant+Garamond:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 
 :root {
   --cofrade-ink: #2c1810;
@@ -24,28 +24,36 @@ html {
 }
 
 body {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Source Sans 3', Arial, sans-serif;
   background: linear-gradient(180deg, #f4efe8 0%, #f8f3ee 100%);
   color: var(--cofrade-ink);
-  line-height: 1.5;
-  letter-spacing: 0.01em;
+  font-size: 17px;
+  line-height: 1.6;
+  letter-spacing: 0.005em;
 }
 
 button,
 input,
 textarea,
 select {
-  font-family: 'Libre Baskerville', Georgia, serif;
+  font-family: 'Source Sans 3', Arial, sans-serif;
+  line-height: 1.4;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Cinzel', Georgia, serif;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  text-transform: none;
 }
 
 p, span, a, li, small, strong, label {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Source Sans 3', Arial, sans-serif;
+}
+
+small {
+  font-size: 0.875em;
 }
 
 button {
@@ -54,6 +62,10 @@ button {
 
 button:hover {
   transform: translateY(-1px);
+}
+
+.donation-carousel::-webkit-scrollbar {
+  display: none;
 }
 
 input, textarea, select {

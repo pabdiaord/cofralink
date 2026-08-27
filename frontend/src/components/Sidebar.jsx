@@ -15,6 +15,7 @@ const navItems = [
   { to: '/eventos',       icon: '📅', label: 'Calendario' },
   { to: '/procesional',   icon: '⛪', label: 'Papeleta de sitio' },
   { to: '/comunicaciones',icon: '💬', label: 'Chat' },
+  { to: '/donaciones',     icon: '🪙', label: 'Donaciones' },
   { to: '/solicitud-ingreso', icon: '📄', label: 'Solicitud ingreso' },
 ]
 
@@ -39,7 +40,7 @@ export default function Sidebar() {
     return {
       display: 'flex', alignItems: 'center', gap: '10px',
       padding: '12px 14px', borderRadius: '14px', margin: '4px 0',
-      textDecoration: 'none', fontSize: '14px', fontWeight: '600',
+      textDecoration: 'none', fontSize: '16px', fontWeight: '600',
       color: isActive ? '#f7f1ea' : '#e9ddd1',
       background: isActive || isHovered
         ? 'linear-gradient(135deg, #1f140f 0%, #3b201c 100%)'
@@ -70,9 +71,6 @@ export default function Sidebar() {
       cursor: 'pointer',
     }
   }
-
-  // Nombre del usuario
-  const nombreMostrado = usuario?.username || usuario?.email?.split('@')[0] || 'Usuario'
 
   return (
     <aside style={ss.sidebar}>
@@ -194,8 +192,8 @@ const ss = {
   },
   icon: { fontSize: '16px', width: '20px', textAlign: 'center', color: '#e8d7ba' },
   seccion: {
-    fontSize: '10px', fontWeight: '700', color: '#d4b87b',
-    letterSpacing: '0.12em', textTransform: 'uppercase',
+    fontSize: '12px', fontWeight: '700', color: '#d4b87b',
+    letterSpacing: '0.08em', textTransform: 'uppercase',
     padding: '18px 14px 8px',
   },
   footer: {
@@ -221,14 +219,14 @@ const ss = {
   },
   userTexts: { flex: 1, minWidth: 0 },
   userEmail: {
-    fontSize: '11px', fontWeight: '700', color: '#f2e7d8',
+    fontSize: '13px', fontWeight: '700', color: '#f2e7d8',
     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
   },
-  userRol: { fontSize: '10px', color: '#d0bc8a', marginTop: '2px' },
+  userRol: { fontSize: '12px', color: '#d0bc8a', marginTop: '2px' },
   btnLogout: {
     width: '100%', padding: '10px 12px',
     background: 'rgba(255,255,255,0.04)', cursor: 'pointer',
-    fontSize: '13px', color: '#f1e7d8', fontWeight: '600',
+    fontSize: '15px', color: '#f1e7d8', fontWeight: '600',
     textAlign: 'left', borderRadius: '12px',
     display: 'flex', alignItems: 'center', gap: '8px',
     transition: 'all 0.2s ease',
