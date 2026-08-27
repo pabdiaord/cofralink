@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import escudo from '../../assets/escudo.png'
+import nazarenoIcon from '../../assets/nazareno.png'
+import costaleroIcon from '../../assets/costalero.png'
+import miembroJuntaIcon from '../../assets/miembroDeJunta.png'
 import api from '../../api/axios'
 import bienvenida from '../../assets/bienvenida.jpg'
 import footer from '../../assets/footer.jpg'
@@ -10,10 +13,10 @@ const GOLD  = '#c9a84c'
 const DARK  = '#2c1810'
 const CREAM = '#efe3d7'
 
-const CARACTER_LABEL = {
-  NAZARENO:      'Nazareno',
-  COSTALERO:     'Costalero',
-  MIEMBRO_JUNTA: 'Junta de Gobierno',
+const CARACTER_INFO = {
+  NAZARENO:      { label: 'Nazareno', icon: nazarenoIcon },
+  COSTALERO:     { label: 'Costalero', icon: costaleroIcon },
+  MIEMBRO_JUNTA: { label: 'Junta de Gobierno', icon: miembroJuntaIcon },
 }
 
 function useCuentaAtras(fechaObjetivo) {
@@ -76,9 +79,15 @@ export default function Home() {
     : (usuario?.username || usuario?.email?.split('@')[0] || 'Hermano')
 
   // Rol visible
+  const caracter = CARACTER_INFO[hermano?.caracter]
   const rolVisible = usuario?.is_staff
     ? 'Junta de Gobierno'
-    : (CARACTER_LABEL[hermano?.caracter] || 'Hermano')
+    : (caracter?.label || 'Hermano')
+  const iconoRol = usuario?.is_staff
+    ? '⚜️'
+    : (caracter?.icon
+      ? <img src={caracter.icon} alt={caracter.label} style={hs.statRoleImage} />
+      : '⛪')
 
   // Estado cuota
   const estadoVisible = hermano
@@ -108,8 +117,8 @@ export default function Home() {
       {/* ── Tarjetas de datos ── */}
       <div style={hs.statsGrid}>
         <CuentaAtrasCard />
-        <StatCard icon="👤" label="TU ROL"           value={rolVisible} />
-        <StatCard icon="🛡️"  label="ESTADO"           value={estadoVisible}
+        <StatCard icon={iconoRol} label="TU ROL"        value={rolVisible} />
+        <StatCard icon="🔔"  label="ESTADO"           value={estadoVisible}
           valueColor={hermano?.estado_cuota === 'NO_PAGADO' ? '#b45309' : '#2d7a45'} />
       </div>
 
@@ -124,7 +133,7 @@ export default function Home() {
           onClick={() => navigate('/comunicaciones')}
         />
         <AccesoCard
-          icon="🔔"
+          icon="📰"
           titulo="Noticias y publicaciones"
           desc="Cabildos, cultos y avisos oficiales publicados por la Junta."
           onClick={() => navigate('/publicaciones')}
@@ -358,7 +367,8 @@ const hs = {
     color: '#8b725d',
     letterSpacing: '0.08em',
   },
-  statIcon: { fontSize: '16px', opacity: 0.78 },
+  statIcon: { fontSize: '24px', opacity: 0.9, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px' },
+  statRoleImage: { width: '34px', height: '34px', objectFit: 'contain', display: 'block', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.12))' },
   statValue: { fontSize: '24px', fontWeight: '700', color: DARK },
 
   // Acceso rápido
