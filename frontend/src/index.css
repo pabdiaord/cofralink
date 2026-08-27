@@ -56,6 +56,10 @@ button:hover {
   transform: translateY(-1px);
 }
 
+.donation-carousel::-webkit-scrollbar {
+  display: none;
+}
+
 input, textarea, select {
   border: 1px solid var(--cofrade-stone);
   background: rgba(255,255,255,0.7);

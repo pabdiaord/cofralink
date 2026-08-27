@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 
@@ -198,22 +198,19 @@ export default function Donaciones() {
       )}
 
       <section>
-        <h2 style={styles.sectionTitle}>Huchas activas</h2>
         {huchasActivas.length === 0 ? (
-          <p style={styles.empty}>No hay huchas activas en este momento.</p>
+          <>
+            <h2 style={styles.sectionTitle}>Huchas activas</h2>
+            <p style={styles.empty}>No hay huchas activas en este momento.</p>
+          </>
         ) : (
-          <div style={styles.cards}>
-            {huchasActivas.map(hucha => (
-              <HuchaCard
-                key={hucha.id}
-                hucha={hucha}
-                importe={importes[hucha.id] ?? '10,00'}
-                enviando={enviandoId === hucha.id}
-                onImporteChange={valor => setImportes({ ...importes, [hucha.id]: valor })}
-                onDonar={() => donar(hucha)}
-              />
-            ))}
-          </div>
+          <HuchasCarousel
+            huchas={huchasActivas}
+            importes={importes}
+            enviandoId={enviandoId}
+            onImporteChange={(huchaId, valor) => setImportes({ ...importes, [huchaId]: valor })}
+            onDonar={donar}
+          />
         )}
       </section>
 
@@ -245,6 +242,113 @@ export default function Donaciones() {
         </section>
       )}
     </div>
+  )
+}
+
+function HuchasCarousel({ huchas, importes, enviandoId, onImporteChange, onDonar }) {
+  const carruselRef = useRef(null)
+  const [puedeRetroceder, setPuedeRetroceder] = useState(false)
+  const [puedeAvanzar, setPuedeAvanzar] = useState(false)
+
+  const actualizarControles = () => {
+    const carrusel = carruselRef.current
+    if (!carrusel) return
+
+    const tolerancia = 2
+    setPuedeRetroceder(carrusel.scrollLeft > tolerancia)
+    setPuedeAvanzar(carrusel.scrollLeft < carrusel.scrollWidth - carrusel.clientWidth - tolerancia)
+  }
+
+  useEffect(() => {
+    const carrusel = carruselRef.current
+    if (!carrusel) return undefined
+
+    actualizarControles()
+    window.addEventListener('resize', actualizarControles)
+    const observador = typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(actualizarControles)
+    observador?.observe(carrusel)
+
+    return () => {
+      window.removeEventListener('resize', actualizarControles)
+      observador?.disconnect()
+    }
+  }, [huchas.length])
+
+  const desplazar = (direccion) => {
+    const carrusel = carruselRef.current
+    if (!carrusel) return
+
+    carrusel.scrollBy({
+      left: direccion * Math.max(300, Math.round(carrusel.clientWidth * 0.9)),
+      behavior: 'smooth',
+    })
+  }
+
+  const manejarTecla = (event) => {
+    if (event.key === 'ArrowLeft' && puedeRetroceder) {
+      event.preventDefault()
+      desplazar(-1)
+    }
+    if (event.key === 'ArrowRight' && puedeAvanzar) {
+      event.preventDefault()
+      desplazar(1)
+    }
+  }
+
+  return (
+    <>
+      <div style={styles.carouselHeader}>
+        <h2 style={{ ...styles.sectionTitle, margin: 0 }}>Huchas activas</h2>
+        <div style={styles.carouselControls} aria-label="Navegación de huchas">
+          <button
+            type="button"
+            aria-label="Ver huchas anteriores"
+            aria-controls="huchas-carrusel"
+            disabled={!puedeRetroceder}
+            onClick={() => desplazar(-1)}
+            style={{ ...styles.carouselArrow, ...(!puedeRetroceder ? styles.carouselArrowDisabled : {}) }}
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            aria-label="Ver más huchas"
+            aria-controls="huchas-carrusel"
+            disabled={!puedeAvanzar}
+            onClick={() => desplazar(1)}
+            style={{ ...styles.carouselArrow, ...(!puedeAvanzar ? styles.carouselArrowDisabled : {}) }}
+          >
+            ›
+          </button>
+        </div>
+      </div>
+      <div
+        ref={carruselRef}
+        id="huchas-carrusel"
+        tabIndex="0"
+        role="region"
+        aria-label="Listado horizontal de huchas activas"
+        className="donation-carousel"
+        onScroll={actualizarControles}
+        onKeyDown={manejarTecla}
+        style={styles.cardsViewport}
+      >
+        <div style={styles.cards}>
+          {huchas.map(hucha => (
+            <HuchaCard
+              key={hucha.id}
+              hucha={hucha}
+              importe={importes[hucha.id] ?? '10,00'}
+              enviando={enviandoId === hucha.id}
+              onImporteChange={valor => onImporteChange(hucha.id, valor)}
+              onDonar={() => onDonar(hucha)}
+            />
+          ))}
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -346,8 +450,13 @@ const styles = {
   sandboxNotice: { display: 'flex', gap: '11px', alignItems: 'flex-start', color: '#624a1a', background: '#fff4d6', border: '1px solid #ecd089', borderRadius: '14px', padding: '14px 16px', marginBottom: '22px', lineHeight: 1.45, fontSize: '14px' },
   error: { color: '#9f1d1d', background: '#ffe4e4', border: '1px solid #f7b4b4', padding: '11px 14px', borderRadius: '10px', marginBottom: '18px' },
   sectionTitle: { fontSize: '19px', margin: '0 0 14px', color: '#2c1810' },
-  cards: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '18px' },
-  card: { background: 'rgba(255,253,250,0.92)', border: '1px solid rgba(117,82,52,0.16)', borderRadius: '20px', padding: '22px', boxShadow: '0 12px 28px rgba(44,24,16,0.07)', display: 'flex', flexDirection: 'column' },
+  carouselHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', marginBottom: '14px' },
+  carouselControls: { display: 'flex', gap: '8px', flexShrink: 0 },
+  carouselArrow: { width: '35px', height: '35px', border: '1px solid rgba(117,82,52,0.3)', borderRadius: '50%', background: '#fffdfa', color: '#4b2d1f', fontSize: '27px', lineHeight: 1, cursor: 'pointer', display: 'grid', placeItems: 'center', padding: '0 0 3px', boxShadow: '0 4px 10px rgba(44,24,16,0.08)' },
+  carouselArrowDisabled: { color: '#b9ab9c', borderColor: 'rgba(117,82,52,0.12)', background: 'rgba(255,253,250,0.55)', cursor: 'not-allowed', boxShadow: 'none' },
+  cardsViewport: { overflowX: 'auto', overflowY: 'hidden', scrollBehavior: 'smooth', scrollSnapType: 'x proximity', scrollbarWidth: 'none', msOverflowStyle: 'none', padding: '0 1px 8px', outlineOffset: '4px' },
+  cards: { display: 'flex', gap: '18px', width: '100%' },
+  card: { flex: '0 0 calc((100% - 36px) / 3)', minWidth: '290px', scrollSnapAlign: 'start', background: 'rgba(255,253,250,0.92)', border: '1px solid rgba(117,82,52,0.16)', borderRadius: '20px', padding: '22px', boxShadow: '0 12px 28px rgba(44,24,16,0.07)', display: 'flex', flexDirection: 'column' },
   generalCard: { border: '1px solid rgba(201,168,76,0.65)', background: 'linear-gradient(155deg, #fffaf0, #f4e7c9)' },
   cardTopLine: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   typeBadge: { color: '#775420', background: 'rgba(201,168,76,0.18)', borderRadius: '999px', padding: '5px 8px', fontSize: '10px', letterSpacing: '0.08em', fontWeight: '800' },
