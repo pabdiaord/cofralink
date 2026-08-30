@@ -1,6 +1,7 @@
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import AppIcon from './AppIcon'
 import logo from '../assets/logo.png'
 import nazareni from '../assets/nazareni.png'
 import sidebarBg from '../assets/sidebar.jpg'
@@ -10,18 +11,18 @@ const DARK  = '#2c1810'
 const CREAM = '#5c4033 '
 
 const navItems = [
-  { to: '/',              icon: '🛖',  label: 'Inicio' },
-  { to: '/publicaciones', icon: '📰', label: 'Noticias' },
-  { to: '/eventos',       icon: '📅', label: 'Calendario' },
-  { to: '/procesional',   icon: '⛪', label: 'Papeleta de sitio' },
-  { to: '/comunicaciones',icon: '💬', label: 'Comunicaciones' },
-  { to: '/donaciones',     icon: '🪙', label: 'Donaciones' },
-  { to: '/solicitud-ingreso', icon: '📄', label: 'Solicitud ingreso' },
+  { to: '/',                  icon: 'home',     label: 'Inicio' },
+  { to: '/publicaciones',     icon: 'news',     label: 'Publicaciones' },
+  { to: '/eventos',           icon: 'calendar', label: 'Eventos' },
+  { to: '/procesional',       icon: 'document', label: 'Papeleta de sitio' },
+  { to: '/comunicaciones',    icon: 'chat',     label: 'Comunicaciones' },
+  { to: '/donaciones',        icon: 'coin',     label: 'Donaciones' },
+  { to: '/solicitud-ingreso', icon: 'request',  label: 'Solicitud ingreso' },
 ]
 
 const adminItems = [
-  { to: '/hermanos',   icon: '👥', label: 'Hermanos' },
-  { to: '/inventario', icon: '📦', label: 'Inventario' },
+  { to: '/hermanos',   icon: 'people',    label: 'Hermanos' },
+  { to: '/inventario', icon: 'inventory', label: 'Inventario' },
 ]
 
 export default function Sidebar({ abierto, onClose }) {
@@ -96,7 +97,7 @@ export default function Sidebar({ abierto, onClose }) {
             onMouseEnter={() => setHoveredItem(item.to)}
             onMouseLeave={() => setHoveredItem(null)}
           >
-            <span style={ss.icon}>{item.icon}</span>
+            <span style={ss.icon}><AppIcon name={item.icon} size={19} /></span>
             {item.label}
           </NavLink>
         ))}
@@ -114,7 +115,7 @@ export default function Sidebar({ abierto, onClose }) {
                 onMouseEnter={() => setHoveredItem(item.to)}
                 onMouseLeave={() => setHoveredItem(null)}
               >
-                <span style={ss.icon}>{item.icon}</span>
+                <span style={ss.icon}><AppIcon name={item.icon} size={19} /></span>
                 {item.label}
               </NavLink>
             ))}
@@ -145,7 +146,8 @@ export default function Sidebar({ abierto, onClose }) {
           onMouseEnter={() => setHoveredLogout(true)}
           onMouseLeave={() => setHoveredLogout(false)}
         >
-          ↪ Cerrar sesión
+          <AppIcon name="logout" size={18} style={ss.logoutIcon} />
+          Cerrar sesión
         </button>
       </div>
     </aside>
@@ -198,7 +200,7 @@ const ss = {
     scrollbarWidth: 'thin',
     scrollbarColor: 'rgba(255,255,255,0.6) transparent',
   },
-  icon: { fontSize: '16px', width: '20px', textAlign: 'center', color: '#e8d7ba' },
+  icon: { width: '21px', height: '21px', display: 'inline-grid', placeItems: 'center', flexShrink: 0, color: '#e8d7ba' },
   seccion: {
     fontSize: '12px', fontWeight: '700', color: '#d4b87b',
     letterSpacing: '0.08em', textTransform: 'uppercase',
@@ -241,6 +243,7 @@ const ss = {
     border: '1px solid rgba(255,255,255,0.05)',
     boxShadow: 'none',
   },
+  logoutIcon: { flexShrink: 0 },
   scrollBar: {
     '&::-webkit-scrollbar': {
       width: '4px',

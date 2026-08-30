@@ -31,7 +31,7 @@ export default function Auth({ initialTab = 'login' }) {
           <img src={escudo} alt="Escudo" style={as.escudo} />
 
           <div style={as.hermandadInfo}>
-            <p style={as.hermandadLabel}>HERMANDAD</p>
+            <p style={as.hermandadLabel}>HERMANDAD Y COFRADÍA</p>
             <h2 style={as.hermandadNombre}>
               Santísimo Cristo<br />del Perdón
             </h2>
