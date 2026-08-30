@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import AppIcon from '../../components/AppIcon'
+import SearchField from '../../components/SearchField'
+import { coincideBusqueda } from '../../utils/search'
 
 const ESTADOS = {
   pendiente:  { label: 'Pendiente',  color: '#d69e2e', bg: '#fffff0' },
@@ -12,6 +15,7 @@ const ESTADOS = {
 export default function Procesional() {
   const { usuario } = useAuth()
   const [papeletas, setPapeletas]     = useState([])
+  const [busqueda, setBusqueda]       = useState('')
   const [cargando, setCargando]       = useState(true)
   const [error, setError]             = useState('')
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -129,6 +133,16 @@ export default function Procesional() {
 
   if (cargando) return <p style={styles.info}>Cargando papeletas...</p>
 
+  const papeletasFiltradas = papeletas.filter(papeleta => (
+    coincideBusqueda(
+      busqueda,
+      papeleta.paso,
+      papeleta.tramo,
+      papeleta.usuario_email,
+      ESTADOS[papeleta.estado]?.label,
+    )
+  ))
+
   return (
     <div className="content-page procesional-page" style={styles.page}>
 
@@ -200,6 +214,14 @@ export default function Procesional() {
         </form>
       )}
 
+      <SearchField
+        value={busqueda}
+        onChange={setBusqueda}
+        placeholder="Buscar por paso, tramo, hermano o estado"
+        ariaLabel="Buscar papeletas de sitio"
+        style={styles.search}
+      />
+
       {/* Lista de papeletas */}
       {papeletas.length === 0 ? (
         <p style={styles.info}>
@@ -207,9 +229,11 @@ export default function Procesional() {
             ? 'No hay solicitudes de papeletas todavía.'
             : 'No has solicitado ninguna papeleta todavía.'}
         </p>
+      ) : papeletasFiltradas.length === 0 ? (
+        <p style={styles.info}>No se han encontrado papeletas con esa búsqueda.</p>
       ) : (
         <div style={styles.lista}>
-          {papeletas.map(p => {
+          {papeletasFiltradas.map(p => {
             const estado = ESTADOS[p.estado] || ESTADOS.pendiente
             return (
               <div key={p.id} style={styles.card}>
@@ -217,10 +241,10 @@ export default function Procesional() {
                 {/* Header card */}
                 <div style={styles.cardTop}>
                   <div>
-                    <h3 style={styles.cardTitulo}>⛪ {p.paso}</h3>
+                    <h3 style={styles.cardTitulo}><AppIcon name="document" size={18} style={styles.cardTitleIcon} />{p.paso}</h3>
                     {usuario?.is_staff && (
                       <p style={styles.cardSub}>
-                        👤 {p.usuario_email}
+                        <AppIcon name="people" size={15} />{p.usuario_email}
                       </p>
                     )}
                   </div>
@@ -236,10 +260,10 @@ export default function Procesional() {
 
                 {/* Detalles */}
                 <div style={styles.meta}>
-                  <span>📅 {new Date(p.fecha).toLocaleDateString('es-ES', {
+                  <span style={styles.metaItem}><AppIcon name="calendar" size={15} />{new Date(p.fecha).toLocaleDateString('es-ES', {
                     weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
                   })}</span>
-                  <span>📍 {p.tramo}</span>
+                  <span style={styles.metaItem}><AppIcon name="pin" size={15} />{p.tramo}</span>
                 </div>
 
                 {/* Acciones */}
@@ -266,8 +290,8 @@ export default function Procesional() {
             <h3 style={styles.formTitulo}>
               Gestionar papeleta — {editando.paso}
             </h3>
-            <p style={{ fontSize: '13px', color: '#666', marginBottom: '16px' }}>
-              👤 {editando.usuario_email}
+            <p style={styles.modalUser}>
+              <AppIcon name="people" size={15} />{editando.usuario_email}
             </p>
             <form
               onSubmit={handleGuardarEdicion}
@@ -334,6 +358,7 @@ const styles = {
   count:   { fontSize: '16px', fontWeight: '400', color: '#888' },
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
+  search:  { marginBottom: '20px' },
 
   form: {
     background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '24px',
@@ -356,8 +381,9 @@ const styles = {
     boxShadow: '0 10px 20px rgba(44,24,16,0.06)', border: '1px solid rgba(117, 82, 52, 0.12)',
   },
   cardTop:   { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' },
-  cardTitulo:{ fontSize: '17px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },
-  cardSub:   { fontSize: '13px', color: '#666' },
+  cardTitulo:{ fontSize: '17px', fontWeight: '700', color: '#2c1810', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '7px' },
+  cardTitleIcon: { color: '#775420', flexShrink: 0 },
+  cardSub:   { fontSize: '13px', color: '#666', display: 'flex', alignItems: 'center', gap: '6px' },
   badge: {
     display: 'inline-block', padding: '4px 12px', borderRadius: '20px',
     fontSize: '12px', fontWeight: '600', whiteSpace: 'nowrap',
@@ -366,6 +392,8 @@ const styles = {
     display: 'flex', flexWrap: 'wrap', gap: '16px',
     fontSize: '13px', color: '#555', marginBottom: '12px',
   },
+  metaItem: { display: 'inline-flex', alignItems: 'center', gap: '6px' },
+  modalUser: { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#666', marginBottom: '16px' },
   cardFooter: { display: 'flex', gap: '8px', marginTop: '8px' },
 
   // Botones

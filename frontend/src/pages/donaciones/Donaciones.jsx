@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
+import AppIcon from '../../components/AppIcon'
+import SearchField from '../../components/SearchField'
+import { coincideBusqueda } from '../../utils/search'
 
 const ESTADOS = {
   PENDIENTE: { texto: 'Pendiente', color: '#9a6700', fondo: '#fff3cd' },
@@ -30,6 +33,7 @@ export default function Donaciones() {
   const [huchas, setHuchas] = useState([])
   const [misDonaciones, setMisDonaciones] = useState([])
   const [donacionesAdmin, setDonacionesAdmin] = useState([])
+  const [busquedaGestion, setBusquedaGestion] = useState('')
   const [importes, setImportes] = useState({})
   const [cargando, setCargando] = useState(true)
   const [enviandoId, setEnviandoId] = useState(null)
@@ -131,6 +135,25 @@ export default function Donaciones() {
   if (cargando) return <p style={styles.info}>Cargando donaciones...</p>
 
   const huchasActivas = huchas.filter(hucha => hucha.activa)
+  const proyectosGestion = huchas.filter(hucha => hucha.tipo === 'PROYECTO')
+  const proyectosGestionFiltrados = proyectosGestion.filter(hucha => (
+    coincideBusqueda(
+      busquedaGestion,
+      hucha.nombre,
+      hucha.descripcion,
+      hucha.activa ? 'Activa' : 'Cerrada',
+    )
+  ))
+  const donacionesGestionFiltradas = donacionesAdmin.filter(donacion => (
+    coincideBusqueda(
+      busquedaGestion,
+      donacion.donante_email,
+      donacion.hucha_nombre,
+      ESTADOS[donacion.estado]?.texto,
+      formatearEuros(donacion.importe_centimos),
+      new Date(donacion.creada_en).toLocaleDateString('es-ES'),
+    )
+  ))
 
   return (
     <div className="donations-page" style={styles.page}>
@@ -222,8 +245,15 @@ export default function Donaciones() {
       {usuario?.is_staff && (
         <section style={styles.adminSection}>
           <h2 style={styles.sectionTitle}>Gestión de Junta</h2>
+          <SearchField
+            value={busquedaGestion}
+            onChange={setBusquedaGestion}
+            placeholder="Buscar por proyecto, donante o estado"
+            ariaLabel="Buscar en la gestión de donaciones"
+            style={styles.adminSearch}
+          />
           <div style={styles.adminHuchas}>
-            {huchas.filter(hucha => hucha.tipo === 'PROYECTO').map(hucha => (
+            {proyectosGestionFiltrados.map(hucha => (
               <div style={styles.adminHucha} key={hucha.id}>
                 <div>
                   <strong>{hucha.nombre}</strong>
@@ -237,8 +267,15 @@ export default function Donaciones() {
               </div>
             ))}
           </div>
+          {proyectosGestion.length > 0 && proyectosGestionFiltrados.length === 0 && (
+            <p style={styles.adminEmpty}>No se han encontrado proyectos con esa búsqueda.</p>
+          )}
           <h3 style={styles.tableTitle}>Todas las donaciones</h3>
-          <DonacionesTable donaciones={donacionesAdmin} mostrarDonante />
+          <DonacionesTable
+            donaciones={donacionesGestionFiltradas}
+            mostrarDonante
+            mensajeVacio={busquedaGestion ? 'No se han encontrado donaciones con esa búsqueda.' : undefined}
+          />
         </section>
       )}
     </div>
@@ -362,7 +399,7 @@ function HuchaCard({ hucha, importe, enviando, onImporteChange, onDonar }) {
     <article className="donation-card" style={{ ...styles.card, ...(hucha.tipo === 'GENERAL' ? styles.generalCard : {}) }}>
       <div style={styles.cardTopLine}>
         <span style={styles.typeBadge}>{hucha.tipo === 'GENERAL' ? 'HUCHA PRINCIPAL' : 'PROYECTO'}</span>
-        <span aria-hidden="true" style={styles.cardIcon}>{hucha.tipo === 'GENERAL' ? '⛪' : '🕯️'}</span>
+        <span aria-hidden="true" style={styles.cardIcon}><AppIcon name="coin" size={25} /></span>
       </div>
       <h3 style={styles.cardTitle}>{hucha.nombre}</h3>
       <p style={styles.cardDescription}>{hucha.descripcion || 'Apoya esta causa de la Hermandad.'}</p>
@@ -405,8 +442,8 @@ function HuchaCard({ hucha, importe, enviando, onImporteChange, onDonar }) {
   )
 }
 
-function DonacionesTable({ donaciones, mostrarDonante }) {
-  if (donaciones.length === 0) return <p style={styles.empty}>Aún no hay donaciones registradas.</p>
+function DonacionesTable({ donaciones, mostrarDonante, mensajeVacio = 'Aún no hay donaciones registradas.' }) {
+  if (donaciones.length === 0) return <p style={styles.empty}>{mensajeVacio}</p>
 
   return (
     <div className="donation-table-wrap" style={styles.tableWrap}>
@@ -460,7 +497,7 @@ const styles = {
   generalCard: { border: '1px solid rgba(201,168,76,0.65)', background: 'linear-gradient(155deg, #fffaf0, #f4e7c9)' },
   cardTopLine: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   typeBadge: { color: '#775420', background: 'rgba(201,168,76,0.18)', borderRadius: '999px', padding: '5px 8px', fontSize: '11px', letterSpacing: '0.05em', fontWeight: '700' },
-  cardIcon: { fontSize: '24px' },
+  cardIcon: { display: 'grid', placeItems: 'center', color: '#8d6824' },
   cardTitle: { fontSize: '18px', margin: '14px 0 8px' },
   cardDescription: { color: '#684f3d', minHeight: '44px', lineHeight: 1.5, fontSize: '14px', margin: 0 },
   amount: { margin: '22px 0 2px', color: '#2c1810', fontSize: '26px', fontWeight: '800' },
@@ -484,9 +521,11 @@ const styles = {
   input: { boxSizing: 'border-box', width: '100%', borderRadius: '9px', border: '1px solid rgba(117,82,52,0.25)', padding: '10px 11px', font: 'inherit', background: '#fffdfa', color: '#2c1810' },
   historySection: { marginTop: '36px' },
   adminSection: { marginTop: '38px', borderTop: '2px solid rgba(201,168,76,0.35)', paddingTop: '27px' },
+  adminSearch: { marginBottom: '15px' },
   adminHuchas: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', marginBottom: '24px' },
   adminHucha: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', background: 'rgba(255,253,250,0.85)', padding: '14px', border: '1px solid rgba(117,82,52,0.15)', borderRadius: '12px' },
   adminText: { margin: '4px 0 0', color: '#765f4e', fontSize: '12px' },
+  adminEmpty: { color: '#725d4b', margin: '0 0 24px', fontSize: '14px' },
   closeButton: { border: '1px solid #a34a37', color: '#982d1f', background: '#fff7f5', borderRadius: '8px', padding: '7px 9px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' },
   tableTitle: { fontSize: '15px', color: '#593d2c', margin: '24px 0 11px' },
   tableWrap: { overflowX: 'auto', background: 'rgba(255,253,250,0.9)', border: '1px solid rgba(117,82,52,0.14)', borderRadius: '13px' },

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import SearchField from '../../components/SearchField'
+import AppIcon from '../../components/AppIcon'
 
 const TIPOS = {
   TODOS:   { label: 'Todos' },
@@ -86,18 +88,6 @@ export default function Eventos() {
   const eventosDeLista = seccionLista === 'proximos' ? eventosFuturos : eventosPasados
 
   // ── Crear ─────────────────────────────────────────────────────
-  const handleSubmit = async e => {
-    e.preventDefault()
-    setEnviando(true)
-    try {
-      await api.post('/eventos/', form)
-      setForm({ nombre_evento: '', tipo_evento: 'CULTO', fecha: '', lugar: '', descripcion: '' })
-      setMostrarForm(false)
-      await recargar()
-    } catch { setError('Error al crear el evento.') }
-    finally { setEnviando(false) }
-  }
-
   const openConfirm = (action, payload = null) => {
     setPendingAction({ action, payload })
     setConfirmOpen(true)
@@ -232,18 +222,14 @@ export default function Eventos() {
       {/* ── Barra de filtros ── */}
       <div className="event-filters" style={s.filtrosBar}>
         {/* Búsqueda */}
-        <div className="event-search" style={s.searchWrap}>
-          <span style={s.searchIcon}>🔍</span>
-          <input
-            style={s.searchInput}
-            placeholder="Buscar evento o lugar..."
-            value={busqueda}
-            onChange={e => setBusqueda(e.target.value)}
-          />
-          {busqueda && (
-            <button style={s.clearBtn} onClick={() => setBusqueda('')}>✕</button>
-          )}
-        </div>
+        <SearchField
+          className="event-search"
+          style={s.searchWrap}
+          value={busqueda}
+          onChange={setBusqueda}
+          placeholder="Buscar evento o lugar..."
+          ariaLabel="Buscar eventos"
+        />
 
         {/* Filtros por tipo */}
         <div className="chip-row" style={s.tipoFiltros}>
@@ -267,9 +253,9 @@ export default function Eventos() {
         {/* Toggle vista */}
         <div className="view-toggle" style={s.vistaToggle}>
           {[
-            { key: 'lista',  icon: '☰',  label: 'Lista' },
-            { key: 'mes',    icon: '📅',  label: 'Mes' },
-            { key: 'semana', icon: '📆',  label: 'Semana' },
+            { key: 'lista',  icon: <AppIcon name="news" size={15} />, label: 'Lista' },
+            { key: 'mes',    icon: <AppIcon name="calendar" size={15} />, label: 'Mes' },
+            { key: 'semana', icon: <AppIcon name="calendar" size={15} />, label: 'Semana' },
           ].map(v => (
             <button
               key={v.key}
@@ -443,9 +429,9 @@ function TarjetaEvento({ ev, usuario, esPasado, onEditar, onEliminar, onInscribi
       </div>
       <h3 style={s.cardTitulo}>{ev.nombre_evento}</h3>
       <div style={s.meta}>
-        <span>📅 {new Date(ev.fecha).toLocaleDateString('es-ES', { weekday:'long', day:'2-digit', month:'long', year:'numeric' })}</span>
-        <span>🕐 {new Date(ev.fecha).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' })}</span>
-        <span>📍 {ev.lugar}</span>
+        <span style={s.metaItem}><AppIcon name="calendar" size={15} />{new Date(ev.fecha).toLocaleDateString('es-ES', { weekday:'long', day:'2-digit', month:'long', year:'numeric' })}</span>
+        <span style={s.metaItem}><AppIcon name="clock" size={15} />{new Date(ev.fecha).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' })}</span>
+        <span style={s.metaItem}><AppIcon name="pin" size={15} />{ev.lugar}</span>
       </div>
       {ev.descripcion && <p style={s.descripcion}>{ev.descripcion}</p>}
       <div className="event-card-footer" style={s.cardFooter}>
@@ -561,7 +547,7 @@ function CalendarioMes({ eventos, fechaRef, setFechaRef, usuario, onEditar, onEl
       {diaSeleccionado && (
         <div style={s.detalleDia}>
           <h4 style={s.detalleDiaTitulo}>
-            📅 {diaSeleccionado} de {MESES[month]}
+            <AppIcon name="calendar" size={16} style={s.detalleDiaIcon} />{diaSeleccionado} de {MESES[month]}
             {eventosDiaSeleccionado.length === 0 && <span style={{ fontWeight: '400', color: '#888' }}> — Sin eventos</span>}
           </h4>
           {eventosDiaSeleccionado.map(ev => (
@@ -636,12 +622,12 @@ function CalendarioSemana({ eventos, fechaRef, setFechaRef, usuario, onEditar, o
                   return (
                     <div key={ev.id} style={{ ...s.semanaEvento, backgroundColor: col.bg, borderLeft: `3px solid ${col.border}`, color: col.text }}>
                       <div style={s.semanaEventoHora}>
-                        🕐 {new Date(ev.fecha).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' })}
+                        <AppIcon name="clock" size={13} />{new Date(ev.fecha).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' })}
                       </div>
                       <div style={s.semanaEventoNombre}>
                         {ev.nombre_evento}
                       </div>
-                      <div style={s.semanaEventoLugar}>📍 {ev.lugar}</div>
+                      <div style={s.semanaEventoLugar}><AppIcon name="pin" size={13} />{ev.lugar}</div>
                       {!usuario?.is_staff && (
                         <button
                           style={{ ...s.semanaEventoBtn, ...(ev.ya_inscrito ? s.btnInscrito : {}) }}
@@ -653,8 +639,8 @@ function CalendarioSemana({ eventos, fechaRef, setFechaRef, usuario, onEditar, o
                       )}
                       {usuario?.is_staff && (
                         <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
-                          <button style={s.semanaEditBtn} onClick={() => onEditar(ev)}>✏️</button>
-                          <button style={s.semanaDeleteBtn} onClick={() => onEliminar(ev.id)}>🗑️</button>
+                          <button aria-label="Editar evento" title="Editar evento" style={s.semanaEditBtn} onClick={() => onEditar(ev)}><AppIcon name="edit" size={13} /></button>
+                          <button aria-label="Eliminar evento" title="Eliminar evento" style={s.semanaDeleteBtn} onClick={() => onEliminar(ev.id)}><AppIcon name="trash" size={13} /></button>
                         </div>
                       )}
                     </div>
@@ -689,14 +675,8 @@ const s = {
     border: '1px solid rgba(117, 82, 52, 0.16)',
   },
   searchWrap: {
-    display: 'flex', alignItems: 'center', gap: '8px',
-    border: '1px solid rgba(117, 82, 52, 0.2)', borderRadius: '12px',
-    padding: '8px 12px', flex: '1', minWidth: '200px',
-    background: 'rgba(255,255,255,0.48)',
+    flex: '1 1 320px', minWidth: '200px',
   },
-  searchIcon:  { fontSize: '14px', color: '#7d5f42' },
-  searchInput: { border: 'none', outline: 'none', fontSize: '14px', flex: 1, backgroundColor: 'transparent', color: '#2c1810' },
-  clearBtn:    { border: 'none', background: 'none', cursor: 'pointer', color: '#7d5f42', fontSize: '12px' },
   tipoFiltros: { display: 'flex', gap: '6px', flexWrap: 'wrap' },
   tipoBtn: {
     padding: '7px 12px', borderRadius: '999px', border: '1px solid rgba(117, 82, 52, 0.22)',
@@ -706,7 +686,7 @@ const s = {
   vistaToggle: { display: 'flex', gap: '4px', marginLeft: 'auto' },
   vistaBtn: {
     padding: '7px 12px', borderRadius: '10px', border: '1px solid rgba(117, 82, 52, 0.22)',
-    background: 'rgba(255,255,255,0.48)', cursor: 'pointer', fontSize: '12px', color: '#3d2a20', fontWeight: '700',
+    background: 'rgba(255,255,255,0.48)', cursor: 'pointer', fontSize: '12px', color: '#3d2a20', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '5px',
   },
   vistaBtnActivo: { background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)' },
 
@@ -739,6 +719,7 @@ const s = {
   },
   cardTitulo:  { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '8px' },
   meta:        { display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px', color: '#5d4a3d', marginBottom: '8px' },
+  metaItem:    { display: 'inline-flex', alignItems: 'center', gap: '5px' },
   descripcion: { fontSize: '13px', color: '#5a4a3a', lineHeight: '1.5', marginBottom: '10px' },
   cardFooter:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   inscritos:   { fontSize: '13px', color: '#7c5d49' },
@@ -820,7 +801,8 @@ const s = {
     marginTop: '20px', padding: '16px', background: '#f8faff',
     borderRadius: '10px', border: '1px solid #dde',
   },
-  detalleDiaTitulo: { fontSize: '15px', fontWeight: '700', color: '#2c1810', marginBottom: '14px' },
+  detalleDiaTitulo: { fontSize: '15px', fontWeight: '700', color: '#2c1810', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' },
+  detalleDiaIcon: { color: '#775420', flexShrink: 0 },
 
   // Calendario semanal
   semanaGrid: {
@@ -849,9 +831,9 @@ const s = {
     borderRadius: '6px', padding: '8px',
     fontSize: '11px', lineHeight: '1.4',
   },
-  semanaEventoHora:   { fontWeight: '600', marginBottom: '2px' },
+  semanaEventoHora:   { fontWeight: '600', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' },
   semanaEventoNombre: { fontWeight: '700', fontSize: '12px', marginBottom: '2px' },
-  semanaEventoLugar:  { color: '#555', marginBottom: '4px' },
+  semanaEventoLugar:  { color: '#555', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' },
   semanaEventoBtn: {
     fontSize: '10px', padding: '3px 8px', backgroundColor: '#5b3927',
     color: '#fff8ee', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%',

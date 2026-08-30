@@ -4,11 +4,12 @@ import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import CharacterIcon from '../../components/CharacterIcon'
+import AppIcon from '../../components/AppIcon'
 import { CHARACTER_INFO } from '../../constants/characterInfo'
 
 const ESTADO_CUOTA_INFO = {
-  PAGADO:    { label: 'Al corriente',  color: '#2d7a45', bg: '#eaf7ee', icon: '✅' },
-  NO_PAGADO: { label: 'Pendiente',     color: '#b45309', bg: '#fef3c7', icon: '⚠️' },
+  PAGADO:    { label: 'Al corriente',  color: '#2d7a45', bg: '#eaf7ee', icon: 'check' },
+  NO_PAGADO: { label: 'Pendiente',     color: '#b45309', bg: '#fef3c7', icon: 'alert' },
 }
 
 const formatearEuros = (centimos) => new Intl.NumberFormat('es-ES', {
@@ -146,9 +147,9 @@ export default function Perfil() {
             label="Carácter"
             value={caracterVisible}
           />
-          <Hito icon={cuota?.icon || '✓'} label="Cuota" value={cuota?.label || estadoCuenta} color={cuota?.color} />
+          <Hito icon={<AppIcon name={cuota?.icon || 'check'} size={21} />} label="Cuota" value={cuota?.label || estadoCuenta} color={cuota?.color} />
           <Hito icon="♡" label="Donado a la Hermandad" value={formatearEuros(totalDonado)} />
-          <Hito icon="#" label="Hermano número" value={hermano ? `${hermano.numero_hermano}` : 'Junta'} />
+          <Hito icon={<AppIcon name="id" size={21} />} label="Hermano número" value={hermano ? `${hermano.numero_hermano}` : 'Junta'} />
         </section>
 
         <div className="profile-grid" style={styles.profileGrid}>
@@ -222,9 +223,9 @@ export default function Perfil() {
                 </div>
               </div>
               <div style={styles.quickLinks}>
-                <AccesoPerfil icon="◷" label="Próximos eventos" onClick={() => navigate('/eventos')} />
-                <AccesoPerfil icon="◈" label="Papeleta de sitio" onClick={() => navigate('/procesional')} />
-                <AccesoPerfil icon="♡" label="Donaciones" onClick={() => navigate('/donaciones')} />
+                <AccesoPerfil icon={<AppIcon name="calendar" size={17} />} label="Próximos eventos" onClick={() => navigate('/eventos')} />
+                <AccesoPerfil icon={<AppIcon name="document" size={17} />} label="Papeleta de sitio" onClick={() => navigate('/procesional')} />
+                <AccesoPerfil icon={<AppIcon name="coin" size={17} />} label="Donaciones" onClick={() => navigate('/donaciones')} />
               </div>
             </section>
           </aside>

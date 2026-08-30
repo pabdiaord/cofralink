@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import SearchField from '../../components/SearchField'
+import { coincideBusqueda } from '../../utils/search'
 
 const DARK  = '#2c1810'
 const GOLD  = '#c9a84c'
@@ -10,6 +12,7 @@ const CREAM = '#f5f0e8'
 export default function Publicaciones() {
   const { usuario } = useAuth()
   const [publicaciones, setPublicaciones] = useState([])
+  const [busqueda, setBusqueda]           = useState('')
   const [cargando, setCargando]           = useState(true)
   const [error, setError]                 = useState('')
 
@@ -135,6 +138,10 @@ export default function Publicaciones() {
   const imgUrl = src =>
     src?.startsWith('http') ? src : `http://localhost:8000${src}`
 
+  const publicacionesFiltradas = publicaciones.filter(publicacion => (
+    coincideBusqueda(busqueda, publicacion.titular, publicacion.descripcion, publicacion.hermano_nombre)
+  ))
+
   if (cargando) return <p style={ps.info}>Cargando publicaciones...</p>
 
   return (
@@ -151,6 +158,14 @@ export default function Publicaciones() {
       </div>
 
       {error && <p style={ps.error}>{error}</p>}
+
+      <SearchField
+        value={busqueda}
+        onChange={setBusqueda}
+        placeholder="Buscar por título, contenido o autor"
+        ariaLabel="Buscar publicaciones"
+        style={ps.search}
+      />
 
       <ConfirmDialog
         open={confirmOpen}
@@ -169,9 +184,11 @@ export default function Publicaciones() {
       {/* ── Lista de publicaciones ── */}
       {publicaciones.length === 0 ? (
         <p style={ps.info}>No hay publicaciones todavía.</p>
+      ) : publicacionesFiltradas.length === 0 ? (
+        <p style={ps.info}>No se han encontrado publicaciones con esa búsqueda.</p>
       ) : (
         <div className="publication-list" style={ps.lista}>
-          {publicaciones.map(pub => (
+          {publicacionesFiltradas.map(pub => (
             <div
               key={pub.id}
               className="publication-card"
@@ -391,6 +408,7 @@ const ps = {
   titulo:  { fontSize: '22px', fontWeight: '700', color: DARK },
   info:    { textAlign: 'center', color: '#888', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '12px', fontSize: '14px' },
+  search:  { marginBottom: '20px' },
 
   // Lista
   lista: { display: 'flex', flexDirection: 'column', gap: '16px' },

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import SearchField from '../../components/SearchField'
+import { coincideBusqueda } from '../../utils/search'
 
 const TIPOS = {
   IMAGEN: { label: 'Imagen devocional' },
@@ -47,6 +49,7 @@ const formBase = (tipo) => ({
 export default function Inventario() {
   const [tipoActivo, setTipoActivo]   = useState('IMAGEN')
   const [objetos, setObjetos]         = useState([])
+  const [busqueda, setBusqueda]       = useState('')
   const [cargando, setCargando]       = useState(true)
   const [error, setError]             = useState('')
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -61,8 +64,6 @@ export default function Inventario() {
   //Cargar objetos del tipo elegido 
   useEffect(() => {
     let activo = true
-    setCargando(true)
-    setError('')
     const cargar = async () => {
       try {
         const res = await api.get(`/${ENDPOINTS[tipoActivo]}/`)
@@ -157,6 +158,8 @@ export default function Inventario() {
   // Cambiar tipo de objeto
   const cambiarTipo = tipo => {
     setTipoActivo(tipo)
+    setBusqueda('')
+    setCargando(true)
     setMostrarForm(false)
     setForm(formBase(tipo))
     setEditando(null)
@@ -164,6 +167,9 @@ export default function Inventario() {
   }
 
   const camposExtra = CAMPOS_EXTRA[tipoActivo]
+  const objetosFiltrados = objetos.filter(objeto => (
+    coincideBusqueda(busqueda, objeto.nombre, ...camposExtra.map(campo => objeto[campo.key]))
+  ))
 
   return (
     <div className="content-page inventario-page" style={styles.page}>
@@ -205,6 +211,14 @@ export default function Inventario() {
         ))}
       </div>
 
+      <SearchField
+        value={busqueda}
+        onChange={setBusqueda}
+        placeholder="Buscar por nombre, ubicación o estado"
+        ariaLabel="Buscar en el inventario"
+        style={styles.search}
+      />
+
       {/* Formulario nuevo objeto */}
       {mostrarForm && (
         <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
@@ -242,6 +256,8 @@ export default function Inventario() {
         <p style={styles.info}>Cargando inventario...</p>
       ) : objetos.length === 0 ? (
         <p style={styles.info}>No hay {TIPOS[tipoActivo].label.toLowerCase()}s registradas.</p>
+      ) : objetosFiltrados.length === 0 ? (
+        <p style={styles.info}>No se han encontrado elementos con esa búsqueda.</p>
       ) : (
         <div className="data-table" style={styles.tabla}>
           <div style={styles.tablaHeader}>
@@ -252,7 +268,7 @@ export default function Inventario() {
             <span style={{ width: '140px' }}>Acciones</span>
           </div>
 
-          {objetos.map(obj => (
+          {objetosFiltrados.map(obj => (
             <div key={obj.id} style={styles.fila}>
               <span style={{ flex: 1, fontWeight: '600', color: '#2c1810' }}>
                 {obj.nombre}
@@ -331,6 +347,7 @@ const styles = {
   titulo:  { fontSize: '22px', fontWeight: '700', color: '#2c1810' },
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
+  search:  { marginBottom: '20px' },
 
   // Tabs
   tabs: { display: 'flex', gap: '8px', marginBottom: '20px' },

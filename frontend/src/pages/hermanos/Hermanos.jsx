@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import CharacterIcon from '../../components/CharacterIcon'
+import SearchField from '../../components/SearchField'
 import { CHARACTER_INFO } from '../../constants/characterInfo'
 
 const ESTADOS_CUOTA = {
@@ -53,11 +54,6 @@ export default function Hermanos() {
   }
 
   const totalHermanos = hermanos.length
-  const totalPagados = hermanos.filter(h => h.estado_cuota === 'PAGADO').length
-  const totalPendientes = hermanos.filter(h => h.estado_cuota === 'NO_PAGADO').length
-  const totalNazarenos = hermanos.filter(h => h.caracter === 'NAZARENO').length
-  const totalCostaleros = hermanos.filter(h => h.caracter === 'COSTALERO').length
-  const totalJunta = hermanos.filter(h => h.caracter === 'MIEMBRO_JUNTA').length
 
   //Crear
 const openConfirm = (action, payload = null) => {
@@ -229,14 +225,14 @@ const openConfirm = (action, payload = null) => {
       </div>
 
       {/* Buscador */}
-      <div className="search-wrap" style={styles.searchWrap}>
-        <input
-          style={styles.input}
-          placeholder="🔍 Buscar por nombre o número..."
-          value={busqueda}
-          onChange={e => setBusqueda(e.target.value)}
-        />
-      </div>
+      <SearchField
+        className="search-wrap"
+        style={styles.searchWrap}
+        value={busqueda}
+        onChange={setBusqueda}
+        placeholder="Buscar por nombre o número..."
+        ariaLabel="Buscar hermanos"
+      />
 
       {/* Formulario nuevo hermano */}
       {mostrarForm && (
