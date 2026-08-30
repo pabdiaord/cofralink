@@ -14,7 +14,7 @@ const navItems = [
   { to: '/',                  icon: 'home',     label: 'Inicio' },
   { to: '/publicaciones',     icon: 'news',     label: 'Publicaciones' },
   { to: '/eventos',           icon: 'calendar', label: 'Eventos' },
-  { to: '/procesional',       icon: 'document', label: 'Papeleta de sitio' },
+  { to: '/procesional',       icon: 'document', label: 'Procesional' },
   { to: '/comunicaciones',    icon: 'chat',     label: 'Comunicaciones' },
   { to: '/donaciones',        icon: 'coin',     label: 'Donaciones' },
   { to: '/solicitud-ingreso', icon: 'request',  label: 'Solicitud ingreso' },

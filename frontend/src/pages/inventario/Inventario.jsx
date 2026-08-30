@@ -176,7 +176,14 @@ export default function Inventario() {
 
       {/* Cabecera */}
       <div className="page-header" style={styles.header}>
-        <h2 style={styles.titulo}>Inventario</h2>
+        <div>
+          <p style={styles.eyebrow}>Patrimonio de la Hermandad</p>
+          <h2 style={styles.titulo}>Inventario</h2>
+          <div style={styles.headerMeta}>
+            <p style={styles.intro}>Consulta y organiza los bienes y enseres de la Hermandad.</p>
+            <span style={styles.totalBadge}>{objetos.length} elemento{objetos.length !== 1 ? 's' : ''} de {TIPOS[tipoActivo].label.toLowerCase()}</span>
+          </div>
+        </div>
         <button style={styles.btnPrimary} onClick={() => setMostrarForm(!mostrarForm)}>
           {mostrarForm ? 'Cancelar' : `+ Nuevo ${TIPOS[tipoActivo].label.toLowerCase()}`}
         </button>
@@ -343,8 +350,12 @@ export default function Inventario() {
 
 const styles = {
   page:    { padding: '32px', maxWidth: '1440px', width: '100%', margin: '0 auto' },
-  header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
-  titulo:  { fontSize: '22px', fontWeight: '700', color: '#2c1810' },
+  header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '20px', marginBottom: '28px' },
+  eyebrow: { margin: '0 0 3px', color: '#95713a', fontSize: '11px', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase' },
+  titulo:  { margin: 0, fontSize: '30px', fontWeight: '700', color: '#2c1810' },
+  headerMeta: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '9px', marginTop: '5px' },
+  intro: { margin: 0, color: '#765f4d', fontSize: '15px' },
+  totalBadge: { padding: '4px 9px', borderRadius: '999px', color: '#765b45', background: 'rgba(201,168,76,0.12)', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap' },
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
   search:  { marginBottom: '20px' },

@@ -181,7 +181,13 @@ export default function Eventos() {
 
       {/* ── Cabecera ── */}
       <div className="page-header" style={s.header}>
-        <h2 style={s.titulo}>Eventos</h2>
+        <div>
+          <p style={s.eyebrow}>Calendario de la Hermandad</p>
+          <h2 style={s.titulo}>Eventos y convocatorias</h2>
+          <div style={s.headerMeta}>
+            <p style={s.intro}>Consulta cultos, ensayos, reuniones y actividades programadas.</p>
+          </div>
+        </div>
         {usuario?.is_staff && (
           <button style={s.btnPrimary} onClick={() => setMostrarForm(!mostrarForm)}>
             {mostrarForm ? 'Cancelar' : '+ Nuevo evento'}
@@ -660,8 +666,12 @@ function CalendarioSemana({ eventos, fechaRef, setFechaRef, usuario, onEditar, o
 // ══════════════════════════════════════════════════════
 const s = {
   page:    { padding: '32px', maxWidth: '1440px', width: '100%', margin: '0 auto' },
-  header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
-  titulo:  { fontSize: '22px', fontWeight: '700', color: '#2c1810' },
+  header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '20px', marginBottom: '28px' },
+  eyebrow: { margin: '0 0 3px', color: '#95713a', fontSize: '11px', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase' },
+  titulo:  { margin: 0, fontSize: '30px', fontWeight: '700', color: '#2c1810' },
+  headerMeta: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '9px', marginTop: '5px' },
+  intro: { margin: 0, color: '#765f4d', fontSize: '15px' },
+  totalBadge: { padding: '4px 9px', borderRadius: '999px', color: '#765b45', background: 'rgba(201,168,76,0.12)', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap' },
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '12px', fontSize: '14px' },
   contador:{ fontSize: '13px', color: '#888', marginBottom: '16px' },

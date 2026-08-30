@@ -159,8 +159,12 @@ export default function Donaciones() {
     <div className="donations-page" style={styles.page}>
       <header className="donations-header" style={styles.header}>
         <div>
+          <p style={styles.eyebrow}>Colabora con la Hermandad</p>
           <h1 style={styles.title}>Donaciones</h1>
-          <p style={styles.subtitle}>Apoya la vida diaria de la Hermandad o uno de sus proyectos.</p>
+          <div style={styles.headerMeta}>
+            <p style={styles.subtitle}>Apoya la vida diaria de la Hermandad o uno de sus proyectos.</p>
+            <span style={styles.totalBadge}>{huchasActivas.length} hucha{huchasActivas.length !== 1 ? 's' : ''} activa{huchasActivas.length !== 1 ? 's' : ''}</span>
+          </div>
         </div>
         {usuario?.is_staff && (
           <button style={styles.secondaryButton} onClick={() => setMostrarForm(value => !value)}>
@@ -480,10 +484,12 @@ function DonacionesTable({ donaciones, mostrarDonante, mensajeVacio = 'Aún no h
 
 const styles = {
   page: { padding: '34px', maxWidth: '1320px', margin: '0 auto', color: '#2c1810' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '18px', marginBottom: '22px' },
-  eyebrow: { margin: 0, color: '#95713a', fontWeight: '800', fontSize: '11px', letterSpacing: '0.15em' },
-  title: { margin: '5px 0 6px', fontSize: '26px', lineHeight: 1.2, color: '#2c1810' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '20px', marginBottom: '28px' },
+  eyebrow: { margin: '0 0 3px', color: '#95713a', fontWeight: '800', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase' },
+  title: { margin: 0, fontSize: '30px', lineHeight: 1.2, color: '#2c1810' },
+  headerMeta: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '9px', marginTop: '5px' },
   subtitle: { margin: 0, color: '#6f5745', fontSize: '14px' },
+  totalBadge: { padding: '4px 9px', borderRadius: '999px', color: '#765b45', background: 'rgba(201,168,76,0.12)', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap' },
   sandboxNotice: { display: 'flex', gap: '11px', alignItems: 'flex-start', color: '#624a1a', background: '#fff4d6', border: '1px solid #ecd089', borderRadius: '14px', padding: '14px 16px', marginBottom: '22px', lineHeight: 1.5, fontSize: '14px' },
   error: { color: '#9f1d1d', background: '#ffe4e4', border: '1px solid #f7b4b4', padding: '11px 14px', borderRadius: '10px', marginBottom: '18px', fontSize: '14px' },
   sectionTitle: { fontSize: '20px', margin: '0 0 14px', color: '#2c1810' },

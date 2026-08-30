@@ -151,6 +151,7 @@ export default function Publicaciones() {
       {/* ── Cabecera ── */}
       <div className="page-header" style={ps.header}>
         <div>
+          <p style={ps.eyebrow}>Diario de la Hermandad</p>
           <h2 style={ps.titulo}>Noticias y publicaciones</h2>
           <p style={ps.intro}>Toda la información oficial, reunida en un mismo lugar.</p>
         </div>

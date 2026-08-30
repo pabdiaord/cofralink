@@ -113,6 +113,12 @@ export default function Perfil() {
 
   return (
     <div className="profile-page" style={styles.page}>
+      <header style={styles.pageHeader}>
+        <p style={styles.pageEyebrow}>Área personal</p>
+        <h2 style={styles.pageTitle}>Mi perfil</h2>
+        <p style={styles.pageIntro}>Consulta y actualiza la información vinculada a tu cuenta de hermano.</p>
+      </header>
+
       <header className="profile-hero" style={styles.credentialHero}>
         <div className="profile-identity" style={styles.heroIdentity}>
           <div style={styles.profileSeal}>
@@ -287,6 +293,10 @@ const BORDER = '#e8e0d0'
 const styles = {
   page: { padding: 'clamp(16px, 3vw, 32px)', background: 'linear-gradient(180deg, #f5efe7 0%, #efe3d7 100%)', minHeight: 'calc(100vh - 56px)', color: '#2c1810' },
   info: { textAlign: 'center', padding: '60px', color: '#666' },
+  pageHeader: { maxWidth: '1240px', margin: '0 auto 28px' },
+  pageEyebrow: { margin: '0 0 3px', color: '#95713a', fontSize: '11px', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase' },
+  pageTitle: { margin: 0, color: DARK, fontSize: '30px', lineHeight: 1.2 },
+  pageIntro: { margin: '5px 0 0', color: '#765f4d', fontSize: '15px' },
 
   // Hero
   hero: {

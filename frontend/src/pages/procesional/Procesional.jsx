@@ -158,10 +158,14 @@ export default function Procesional() {
 
       {/* Cabecera */}
       <div className="page-header" style={styles.header}>
-        <h2 style={styles.titulo}>
-          Procesional
-          <span style={styles.count}> ({papeletasFiltradas.length})</span>
-        </h2>
+        <div>
+          <p style={styles.eyebrow}>Organización del cortejo</p>
+          <h2 style={styles.titulo}>Procesional</h2>
+          <div style={styles.headerMeta}>
+            <p style={styles.intro}>Consulta y gestiona las solicitudes de participación en la procesión.</p>
+            <span style={styles.totalBadge}>{papeletasFiltradas.length} mostrada{papeletasFiltradas.length !== 1 ? 's' : ''} · {papeletas.length} en total</span>
+          </div>
+        </div>
         {!usuario?.is_staff && (
           <button
             style={styles.btnPrimary}
@@ -388,9 +392,12 @@ export default function Procesional() {
 
 const styles = {
   page:    { padding: '32px', maxWidth: '1440px', width: '100%', margin: '0 auto' },
-  header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
-  titulo:  { fontSize: '22px', fontWeight: '700', color: '#2c1810' },
-  count:   { fontSize: '16px', fontWeight: '400', color: '#888' },
+  header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '20px', marginBottom: '28px' },
+  eyebrow: { margin: '0 0 3px', color: '#95713a', fontSize: '11px', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase' },
+  titulo:  { margin: 0, fontSize: '30px', fontWeight: '700', color: '#2c1810' },
+  headerMeta: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '9px', marginTop: '5px' },
+  intro: { margin: 0, color: '#765f4d', fontSize: '15px' },
+  totalBadge: { padding: '4px 9px', borderRadius: '999px', color: '#765b45', background: 'rgba(201,168,76,0.12)', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap' },
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
   filtros: {
