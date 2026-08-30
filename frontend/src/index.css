@@ -396,6 +396,25 @@ button:disabled {
   .calendar-week {
     min-width: 620px;
   }
+
+  .publication-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas: 'sidebar' 'feed' !important;
+    gap: 20px !important;
+  }
+
+  .publication-sidebar {
+    position: static !important;
+  }
+
+  .publication-card--featured {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .publication-card--featured > img {
+    min-height: 0 !important;
+    height: min(52vw, 300px) !important;
+  }
 }
 
 /* Móvil */

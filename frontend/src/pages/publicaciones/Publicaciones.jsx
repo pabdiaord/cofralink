@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import SearchField from '../../components/SearchField'
+import AppIcon from '../../components/AppIcon'
 import { coincideBusqueda } from '../../utils/search'
 
 const DARK  = '#2c1810'
@@ -149,7 +150,10 @@ export default function Publicaciones() {
 
       {/* ── Cabecera ── */}
       <div className="page-header" style={ps.header}>
-        <h2 style={ps.titulo}>Noticias</h2>
+        <div>
+          <h2 style={ps.titulo}>Noticias y publicaciones</h2>
+          <p style={ps.intro}>Toda la información oficial, reunida en un mismo lugar.</p>
+        </div>
         {usuario?.is_staff && (
           <button style={ps.btnPrimary} onClick={() => setModalCrear(true)}>
             + Nueva publicación
@@ -158,14 +162,6 @@ export default function Publicaciones() {
       </div>
 
       {error && <p style={ps.error}>{error}</p>}
-
-      <SearchField
-        value={busqueda}
-        onChange={setBusqueda}
-        placeholder="Buscar por título, contenido o autor"
-        ariaLabel="Buscar publicaciones"
-        style={ps.search}
-      />
 
       <ConfirmDialog
         open={confirmOpen}
@@ -181,72 +177,102 @@ export default function Publicaciones() {
         onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
       />
 
-      {/* ── Lista de publicaciones ── */}
-      {publicaciones.length === 0 ? (
-        <p style={ps.info}>No hay publicaciones todavía.</p>
-      ) : publicacionesFiltradas.length === 0 ? (
-        <p style={ps.info}>No se han encontrado publicaciones con esa búsqueda.</p>
-      ) : (
-        <div className="publication-list" style={ps.lista}>
-          {publicacionesFiltradas.map(pub => (
-            <div
-              key={pub.id}
-              className="publication-card"
-              style={ps.card}
-              onClick={() => setModalDetalle(pub)}
-            >
-              {pub.imagen && (
-                <img
-                  src={imgUrl(pub.imagen)}
-                  alt={pub.titular}
-                  style={ps.imagen}
-                  onError={e => { e.target.style.display = 'none' }}
-                />
-              )}
-              <div style={ps.cardBody}>
-                <div style={ps.cardHeader}>
-                  <h3 style={ps.cardTitulo}>{pub.titular}</h3>
-                  <span style={ps.fecha}>
-                    {new Date(pub.fecha).toLocaleDateString('es-ES', {
-                      day: '2-digit', month: 'long', year: 'numeric'
-                    })}
-                  </span>
-                </div>
+      <div className="publication-layout" style={ps.layout}>
+        <main style={ps.feedColumn}>
 
-                {/* Descripción recortada en la lista */}
-                <p style={ps.descripcionPreview}>
-                  {pub.descripcion.length > 160
-                    ? pub.descripcion.slice(0, 160) + '…'
-                    : pub.descripcion}
-                </p>
+          {publicaciones.length === 0 ? (
+            <p style={ps.info}>No hay publicaciones todavía.</p>
+          ) : publicacionesFiltradas.length === 0 ? (
+            <p style={ps.info}>No se han encontrado publicaciones con esa búsqueda.</p>
+          ) : (
+            <div className="publication-list" style={ps.lista}>
+              {publicacionesFiltradas.map((pub, index) => {
+                const esDestacada = index === 0 && Boolean(pub.imagen)
+                const descripcion = pub.descripcion || 'Consulta esta publicación para conocer todos los detalles.'
 
-                <div style={ps.cardFooter}>
-                  <span style={ps.autor}>✍️ {pub.hermano_nombre}</span>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <span style={ps.leerMas}>Leer más →</span>
-                    {usuario?.is_staff && (
-                      <>
-                        <button
-                          style={ps.btnEditar}
-                          onClick={e => abrirEdicion(pub, e)}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          style={ps.btnEliminar}
-                          onClick={e => handleEliminar(pub.id, e)}
-                        >
-                          Eliminar
-                        </button>
-                      </>
+                return (
+                  <article
+                    key={pub.id}
+                    className={`publication-card${esDestacada ? ' publication-card--featured' : ''}`}
+                    style={{ ...ps.card, ...(esDestacada ? ps.cardDestacada : {}) }}
+                    onClick={() => setModalDetalle(pub)}
+                  >
+                    {pub.imagen && (
+                      <img
+                        src={imgUrl(pub.imagen)}
+                        alt={pub.titular}
+                        style={esDestacada ? ps.imagenDestacada : ps.imagen}
+                        onError={e => { e.target.style.display = 'none' }}
+                      />
                     )}
-                  </div>
-                </div>
-              </div>
+                    <div style={ps.cardBody}>
+                      <div style={ps.postHeader}>
+                        <span aria-hidden="true" style={ps.avatar}><AppIcon name="news" size={18} /></span>
+                        <div>
+                          <p style={ps.autor}>{pub.hermano_nombre || 'Hermandad del Perdón'}</p>
+                          <p style={ps.metaPublicacion}>
+                            <span style={ps.etiqueta}>Comunicado</span>
+                            {' · '}
+                            {new Date(pub.fecha).toLocaleDateString('es-ES', {
+                              day: '2-digit', month: 'long', year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+
+                      <h3 style={ps.cardTitulo}>{pub.titular}</h3>
+
+                      <p style={ps.descripcionPreview}>
+                        {descripcion.length > 190 ? `${descripcion.slice(0, 190)}…` : descripcion}
+                      </p>
+
+                      <div style={ps.cardFooter}>
+                        <span style={ps.leerMas}>Leer publicación <span aria-hidden="true">→</span></span>
+                        {usuario?.is_staff && (
+                          <div style={ps.adminActions}>
+                            <button
+                              style={ps.btnEditar}
+                              onClick={e => abrirEdicion(pub, e)}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              style={ps.btnEliminar}
+                              onClick={e => handleEliminar(pub.id, e)}
+                            >
+                              Eliminar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                )
+              })}
             </div>
-          ))}
-        </div>
-      )}
+          )}
+        </main>
+
+        <aside className="publication-sidebar" style={ps.sidebar}>
+          <p style={ps.sidebarEyebrow}>Explora el archivo</p>
+          <h3 style={ps.sidebarTitle}>Toda la actualidad</h3>
+          <p style={ps.sidebarText}>Busca comunicados, cultos y avisos de la Hermandad.</p>
+          <SearchField
+            value={busqueda}
+            onChange={setBusqueda}
+            placeholder="Buscar publicaciones"
+            ariaLabel="Buscar publicaciones"
+            style={ps.search}
+          />
+          <div style={ps.sidebarStat}>
+            <span aria-hidden="true" style={ps.sidebarStatIcon}><AppIcon name="news" size={20} /></span>
+            <div>
+              <strong style={ps.sidebarStatValue}>{publicaciones.length}</strong>
+              <span style={ps.sidebarStatLabel}>publicaciones disponibles</span>
+            </div>
+          </div>
+        </aside>
+      </div>
 
       {/* ══ MODAL: Detalle de noticia ══ */}
       {modalDetalle && (
@@ -403,31 +429,61 @@ export default function Publicaciones() {
 
 // ── Estilos ───────────────────────────────────────────────────────
 const ps = {
-  page:    { padding: '28px 32px', maxWidth: '1110px', width: '100%', margin: '0 auto' },
-  header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
-  titulo:  { fontSize: '22px', fontWeight: '700', color: DARK },
+  page:    { padding: '28px 32px', maxWidth: '1240px', width: '100%', margin: '0 auto' },
+  header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '20px', marginBottom: '28px' },
+  eyebrow: { margin: '0 0 3px', color: '#95713a', fontSize: '11px', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase' },
+  titulo:  { fontSize: '30px', fontWeight: '700', color: DARK, margin: 0 },
+  intro:   { margin: '5px 0 0', color: '#765f4d', fontSize: '15px' },
   info:    { textAlign: 'center', color: '#888', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '12px', fontSize: '14px' },
-  search:  { marginBottom: '20px' },
+  layout: {
+    display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 290px', gridTemplateAreas: "'feed sidebar'",
+    alignItems: 'start', gap: '28px',
+  },
+  feedColumn: { gridArea: 'feed', minWidth: 0 },
+  feedHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '14px' },
+  feedTitle: { margin: 0, color: DARK, fontSize: '18px' },
+  feedCount: { padding: '4px 9px', borderRadius: '999px', color: '#765b45', background: 'rgba(201,168,76,0.12)', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap' },
+
+  // Columna lateral
+  sidebar: {
+    gridArea: 'sidebar', position: 'sticky', top: '24px', padding: '22px', borderRadius: '18px',
+    background: 'linear-gradient(145deg, rgba(255,253,250,0.96), rgba(244,234,222,0.9))',
+    border: '1px solid rgba(117,82,52,0.14)', boxShadow: '0 12px 26px rgba(44,24,16,0.06)',
+  },
+  sidebarEyebrow: { margin: 0, color: '#95713a', fontSize: '10px', fontWeight: '800', letterSpacing: '0.13em', textTransform: 'uppercase' },
+  sidebarTitle: { margin: '4px 0 7px', color: DARK, fontSize: '19px', lineHeight: '1.35' },
+  sidebarText: { margin: '0 0 17px', color: '#705945', fontSize: '13px', lineHeight: '1.5' },
+  search: { marginBottom: '18px', minHeight: '52px', padding: '0 16px', borderRadius: '14px', fontSize: '14px' },
+  sidebarStat: { display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '16px', borderTop: '1px solid rgba(117,82,52,0.12)' },
+  sidebarStatIcon: { width: '38px', height: '38px', display: 'grid', placeItems: 'center', flexShrink: 0, color: '#775420', background: '#f2e6cf', borderRadius: '11px' },
+  sidebarStatValue: { display: 'block', color: DARK, fontSize: '18px', lineHeight: 1.1 },
+  sidebarStatLabel: { display: 'block', marginTop: '2px', color: '#7f6956', fontSize: '12px' },
 
   // Lista
-  lista: { display: 'flex', flexDirection: 'column', gap: '16px' },
+  lista: { display: 'flex', flexDirection: 'column', gap: '18px' },
   card: {
+    display: 'flex', flexDirection: 'column',
     background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px',
     boxShadow: '0 12px 24px rgba(44,24,16,0.06)',
     overflow: 'hidden', cursor: 'pointer',
     border: '1px solid rgba(117, 82, 52, 0.12)',
     transition: 'box-shadow 0.2s, transform 0.2s',
   },
-  imagen:      { width: '100%', maxHeight: '240px', objectFit: 'cover' },
-  cardBody:    { padding: '20px' },
-  cardHeader:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' },
-  cardTitulo:  { fontSize: '17px', fontWeight: '700', color: DARK, flex: 1 },
-  fecha:       { fontSize: '12px', color: '#9a8866', whiteSpace: 'nowrap', marginLeft: '12px' },
-  descripcionPreview: { fontSize: '14px', color: '#5a4a3a', lineHeight: '1.6', marginBottom: '14px' },
-  cardFooter:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  autor:       { fontSize: '13px', color: '#9a8866' },
-  leerMas:     { fontSize: '12px', color: GOLD, fontWeight: '600', cursor: 'pointer' },
+  cardDestacada: { display: 'grid', gridTemplateColumns: 'minmax(0, 1.03fr) minmax(0, 1fr)' },
+  imagen: { width: '100%', aspectRatio: '16 / 8', maxHeight: '280px', objectFit: 'cover', background: CREAM },
+  imagenDestacada: { width: '100%', minHeight: '100%', height: '100%', objectFit: 'cover', background: CREAM },
+  cardBody: { padding: '22px', display: 'flex', flexDirection: 'column', alignItems: 'stretch' },
+  postHeader: { display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '15px' },
+  avatar: { width: '36px', height: '36px', display: 'grid', placeItems: 'center', flexShrink: 0, color: '#775420', background: '#f2e6cf', borderRadius: '50%' },
+  autor: { margin: 0, color: '#4c3628', fontSize: '13px', fontWeight: '700', lineHeight: 1.2 },
+  metaPublicacion: { margin: '2px 0 0', color: '#9a8866', fontSize: '11px', textTransform: 'capitalize' },
+  etiqueta: { color: '#95713a', fontWeight: '700' },
+  cardTitulo: { margin: '0 0 9px', fontSize: '21px', fontWeight: '700', color: DARK, lineHeight: '1.35' },
+  descripcionPreview: { margin: '0 0 18px', fontSize: '14px', color: '#5a4a3a', lineHeight: '1.65' },
+  cardFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginTop: 'auto', paddingTop: '14px', borderTop: '1px solid rgba(117,82,52,0.1)' },
+  leerMas: { fontSize: '13px', color: '#79522c', fontWeight: '700', cursor: 'pointer' },
+  adminActions: { display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' },
 
   // Botones
   btnPrimary: {
