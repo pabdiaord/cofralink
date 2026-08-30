@@ -37,7 +37,7 @@ const styles = {
   nav: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '0 24px', height: '56px',
-    backgroundColor: '#1a1a2e', color: 'white',
+    backgroundColor: '#3c2519', color: '#fff8ee',
   },
   logo:  { fontWeight: '700', fontSize: '18px', color: 'white' },
   links: { display: 'flex', gap: '20px' },

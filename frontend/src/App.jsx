@@ -17,6 +17,7 @@ import Error404 from './pages/error/Error404'
 import CambiarPassword from './pages/auth/CambiarPassword'
 import Donaciones from './pages/donaciones/Donaciones'
 import DonacionResultado from './pages/donaciones/DonacionResultado'
+import LegalDocument from './pages/legal/LegalDocument'
 
 
 
@@ -31,6 +32,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login"    element={<Login />} />
+      <Route path="/politica-de-privacidad" element={<LegalDocument tipo="privacidad" />} />
+      <Route path="/terminos-de-servicio" element={<LegalDocument tipo="terminos" />} />
 
       <Route path="/" element={
         <RutaProtegida><Home /></RutaProtegida>

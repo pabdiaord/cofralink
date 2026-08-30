@@ -31,8 +31,8 @@ export default function SolicitudIngreso() {
         }
       `}</style>
 
-      <div className="print-shell" style={styles.page}>
-        <div className="print-actions" style={styles.toolbar}>
+      <div className="print-shell request-page" style={styles.page}>
+        <div className="print-actions request-toolbar" style={styles.toolbar}>
           <button style={styles.primaryBtn} onClick={() => window.print()}>
             Descargar / Imprimir
           </button>
@@ -41,7 +41,7 @@ export default function SolicitudIngreso() {
           </button>
         </div>
 
-        <div style={styles.paper}>
+        <div className="request-paper" style={styles.paper}>
           <div style={styles.headerWrap}>
             <div style={styles.crestWrap}>
               <Crest />
@@ -140,8 +140,8 @@ const styles = {
     gap: '12px',
   },
   primaryBtn: {
-    background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)',
-    color: '#fff',
+    background: 'linear-gradient(135deg, #2c1810, #563522)',
+    color: '#fff8ee',
     border: 'none',
     borderRadius: '10px',
     padding: '10px 18px',

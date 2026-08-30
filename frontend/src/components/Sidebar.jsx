@@ -1,6 +1,7 @@
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import AppIcon from './AppIcon'
 import logo from '../assets/logo.png'
 import nazareni from '../assets/nazareni.png'
 import sidebarBg from '../assets/sidebar.jpg'
@@ -10,21 +11,21 @@ const DARK  = '#2c1810'
 const CREAM = '#5c4033 '
 
 const navItems = [
-  { to: '/',              icon: '🛖',  label: 'Inicio' },
-  { to: '/publicaciones', icon: '📰', label: 'Noticias' },
-  { to: '/eventos',       icon: '📅', label: 'Calendario' },
-  { to: '/procesional',   icon: '⛪', label: 'Papeleta de sitio' },
-  { to: '/comunicaciones',icon: '💬', label: 'Chat' },
-  { to: '/donaciones',     icon: '🪙', label: 'Donaciones' },
-  { to: '/solicitud-ingreso', icon: '📄', label: 'Solicitud ingreso' },
+  { to: '/',                  icon: 'home',     label: 'Inicio' },
+  { to: '/publicaciones',     icon: 'news',     label: 'Publicaciones' },
+  { to: '/eventos',           icon: 'calendar', label: 'Eventos' },
+  { to: '/procesional',       icon: 'document', label: 'Procesional' },
+  { to: '/comunicaciones',    icon: 'chat',     label: 'Comunicaciones' },
+  { to: '/donaciones',        icon: 'coin',     label: 'Donaciones' },
+  { to: '/solicitud-ingreso', icon: 'request',  label: 'Solicitud ingreso' },
 ]
 
 const adminItems = [
-  { to: '/hermanos',   icon: '👥', label: 'Hermanos' },
-  { to: '/inventario', icon: '📦', label: 'Inventario' },
+  { to: '/hermanos',   icon: 'people',    label: 'Hermanos' },
+  { to: '/inventario', icon: 'inventory', label: 'Inventario' },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ abierto, onClose }) {
   const { usuario, logout } = useAuth()
   const navigate = useNavigate()
   const [hoveredItem, setHoveredItem] = React.useState(null)
@@ -41,9 +42,9 @@ export default function Sidebar() {
       display: 'flex', alignItems: 'center', gap: '10px',
       padding: '12px 14px', borderRadius: '14px', margin: '4px 0',
       textDecoration: 'none', fontSize: '16px', fontWeight: '600',
-      color: isActive ? '#f7f1ea' : '#e9ddd1',
+      color: isActive ? '#fff8ee' : '#e9ddd1',
       background: isActive || isHovered
-        ? 'linear-gradient(135deg, #1f140f 0%, #3b201c 100%)'
+        ? 'linear-gradient(135deg, #2c1810, #563522)'
         : 'rgba(255,255,255,0.04)',
       border: isActive || isHovered
         ? '1px solid rgba(201,168,76,0.45)'
@@ -61,7 +62,7 @@ export default function Sidebar() {
     return {
       ...ss.profileCard,
       background: isActive || isHovered
-        ? 'linear-gradient(135deg, #1f140f 0%, #3b201c 100%)'
+        ? 'linear-gradient(135deg, #2c1810, #563522)'
         : 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(201,168,76,0.08))',
       border: isActive || isHovered ? '1px solid rgba(201,168,76,0.45)' : '1px solid rgba(201,168,76,0.18)',
       boxShadow: isActive || isHovered ? '0 12px 24px rgba(0,0,0,0.20)' : '0 10px 24px rgba(0,0,0,0.12)',
@@ -73,7 +74,12 @@ export default function Sidebar() {
   }
 
   return (
-    <aside style={ss.sidebar}>
+    <aside
+      id="main-navigation"
+      className={`app-sidebar ${abierto ? 'app-sidebar--open' : ''}`}
+      aria-label="Navegación principal"
+      style={ss.sidebar}
+    >
       {/* Logo */}
       <div style={ss.logo}>
         <img src={logo} alt="CofraLink" style={ss.logoImg} />
@@ -87,10 +93,11 @@ export default function Sidebar() {
             to={item.to}
             end={item.to === '/'}
             style={linkStyle(item)}
+            onClick={onClose}
             onMouseEnter={() => setHoveredItem(item.to)}
             onMouseLeave={() => setHoveredItem(null)}
           >
-            <span style={ss.icon}>{item.icon}</span>
+            <span style={ss.icon}><AppIcon name={item.icon} size={19} /></span>
             {item.label}
           </NavLink>
         ))}
@@ -104,10 +111,11 @@ export default function Sidebar() {
                 key={item.to}
                 to={item.to}
                 style={linkStyle(item)}
+                onClick={onClose}
                 onMouseEnter={() => setHoveredItem(item.to)}
                 onMouseLeave={() => setHoveredItem(null)}
               >
-                <span style={ss.icon}>{item.icon}</span>
+                <span style={ss.icon}><AppIcon name={item.icon} size={19} /></span>
                 {item.label}
               </NavLink>
             ))}
@@ -120,6 +128,7 @@ export default function Sidebar() {
         <NavLink
           to="/perfil"
           style={profileCardStyle}
+          onClick={onClose}
           onMouseEnter={() => setHoveredItem('/perfil')}
           onMouseLeave={() => setHoveredItem(null)}
         >
@@ -137,7 +146,8 @@ export default function Sidebar() {
           onMouseEnter={() => setHoveredLogout(true)}
           onMouseLeave={() => setHoveredLogout(false)}
         >
-          ↪ Cerrar sesión
+          <AppIcon name="logout" size={18} style={ss.logoutIcon} />
+          Cerrar sesión
         </button>
       </div>
     </aside>
@@ -190,7 +200,7 @@ const ss = {
     scrollbarWidth: 'thin',
     scrollbarColor: 'rgba(255,255,255,0.6) transparent',
   },
-  icon: { fontSize: '16px', width: '20px', textAlign: 'center', color: '#e8d7ba' },
+  icon: { width: '21px', height: '21px', display: 'inline-grid', placeItems: 'center', flexShrink: 0, color: '#e8d7ba' },
   seccion: {
     fontSize: '12px', fontWeight: '700', color: '#d4b87b',
     letterSpacing: '0.08em', textTransform: 'uppercase',
@@ -233,6 +243,7 @@ const ss = {
     border: '1px solid rgba(255,255,255,0.05)',
     boxShadow: 'none',
   },
+  logoutIcon: { flexShrink: 0 },
   scrollBar: {
     '&::-webkit-scrollbar': {
       width: '4px',

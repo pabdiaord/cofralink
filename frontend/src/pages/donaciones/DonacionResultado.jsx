@@ -48,16 +48,16 @@ export default function DonacionResultado() {
 
   if (!donacionId) {
     return (
-      <main style={styles.page}>
-        <section style={styles.card}><h1 style={styles.title}>No se ha encontrado la donación solicitada.</h1><Link style={styles.button} to="/donaciones">Volver a Donaciones</Link></section>
+      <main className="donation-result-page" style={styles.page}>
+        <section className="donation-result-card" style={styles.card}><h1 style={styles.title}>No se ha encontrado la donación solicitada.</h1><Link style={styles.button} to="/donaciones">Volver a Donaciones</Link></section>
       </main>
     )
   }
 
   if (error) {
     return (
-      <main style={styles.page}>
-        <section style={styles.card}><h1 style={styles.title}>{error}</h1><Link style={styles.button} to="/donaciones">Volver a Donaciones</Link></section>
+      <main className="donation-result-page" style={styles.page}>
+        <section className="donation-result-card" style={styles.card}><h1 style={styles.title}>{error}</h1><Link style={styles.button} to="/donaciones">Volver a Donaciones</Link></section>
       </main>
     )
   }
@@ -66,8 +66,8 @@ export default function DonacionResultado() {
 
   const estado = ESTADOS[donacion.estado] || ESTADOS.PENDIENTE
   return (
-    <main style={styles.page}>
-      <section style={styles.card}>
+    <main className="donation-result-page" style={styles.page}>
+      <section className="donation-result-card" style={styles.card}>
         <span style={{ ...styles.icon, color: estado.color }} aria-hidden="true">{donacion.estado === 'PAGADA' ? '✓' : 'ℹ'}</span>
         <p style={styles.eyebrow}>COFRALINK · STRIPE SANDBOX</p>
         <h1 style={{ ...styles.title, color: estado.color }}>{estado.titulo}</h1>

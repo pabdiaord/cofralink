@@ -76,8 +76,8 @@ export default function CambiarPassword() {
   }
 
   return (
-    <div style={cs.page}>
-      <div style={cs.left}>
+    <div className="auth-page password-page" style={cs.page}>
+      <div className="auth-panel auth-panel--brand" style={cs.left}>
         <div style={cs.leftInner}>
           <div style={cs.fundacion}>
             <div style={cs.lineaOro} />
@@ -98,7 +98,7 @@ export default function CambiarPassword() {
         </div>
       </div>
 
-      <div style={cs.right}>
+      <div className="auth-panel auth-panel--form" style={cs.right}>
         <div style={cs.rightInner}>
 
           <div style={cs.logoWrap}>
@@ -209,7 +209,7 @@ const cs = {
   requisitos: { fontSize: '11px', color: '#746653', margin: '2px 0 0', lineHeight: '1.4' },
   listaErrores: { fontSize: '12px', color: '#c0392b', margin: '0', paddingLeft: '18px', lineHeight: '1.45' },
   error: { fontSize: '12px', color: '#c0392b', textAlign: 'center', margin: 0 },
-  btnSubmit: { padding: '14px', backgroundColor: DARK, color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: '700', letterSpacing: '0.1em', marginTop: '4px' },
+  btnSubmit: { padding: '14px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: '700', letterSpacing: '0.1em', marginTop: '4px' },
   exitoBox: { textAlign: 'center', padding: '24px', backgroundColor: '#f0fff4', borderRadius: '12px', border: '1px solid #c6f6d5' },
   exitoTexto: { color: '#2d7a45', fontWeight: '700', fontSize: '15px', margin: '0 0 8px' },
   exitoSub: { color: '#9a8866', fontSize: '13px', margin: 0 },

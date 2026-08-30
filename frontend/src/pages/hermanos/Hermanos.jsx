@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
-
-const CARACTERES = {
-  NAZARENO:      '🕯️ Nazareno',
-  COSTALERO:     '💪 Costalero',
-  MIEMBRO_JUNTA: '📋 Miembro de Junta',
-}
+import CharacterIcon from '../../components/CharacterIcon'
+import SearchField from '../../components/SearchField'
+import { CHARACTER_INFO } from '../../constants/characterInfo'
 
 const ESTADOS_CUOTA = {
   PAGADO:    { label: 'Pagado',     color: '#38a169' },
@@ -57,11 +54,6 @@ export default function Hermanos() {
   }
 
   const totalHermanos = hermanos.length
-  const totalPagados = hermanos.filter(h => h.estado_cuota === 'PAGADO').length
-  const totalPendientes = hermanos.filter(h => h.estado_cuota === 'NO_PAGADO').length
-  const totalNazarenos = hermanos.filter(h => h.caracter === 'NAZARENO').length
-  const totalCostaleros = hermanos.filter(h => h.caracter === 'COSTALERO').length
-  const totalJunta = hermanos.filter(h => h.caracter === 'MIEMBRO_JUNTA').length
 
   //Crear
 const openConfirm = (action, payload = null) => {
@@ -166,11 +158,18 @@ const openConfirm = (action, payload = null) => {
   if (cargando) return <p style={styles.info}>Cargando hermanos...</p>
 
   return (
-    <div style={styles.page}>
+    <div className="content-page hermanos-page" style={styles.page}>
 
       {/* Cabecera */}
-      <div style={styles.header}>
-        <h2 style={styles.titulo}>Hermanos <span style={styles.count}>({hermanos.length})</span></h2>
+      <div className="page-header" style={styles.header}>
+        <div>
+          <p style={styles.eyebrow}>Gestión de la Hermandad</p>
+          <h2 style={styles.titulo}>Hermanos</h2>
+          <div style={styles.headerMeta}>
+            <p style={styles.intro}>Consulta y gestiona el censo de la Hermandad.</p>
+            <span style={styles.totalBadge}>{totalHermanos} hermano{totalHermanos !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
         <button style={styles.btnPrimary} onClick={() => setMostrarForm(!mostrarForm)}>
           {mostrarForm ? 'Cancelar' : '+ Nuevo hermano'}
         </button>
@@ -192,10 +191,10 @@ const openConfirm = (action, payload = null) => {
         onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
       />
 
-      <div style={styles.filtersPanel}>
+      <div className="filters-panel" style={styles.filtersPanel}>
         <div style={styles.filterBlock}>
           <span style={styles.filterLabel}>Estado de cuota</span>
-          <div style={styles.chipRow}>
+          <div className="chip-row" style={styles.chipRow}>
             {['TODOS', 'PAGADO', 'NO_PAGADO'].map(opcion => (
               <button
                 key={opcion}
@@ -214,7 +213,7 @@ const openConfirm = (action, payload = null) => {
 
         <div style={styles.filterBlock}>
           <span style={styles.filterLabel}>Carácter</span>
-          <div style={styles.chipRow}>
+          <div className="chip-row" style={styles.chipRow}>
             {['TODOS', 'NAZARENO', 'COSTALERO', 'MIEMBRO_JUNTA'].map(opcion => (
               <button
                 key={opcion}
@@ -233,21 +232,21 @@ const openConfirm = (action, payload = null) => {
       </div>
 
       {/* Buscador */}
-      <div style={styles.searchWrap}>
-        <input
-          style={styles.input}
-          placeholder="🔍 Buscar por nombre o número..."
-          value={busqueda}
-          onChange={e => setBusqueda(e.target.value)}
-        />
-      </div>
+      <SearchField
+        className="search-wrap"
+        style={styles.searchWrap}
+        value={busqueda}
+        onChange={setBusqueda}
+        placeholder="Buscar por nombre o número..."
+        ariaLabel="Buscar hermanos"
+      />
 
       {/* Formulario nuevo hermano */}
       {mostrarForm && (
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
           <h3 style={styles.formTitulo}>Nuevo hermano</h3>
 
-          <div style={styles.grid2}>
+          <div className="form-grid-2" style={styles.grid2}>
             <div>
               <label style={styles.label}>Nombre</label>
               <input
@@ -279,7 +278,7 @@ const openConfirm = (action, payload = null) => {
             onChange={e => setForm({ ...form, email: e.target.value })}
             placeholder="hermano@ejemplo.com"
           />
-          <div style={styles.grid3}>
+          <div className="form-grid-3" style={styles.grid3}>
             <div>
               <label style={styles.label}>Nº Hermano</label>
               <input
@@ -332,7 +331,7 @@ const openConfirm = (action, payload = null) => {
       {hermonosFiltrados.length === 0 ? (
         <p style={styles.info}>No se encontraron hermanos con esos filtros.</p>
       ) : (
-        <div style={styles.tabla}>
+        <div className="data-table" style={styles.tabla}>
           {/* Cabecera tabla */}
           <div style={styles.tablaHeader}>
             <span style={{ width: '60px' }}>Nº</span>
@@ -345,15 +344,16 @@ const openConfirm = (action, payload = null) => {
           {/* Filas */}
           {hermonosFiltrados.map(h => (
             <div key={h.id} style={styles.fila}>
-              <span style={{ width: '60px', fontWeight: '700', color: '#1a1a2e' }}>
+              <span style={{ width: '60px', fontWeight: '700', color: '#2c1810' }}>
                 #{h.numero_hermano}
               </span>
               <span style={{ flex: 1 }}>
-                <div style={{ fontWeight: '600', color: '#1a1a2e' }}>{h.nombre} {h.apellidos}</div>
+                <div style={{ fontWeight: '600', color: '#2c1810' }}>{h.nombre} {h.apellidos}</div>
                 {h.direccion && <div style={{ fontSize: '12px', color: '#888' }}>{h.direccion}</div>}
               </span>
-              <span style={{ width: '140px', fontSize: '13px' }}>
-                {CARACTERES[h.caracter] || h.caracter}
+              <span style={{ ...styles.characterCell, width: '140px', fontSize: '13px' }}>
+                <CharacterIcon caracter={h.caracter} alt="" style={styles.characterIcon} />
+                {CHARACTER_INFO[h.caracter]?.label || h.caracter}
               </span>
               <span style={{ width: '110px' }}>
                 <span style={{
@@ -379,7 +379,7 @@ const openConfirm = (action, payload = null) => {
       {/* Modal edición */}
       {editando && (
         <div style={styles.overlay}>
-          <div style={styles.modal}>
+          <div className="responsive-modal" style={styles.modal}>
             <h3 style={styles.formTitulo}>
               Editar hermano #{editando.numero_hermano}
             </h3>
@@ -387,7 +387,7 @@ const openConfirm = (action, payload = null) => {
               onSubmit={handleGuardarEdicion}
               style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
             >
-              <div style={styles.grid2}>
+              <div className="form-grid-2" style={styles.grid2}>
                 <div>
                   <label style={styles.label}>Nombre</label>
                   <input
@@ -410,7 +410,7 @@ const openConfirm = (action, payload = null) => {
                 onChange={e => setFormEdit({ ...formEdit, direccion: e.target.value })}
               />
 
-              <div style={styles.grid3}>
+              <div className="form-grid-3" style={styles.grid3}>
                 <div>
                   <label style={styles.label}>Nº Hermano</label>
                   <input
@@ -463,9 +463,12 @@ const openConfirm = (action, payload = null) => {
 
 const styles = {
   page:    { padding: '32px', maxWidth: '1440px', width: '100%', margin: '0 auto' },
-  header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
-  titulo:  { fontSize: '22px', fontWeight: '700', color: '#1a1a2e' },
-  count:   { fontSize: '16px', fontWeight: '400', color: '#888' },
+  header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '20px', marginBottom: '28px' },
+  eyebrow: { margin: '0 0 3px', color: '#95713a', fontSize: '11px', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase' },
+  titulo:  { margin: 0, fontSize: '30px', fontWeight: '700', color: '#2c1810' },
+  headerMeta: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '9px', marginTop: '5px' },
+  intro: { margin: 0, color: '#765f4d', fontSize: '15px' },
+  totalBadge: { padding: '4px 9px', borderRadius: '999px', color: '#765b45', background: 'rgba(201,168,76,0.12)', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap' },
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
   nota:    { fontSize: '12px', color: '#888', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '6px' },
@@ -501,7 +504,7 @@ const styles = {
     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
   },
   filterChipActive: {
-    background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)',
+    background: 'linear-gradient(135deg, #2c1810, #563522)',
     borderColor: '#2c1810',
     color: '#f5e6c8',
     boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
@@ -543,7 +546,7 @@ const styles = {
   },
   tablaHeader: {
     display: 'flex', alignItems: 'center', gap: '12px',
-    padding: '12px 20px', background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)',
+    padding: '12px 20px', background: '#3c2519',
     color: '#f5e6c8', fontSize: '13px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase',
   },
   fila: {
@@ -556,10 +559,12 @@ const styles = {
     borderRadius: '20px', fontSize: '12px',
     fontWeight: '700', color: 'white',
   },
+  characterCell: { display: 'flex', alignItems: 'center', gap: '7px' },
+  characterIcon: { width: '24px', height: '24px', objectFit: 'contain', flexShrink: 0 },
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)', color: 'white',
+    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '10px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '700', alignSelf: 'flex-start', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
   },

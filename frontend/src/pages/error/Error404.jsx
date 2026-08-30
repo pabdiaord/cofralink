@@ -6,8 +6,8 @@ export default function Error404() {
   const navigate = useNavigate()
 
   return (
-    <div style={styles.page}>
-      <div style={styles.container}>
+    <div className="error-page" style={styles.page}>
+      <div className="error-card" style={styles.container}>
         
         {/* Icono principal */}
         <div style={styles.icon}>
@@ -110,8 +110,8 @@ const styles = {
     fontWeight: '700',
     border: 'none',
     borderRadius: '12px',
-    background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)',
-    color: '#fff',
+    background: 'linear-gradient(135deg, #2c1810, #563522)',
+    color: '#fff8ee',
     cursor: 'pointer',
     boxShadow: '0 8px 16px rgba(44,24,16,0.2)',
     transition: 'all 0.3s ease',

@@ -2,26 +2,28 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import CharacterIcon from '../../components/CharacterIcon'
+import AppIcon from '../../components/AppIcon'
 
 export default function Comunicaciones() {
   const { usuario } = useAuth()
   const [tab, setTab] = useState('privado') // 'privado' | 'general'
 
   return (
-    <div style={styles.page}>
+    <div className="content-page comunicaciones-page" style={styles.page}>
       {/* Tabs */}
-      <div style={styles.tabs}>
+      <div className="chat-tabs" style={styles.tabs}>
         <button
           style={{ ...styles.tab, ...(tab === 'privado' ? styles.tabActivo : {}) }}
           onClick={() => setTab('privado')}
         >
-          💬 {usuario?.is_staff ? 'Mensajes privados' : 'Chat con la Junta'}
+          <AppIcon name="chat" size={17} />{usuario?.is_staff ? 'Mensajes privados' : 'Chat con la Junta'}
         </button>
         <button
           style={{ ...styles.tab, ...(tab === 'general' ? styles.tabActivo : {}) }}
           onClick={() => setTab('general')}
         >
-          🌐 Chat general
+          <AppIcon name="chat" size={17} />Chat general
         </button>
       </div>
 
@@ -39,7 +41,6 @@ export default function Comunicaciones() {
 // CHAT PRIVADO — Vista del HERMANO
 // ══════════════════════════════════════════════════════════
 function ChatHermanoPrivado() {
-  const { usuario } = useAuth()
   const [convId, setConvId]       = useState(null)
   const [mensajes, setMensajes]   = useState([])
   const [texto, setTexto]         = useState('')
@@ -89,13 +90,13 @@ function ChatHermanoPrivado() {
   }
 
   return (
-    <div style={styles.chatWrap}>
-      <div style={styles.chatHeader}>
-        <span style={styles.chatHeaderTitle}>💬 Junta de Gobierno</span>
+    <div className="chat-wrap" style={styles.chatWrap}>
+      <div className="chat-header" style={styles.chatHeader}>
+        <span style={styles.chatHeaderTitle}><AppIcon name="chat" size={17} />Junta de Gobierno</span>
         <span style={styles.chatHeaderSub}>Escríbenos cualquier consulta o solicitud</span>
       </div>
 
-      <div style={styles.chatBody}>
+      <div className="chat-body" style={styles.chatBody}>
         {mensajes.length === 0 && (
           <p style={styles.chatVacio}>Aún no hay mensajes. ¡Escríbenos!</p>
         )}
@@ -105,7 +106,7 @@ function ChatHermanoPrivado() {
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={handleEnviar} style={styles.chatInput}>
+      <form className="chat-input" onSubmit={handleEnviar} style={styles.chatInput}>
         <input
           style={styles.inputChat}
           value={texto}
@@ -114,7 +115,7 @@ function ChatHermanoPrivado() {
           disabled={enviando}
         />
         <button type="submit" disabled={enviando || !texto.trim()} style={styles.btnEnviar}>
-          ➤
+          <AppIcon name="send" size={18} />
         </button>
       </form>
     </div>
@@ -175,9 +176,9 @@ function ChatAdminPrivado() {
   }
 
   return (
-    <div style={styles.adminWrap}>
+    <div className="chat-admin-wrap" style={styles.adminWrap}>
       {/* Panel izquierdo: lista de conversaciones */}
-      <div style={styles.listaConv}>
+      <div className="chat-conversation-list" style={styles.listaConv}>
         <div style={styles.listaConvHeader}>Conversaciones</div>
         {conversaciones.length === 0 && (
           <p style={{ padding: '16px', color: '#888', fontSize: '13px' }}>
@@ -211,21 +212,21 @@ function ChatAdminPrivado() {
       {/* Panel derecho: chat activo */}
       {convActiva ? (
         <div style={styles.chatWrapAdmin}>
-          <div style={styles.chatHeader}>
+          <div className="chat-header" style={styles.chatHeader}>
             <span style={styles.chatHeaderTitle}>
-              💬 {convActiva.hermano_nombre}
+              <AppIcon name="chat" size={17} />{convActiva.hermano_nombre}
             </span>
             <span style={styles.chatHeaderSub}>{convActiva.hermano_email}</span>
           </div>
 
-          <div style={styles.chatBody}>
+          <div className="chat-body" style={styles.chatBody}>
             {mensajes.map(msg => (
               <BurbujaMensaje key={msg.id} msg={msg} />
             ))}
             <div ref={bottomRef} />
           </div>
 
-          <form onSubmit={handleEnviar} style={styles.chatInput}>
+          <form className="chat-input" onSubmit={handleEnviar} style={styles.chatInput}>
             <input
               style={styles.inputChat}
               value={texto}
@@ -237,13 +238,13 @@ function ChatAdminPrivado() {
               type="submit" disabled={enviando || !texto.trim()}
               style={styles.btnEnviar}
             >
-              ➤
+              <AppIcon name="send" size={18} />
             </button>
           </form>
         </div>
       ) : (
         <div style={styles.sinSeleccion}>
-          <p>👈 Selecciona una conversación para responder</p>
+          <p style={styles.emptyChatState}><AppIcon name="chat" size={18} />Selecciona una conversación para responder</p>
         </div>
       )}
     </div>
@@ -326,9 +327,9 @@ function ChatGeneral() {
   }
 
   return (
-    <div style={styles.chatWrap} onClick={() => setSelectorMsg(null)}>
-      <div style={styles.chatHeader}>
-        <span style={styles.chatHeaderTitle}>📢 Canal de la Hermandad</span>
+    <div className="chat-wrap" style={styles.chatWrap} onClick={() => setSelectorMsg(null)}>
+      <div className="chat-header" style={styles.chatHeader}>
+        <span style={styles.chatHeaderTitle}><AppIcon name="news" size={17} />Canal de la Hermandad</span>
         <span style={styles.chatHeaderSub}>
           {usuario?.is_staff
             ? 'Publica comunicados para todos los hermanos'
@@ -348,7 +349,7 @@ function ChatGeneral() {
         onCancel={() => { setConfirmOpen(false); setPendingAction(null) }}
       />
 
-      <div style={styles.chatBody}>
+      <div className="chat-body" style={styles.chatBody}>
         {mensajes.length === 0 && (
           <p style={styles.chatVacio}>
             {usuario?.is_staff
@@ -371,7 +372,7 @@ function ChatGeneral() {
       </div>
 
       {usuario?.is_staff ? (
-        <form onSubmit={handleEnviar} style={styles.chatInput}>
+        <form className="chat-input" onSubmit={handleEnviar} style={styles.chatInput}>
           <input
             style={styles.inputChat}
             value={texto}
@@ -380,12 +381,12 @@ function ChatGeneral() {
             disabled={enviando}
           />
           <button type="submit" disabled={enviando || !texto.trim()} style={styles.btnEnviar}>
-            ➤
+            <AppIcon name="send" size={18} />
           </button>
         </form>
       ) : (
         <div style={canalStyles.soloLectura}>
-          🔒 Solo la Junta de Gobierno puede publicar en este canal
+          <AppIcon name="lock" size={15} />Solo la Junta de Gobierno puede publicar en este canal
         </div>
       )}
     </div>
@@ -402,7 +403,10 @@ function MensajeCanal({ msg, usuario, selectorAbierto, onAbrirSelector, onReacci
 
         {/* Cabecera: autor + hora */}
         <div style={canalStyles.burbujaHeader}>
-          <span style={canalStyles.burbujaAutor}>⚜️ {msg.autor_nombre || msg.autor_email}</span>
+          <span style={canalStyles.burbujaAutor}>
+            <CharacterIcon caracter="MIEMBRO_JUNTA" alt="" style={canalStyles.burbujaAutorIcon} />
+            {msg.autor_nombre || msg.autor_email}
+          </span>
           <span style={canalStyles.burbujaHora}>
             {new Date(msg.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
           </span>
@@ -436,7 +440,7 @@ function MensajeCanal({ msg, usuario, selectorAbierto, onAbrirSelector, onReacci
           {/* Botón reaccionar con selector */}
           <div style={{ position: 'relative' }}>
             <button style={canalStyles.btnReaccionar} onClick={onAbrirSelector}>
-              {msg.mi_reaccion ? `${msg.mi_reaccion} Cambiar` : '😊 Reaccionar'}
+              {msg.mi_reaccion ? `${msg.mi_reaccion} Cambiar` : 'Reaccionar'}
             </button>
 
             {selectorAbierto && (
@@ -461,7 +465,7 @@ function MensajeCanal({ msg, usuario, selectorAbierto, onAbrirSelector, onReacci
           {/* Eliminar solo admin */}
           {usuario?.is_staff && (
             <button style={canalStyles.btnEliminar} onClick={() => onEliminar(msg.id)}>
-              🗑️ Eliminar
+              <AppIcon name="trash" size={14} />Eliminar
             </button>
           )}
 
@@ -508,9 +512,9 @@ const styles = {
   tab: {
     padding: '10px 22px', borderRadius: '12px', border: '1px solid rgba(117, 82, 52, 0.18)',
     background: 'rgba(255,255,255,0.6)', color: '#3d2a20', cursor: 'pointer', fontSize: '14px', fontWeight: '700',
-    boxShadow: '0 8px 16px rgba(44, 24, 16, 0.04)',
+    boxShadow: '0 8px 16px rgba(44, 24, 16, 0.04)', display: 'inline-flex', alignItems: 'center', gap: '7px',
   },
-  tabActivo: { background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)', color: '#f5e6c8', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)' },
+  tabActivo: { background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)' },
 
   chatWrap: {
     flex: 1, display: 'flex', flexDirection: 'column',
@@ -518,10 +522,10 @@ const styles = {
     boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', overflow: 'hidden', border: '1px solid rgba(117, 82, 52, 0.12)',
   },
   chatHeader: {
-    padding: '16px 20px',     background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)',
+    padding: '16px 20px',     background: 'linear-gradient(135deg, #2c1810, #563522)',
     display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0,
   },
-  chatHeaderTitle: { color: '#f5e6c8', fontWeight: '700', fontSize: '15px' },
+  chatHeaderTitle: { color: '#f5e6c8', fontWeight: '700', fontSize: '15px', display: 'inline-flex', alignItems: 'center', gap: '7px' },
   chatHeaderSub:   { color: 'rgba(255,255,255,0.7)', fontSize: '12px' },
   chatBody: {
     flex: 1, overflowY: 'auto', padding: '16px',
@@ -538,13 +542,13 @@ const styles = {
   },
   btnEnviar: {
     width: '44px', height: '44px', borderRadius: '50%',
-        background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white', border: 'none',
+        background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', border: 'none',
     cursor: 'pointer', fontSize: '16px', display: 'flex',
     alignItems: 'center', justifyContent: 'center',
   },
 
   burbuja: { padding: '8px 14px', borderRadius: '16px', maxWidth: '100%', wordBreak: 'break-word' },
-  burbujaPropia: {     background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white', borderBottomRightRadius: '4px' },
+  burbujaPropia: {     background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', borderBottomRightRadius: '4px' },
   burbujaAjena:  { backgroundColor: 'white', color: '#111', borderBottomLeftRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
   burbujaAutor:  { fontSize: '11px', color: '#555', marginBottom: '2px', paddingLeft: '4px', fontWeight: '600' },
   burbujaTexto:  { margin: 0, fontSize: '14px', lineHeight: '1.4' },
@@ -560,21 +564,22 @@ const styles = {
     width: '280px', flexShrink: 0, backgroundColor: 'white',
     borderRight: '1px solid #eee', overflowY: 'auto', display: 'flex', flexDirection: 'column',
   },
-  listaConvHeader: { padding: '16px 20px', fontWeight: '700', fontSize: '14px', color: '#1a1a2e', borderBottom: '1px solid #eee', flexShrink: 0 },
+  listaConvHeader: { padding: '16px 20px', fontWeight: '700', fontSize: '14px', color: '#2c1810', borderBottom: '1px solid #eee', flexShrink: 0 },
   convItem: { padding: '14px 16px', cursor: 'pointer', borderBottom: '1px solid #f5f5f5', transition: 'background 0.15s' },
   convItemActivo: { backgroundColor: '#f0f4ff' },
-  convItemNombre: { fontWeight: '600', fontSize: '14px', color: '#1a1a2e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  convItemNombre: { fontWeight: '600', fontSize: '14px', color: '#2c1810', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   convItemPreview: { fontSize: '12px', color: '#888', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   badge: { backgroundColor: '#e53e3e', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '700' },
   chatWrapAdmin: { flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 },
   sinSeleccion:  { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: '15px', backgroundColor: '#f9f9f9' },
+  emptyChatState: { display: 'inline-flex', alignItems: 'center', gap: '7px' },
 }
 
 const canalStyles = {
   soloLectura: {
     padding: '12px 20px', backgroundColor: '#f9f9f9',
     borderTop: '1px solid #eee', textAlign: 'center',
-    fontSize: '13px', color: '#888', flexShrink: 0,
+    fontSize: '13px', color: '#888', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
   },
   mensajeWrap: { marginBottom: '14px' },
   burbuja: {
@@ -582,7 +587,8 @@ const canalStyles = {
     boxShadow: '0 1px 4px rgba(0,0,0,0.08)', border: '1px solid #f0ece4',
   },
   burbujaHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
-  burbujaAutor:  { fontSize: '13px', fontWeight: '700', color: '#1a1a2e' },
+  burbujaAutor:  { display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '13px', fontWeight: '700', color: '#2c1810' },
+  burbujaAutorIcon: { width: '18px', height: '18px', objectFit: 'contain' },
   burbujaHora:   { fontSize: '11px', color: '#aaa' },
   burbujaTexto:  { margin: '0 0 10px', fontSize: '14px', color: '#222', lineHeight: '1.5' },
 
@@ -602,7 +608,7 @@ const canalStyles = {
   },
   btnEliminar: {
     fontSize: '12px', padding: '4px 10px', borderRadius: '6px',
-    border: '1px solid #fca5a5', background: '#fff5f5', cursor: 'pointer', color: '#dc2626',
+    border: '1px solid #fca5a5', background: '#fff5f5', cursor: 'pointer', color: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '4px',
   },
 
   selectorEmoji: {

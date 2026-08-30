@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import SearchField from '../../components/SearchField'
+import { coincideBusqueda } from '../../utils/search'
 
 const TIPOS = {
-  IMAGEN: { label: 'Imagen devocional', emoji: '🕍' },
-  ENSER:  { label: 'Enser',             emoji: '⚙️' },
-  UTIL:   { label: 'Útil',              emoji: '🧰' },
+  IMAGEN: { label: 'Imagen devocional' },
+  ENSER:  { label: 'Enser' },
+  UTIL:   { label: 'Útil' },
 }
 
 const ENDPOINTS = {
@@ -47,6 +49,7 @@ const formBase = (tipo) => ({
 export default function Inventario() {
   const [tipoActivo, setTipoActivo]   = useState('IMAGEN')
   const [objetos, setObjetos]         = useState([])
+  const [busqueda, setBusqueda]       = useState('')
   const [cargando, setCargando]       = useState(true)
   const [error, setError]             = useState('')
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -61,8 +64,6 @@ export default function Inventario() {
   //Cargar objetos del tipo elegido 
   useEffect(() => {
     let activo = true
-    setCargando(true)
-    setError('')
     const cargar = async () => {
       try {
         const res = await api.get(`/${ENDPOINTS[tipoActivo]}/`)
@@ -157,6 +158,8 @@ export default function Inventario() {
   // Cambiar tipo de objeto
   const cambiarTipo = tipo => {
     setTipoActivo(tipo)
+    setBusqueda('')
+    setCargando(true)
     setMostrarForm(false)
     setForm(formBase(tipo))
     setEditando(null)
@@ -164,13 +167,23 @@ export default function Inventario() {
   }
 
   const camposExtra = CAMPOS_EXTRA[tipoActivo]
+  const objetosFiltrados = objetos.filter(objeto => (
+    coincideBusqueda(busqueda, objeto.nombre, ...camposExtra.map(campo => objeto[campo.key]))
+  ))
 
   return (
-    <div style={styles.page}>
+    <div className="content-page inventario-page" style={styles.page}>
 
       {/* Cabecera */}
-      <div style={styles.header}>
-        <h2 style={styles.titulo}>Inventario</h2>
+      <div className="page-header" style={styles.header}>
+        <div>
+          <p style={styles.eyebrow}>Patrimonio de la Hermandad</p>
+          <h2 style={styles.titulo}>Inventario</h2>
+          <div style={styles.headerMeta}>
+            <p style={styles.intro}>Consulta y organiza los bienes y enseres de la Hermandad.</p>
+            <span style={styles.totalBadge}>{objetos.length} elemento{objetos.length !== 1 ? 's' : ''} de {TIPOS[tipoActivo].label.toLowerCase()}</span>
+          </div>
+        </div>
         <button style={styles.btnPrimary} onClick={() => setMostrarForm(!mostrarForm)}>
           {mostrarForm ? 'Cancelar' : `+ Nuevo ${TIPOS[tipoActivo].label.toLowerCase()}`}
         </button>
@@ -193,21 +206,29 @@ export default function Inventario() {
       />
 
       {/* Tabs de tipo */}
-      <div style={styles.tabs}>
+      <div className="tabs-row" style={styles.tabs}>
         {Object.entries(TIPOS).map(([key, val]) => (
           <button
             key={key}
             style={{ ...styles.tab, ...(tipoActivo === key ? styles.tabActivo : {}) }}
             onClick={() => cambiarTipo(key)}
           >
-            {val.emoji} {val.label}
+            {val.label}
           </button>
         ))}
       </div>
 
+      <SearchField
+        value={busqueda}
+        onChange={setBusqueda}
+        placeholder="Buscar por nombre, ubicación o estado"
+        ariaLabel="Buscar en el inventario"
+        style={styles.search}
+      />
+
       {/* Formulario nuevo objeto */}
       {mostrarForm && (
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
           <h3 style={styles.formTitulo}>Nuevo {TIPOS[tipoActivo].label.toLowerCase()}</h3>
 
           <label style={styles.label}>Nombre</label>
@@ -217,7 +238,7 @@ export default function Inventario() {
             placeholder={`Nombre del ${TIPOS[tipoActivo].label.toLowerCase()}`}
           />
 
-          <div style={styles.grid2}>
+          <div className="form-grid-2" style={styles.grid2}>
             {camposExtra.map(campo => (
               <div key={campo.key}>
                 <label style={styles.label}>{campo.label}</label>
@@ -242,8 +263,10 @@ export default function Inventario() {
         <p style={styles.info}>Cargando inventario...</p>
       ) : objetos.length === 0 ? (
         <p style={styles.info}>No hay {TIPOS[tipoActivo].label.toLowerCase()}s registradas.</p>
+      ) : objetosFiltrados.length === 0 ? (
+        <p style={styles.info}>No se han encontrado elementos con esa búsqueda.</p>
       ) : (
-        <div style={styles.tabla}>
+        <div className="data-table" style={styles.tabla}>
           <div style={styles.tablaHeader}>
             <span style={{ flex: 1 }}>Nombre</span>
             {camposExtra.map(c => (
@@ -252,10 +275,10 @@ export default function Inventario() {
             <span style={{ width: '140px' }}>Acciones</span>
           </div>
 
-          {objetos.map(obj => (
+          {objetosFiltrados.map(obj => (
             <div key={obj.id} style={styles.fila}>
-              <span style={{ flex: 1, fontWeight: '600', color: '#1a1a2e' }}>
-                {TIPOS[tipoActivo].emoji} {obj.nombre}
+              <span style={{ flex: 1, fontWeight: '600', color: '#2c1810' }}>
+                {obj.nombre}
               </span>
               {camposExtra.map(c => (
                 <span key={c.key} style={{ width: '160px', fontSize: '13px', color: '#555' }}>
@@ -278,7 +301,7 @@ export default function Inventario() {
       {/* Modal edición */}
       {editando && (
         <div style={styles.overlay}>
-          <div style={styles.modal}>
+          <div className="responsive-modal" style={styles.modal}>
             <h3 style={styles.formTitulo}>
               Editar {TIPOS[tipoActivo].label.toLowerCase()}
             </h3>
@@ -292,7 +315,7 @@ export default function Inventario() {
                 onChange={e => setFormEdit({ ...formEdit, nombre: e.target.value })}
               />
 
-              <div style={styles.grid2}>
+              <div className="form-grid-2" style={styles.grid2}>
                 {camposExtra.map(campo => (
                   <div key={campo.key}>
                     <label style={styles.label}>{campo.label}</label>
@@ -327,10 +350,15 @@ export default function Inventario() {
 
 const styles = {
   page:    { padding: '32px', maxWidth: '1440px', width: '100%', margin: '0 auto' },
-  header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
-  titulo:  { fontSize: '22px', fontWeight: '700', color: '#1a1a2e' },
+  header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '20px', marginBottom: '28px' },
+  eyebrow: { margin: '0 0 3px', color: '#95713a', fontSize: '11px', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase' },
+  titulo:  { margin: 0, fontSize: '30px', fontWeight: '700', color: '#2c1810' },
+  headerMeta: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '9px', marginTop: '5px' },
+  intro: { margin: 0, color: '#765f4d', fontSize: '15px' },
+  totalBadge: { padding: '4px 9px', borderRadius: '999px', color: '#765b45', background: 'rgba(201,168,76,0.12)', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap' },
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
+  search:  { marginBottom: '20px' },
 
   // Tabs
   tabs: { display: 'flex', gap: '8px', marginBottom: '20px' },
@@ -340,7 +368,7 @@ const styles = {
     fontSize: '14px', fontWeight: '700', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.04)',
   },
   tabActivo: {
-    background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)', color: '#f5e6c8', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
+    background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
   },
 
   // Formulario
@@ -365,7 +393,7 @@ const styles = {
   },
   tablaHeader: {
     display: 'flex', alignItems: 'center', gap: '12px',
-    padding: '12px 20px', background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)',
+    padding: '12px 20px', background: '#3c2519',
     color: '#f5e6c8', fontSize: '13px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase',
   },
   fila: {
@@ -375,13 +403,13 @@ const styles = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white',
+    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '8px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
   },
   btnEditar: {
     padding: '5px 12px', backgroundColor: 'transparent',
-    color: '#1a1a2e', border: '1px solid #1a1a2e',
+    color: '#2c1810', border: '1px solid #2c1810',
     borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
   },
   btnEliminar: {
