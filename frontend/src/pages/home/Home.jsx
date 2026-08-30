@@ -76,13 +76,8 @@ export default function Home() {
   const caracter = CHARACTER_INFO[caracterCodigo]
   const rolVisible = caracter?.label || 'Hermano'
   const iconoRol = caracter
-    ? <CharacterIcon caracter={caracterCodigo} alt={caracter.label} style={hs.statRoleImage} />
+    ? <CharacterIcon caracter={caracterCodigo} alt={caracter.label} style={hs.statRoleDecoration} />
     : '⛪'
-
-  // Estado cuota
-  const estadoVisible = hermano
-    ? (hermano.estado_cuota === 'PAGADO' ? 'Al corriente' : 'Pendiente')
-    : 'Activo'
 
   return (
     <div className="home-page" style={hs.page}>
@@ -102,9 +97,13 @@ export default function Home() {
       {/* ── Tarjetas de datos ── */}
       <div className="home-stats-grid" style={hs.statsGrid}>
         <CuentaAtrasCard />
-        <StatCard icon={iconoRol} label="TU ROL"        value={rolVisible} />
-        <StatCard icon="🔔"  label="ESTADO"           value={estadoVisible}
-          valueColor={hermano?.estado_cuota === 'NO_PAGADO' ? '#b45309' : '#2d7a45'} />
+        <StatCard icon={iconoRol} label="ROL DE HERMANO"        value={rolVisible} />
+        <StatCard
+          icon="⛪"
+          label="RESERVA TU"
+          value="PAPELETA"
+          onClick={() => navigate('/procesional')}
+        />
       </div>
 
       {/* ── Tarjetas de acceso rápido ── */}
@@ -130,12 +129,10 @@ export default function Home() {
           onClick={() => navigate('/eventos')}
         />
         <AccesoCard
-          icon="⛪"
-          titulo="Reserva tu sitio"
-          desc={usuario?.is_staff
-            ? 'Gestiona las solicitudes de papeleta de los hermanos.'
-            : 'Consulta o solicita tu papeleta para la estación de penitencia.'}
-          onClick={() => navigate('/procesional')}
+          icon="🪙"
+          titulo="Donaciones"
+          desc="Colabora con la hermandad realizando una aportación a nuestra hucha."
+          onClick={() => navigate('/donaciones')}
         />
       </div>
 
@@ -184,16 +181,39 @@ export default function Home() {
 }
 
 // ── Componentes auxiliares ────────────────────────────────────────
-function StatCard({ icon, label, value, valueColor }) {
+function StatCard({ icon, label, value, valueColor, onClick }) {
+  const [hover, setHover] = useState(false)
+  const contenido = (
+    <>
+      <span aria-hidden="true" style={hs.statDecoration}>{icon}</span>
+      <div style={hs.statContent}>
+        <div style={hs.statHeader}>
+          <span style={hs.statLabel}>{label}</span>
+        </div>
+        <div style={{ ...hs.statValue, ...(valueColor ? { color: valueColor } : {}) }}>
+          {value}
+        </div>
+      </div>
+    </>
+  )
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        style={{ ...hs.statCard, ...hs.statCardButton, ...(hover ? hs.accesoCardHover : {}) }}
+        onClick={onClick}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+      >
+        {contenido}
+      </button>
+    )
+  }
+
   return (
     <div style={hs.statCard}>
-      <div style={hs.statHeader}>
-        <span style={hs.statLabel}>{label}</span>
-        <span style={hs.statIcon}>{icon}</span>
-      </div>
-      <div style={{ ...hs.statValue, ...(valueColor ? { color: valueColor } : {}) }}>
-        {value}
-      </div>
+      {contenido}
     </div>
   )
 }
@@ -205,7 +225,7 @@ function CuentaAtrasCard() {
     <div style={hs.cuentaCard}>
       <div style={hs.cuentaHeader}>
         <span style={hs.statLabel}>MARTES SANTO · 23 MAR 2027</span>
-        <span style={{ fontSize: '16px' }}>⏳</span>
+        <span aria-hidden="true" style={hs.cuentaIcon}>⏳</span>
       </div>
       <div style={hs.cuentaGrid}>
         {[
@@ -237,9 +257,11 @@ function AccesoCard({ icon, titulo, desc, onClick }) {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <div style={hs.accesoIcon}>{icon}</div>
-      <h3 style={hs.accesoTitulo}>{titulo}</h3>
-      <p style={hs.accesoDesc}>{desc}</p>
+      <span aria-hidden="true" style={hs.accesoDecoration}>{icon}</span>
+      <div className="home-access-content" style={hs.accesoContent}>
+        <h3 style={hs.accesoTitulo}>{titulo}</h3>
+        <p style={hs.accesoDesc}>{desc}</p>
+      </div>
     </button>
   )
 }
@@ -333,6 +355,19 @@ const hs = {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+    isolation: 'isolate',
+  },
+  statContent: { position: 'relative', zIndex: 1 },
+  statCardButton: {
+    width: '100%',
+    appearance: 'none',
+    border: '1px solid transparent',
+    fontFamily: 'inherit',
+    textAlign: 'left',
+    cursor: 'pointer',
+    transition: 'transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
   },
   statHeader: {
     display: 'flex',
@@ -346,8 +381,15 @@ const hs = {
     color: '#8b725d',
     letterSpacing: '0.08em',
   },
-  statIcon: { fontSize: '24px', opacity: 0.9, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px' },
-  statRoleImage: { width: '34px', height: '34px', objectFit: 'contain', display: 'block', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.12))' },
+  statDecoration: {
+    position: 'absolute', right: '16px', top: '50%', zIndex: 0,
+    width: '96px', height: '96px', borderRadius: '50%',
+    display: 'grid', placeItems: 'center', transform: 'translateY(-50%)',
+    background: 'radial-gradient(circle, rgba(201,168,76,0.17), rgba(201,168,76,0.025) 68%, transparent 70%)',
+    fontSize: '54px', lineHeight: 1, opacity: 0.4,
+    filter: 'saturate(0.72) sepia(0.18)', pointerEvents: 'none',
+  },
+  statRoleDecoration: { width: '72px', height: '72px', objectFit: 'contain', display: 'block', filter: 'drop-shadow(0 3px 6px rgba(44,24,16,0.14))' },
   statValue: { fontSize: '24px', fontWeight: '700', color: DARK },
 
   // Acceso rápido
@@ -369,13 +411,24 @@ const hs = {
     flexDirection: 'column',
     justifyContent: 'center',
     textAlign: 'left',
+    position: 'relative',
+    overflow: 'hidden',
+    isolation: 'isolate',
   },
   accesoCardHover: {
     transform: 'translateY(-2px)',
     borderColor: 'rgba(201,168,76,0.45)',
     boxShadow: '0 18px 28px rgba(44, 24, 16, 0.08)',
   },
-  accesoIcon: { fontSize: '28px', marginBottom: '12px', color: '#b68d3d' },
+  accesoContent: { position: 'relative', zIndex: 1, maxWidth: '78%' },
+  accesoDecoration: {
+    position: 'absolute', right: '22px', top: '50%', zIndex: 0,
+    width: '116px', height: '116px', borderRadius: '50%',
+    display: 'grid', placeItems: 'center', transform: 'translateY(-50%)',
+    background: 'radial-gradient(circle, rgba(201,168,76,0.18), rgba(201,168,76,0.03) 68%, transparent 70%)',
+    fontSize: '62px', lineHeight: 1, opacity: 0.38,
+    filter: 'saturate(0.72) sepia(0.18)', pointerEvents: 'none',
+  },
   accesoTitulo: { fontSize: '18px', fontWeight: '700', color: DARK, margin: '0 0 8px' },
   accesoDesc: { fontSize: '13px', color: '#6d564d', lineHeight: '1.55', margin: 0 },
 
@@ -476,6 +529,7 @@ const hs = {
     alignItems: 'center',
     marginBottom: '14px',
   },
+  cuentaIcon: { fontSize: '16px', lineHeight: 1 },
   cuentaGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, 1fr)',

@@ -386,6 +386,10 @@ button:disabled {
     min-height: 150px !important;
   }
 
+  .home-access-content {
+    max-width: 76% !important;
+  }
+
   .home-footer-content {
     gap: 22px !important;
     padding: 26px 22px !important;

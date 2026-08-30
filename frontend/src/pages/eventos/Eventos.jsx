@@ -4,11 +4,11 @@ import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 
 const TIPOS = {
-  TODOS:   { label: 'Todos',     emoji: '📋' },
-  CULTO:   { label: 'Culto',     emoji: '🕯️' },
-  ENSAYO:  { label: 'Ensayo',    emoji: '🥁' },
-  REUNION: { label: 'Reunión',   emoji: '📋' },
-  PRIOSTIA:{ label: 'Priostía',  emoji: '⚙️' },
+  TODOS:   { label: 'Todos' },
+  CULTO:   { label: 'Culto' },
+  ENSAYO:  { label: 'Ensayo' },
+  REUNION: { label: 'Reunión' },
+  PRIOSTIA:{ label: 'Priostía' },
 }
 
 const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
@@ -259,7 +259,7 @@ export default function Eventos() {
               }}
               onClick={() => setFiltroTipo(key)}
             >
-              {val.emoji} {val.label}
+              {val.label}
             </button>
           ))}
         </div>
@@ -381,10 +381,10 @@ function FormEvento({ form, setForm, onSubmit, enviando, titulo, btnLabel, extra
       <label style={s.label}>Tipo</label>
       <select style={s.input} value={form.tipo_evento}
         onChange={e => setForm({ ...form, tipo_evento: e.target.value })}>
-        <option value="CULTO">🕯️ Culto</option>
-        <option value="ENSAYO">🥁 Ensayo</option>
-        <option value="REUNION">📋 Reunión</option>
-        <option value="PRIOSTIA">⚙️ Priostía</option>
+        <option value="CULTO">Culto</option>
+        <option value="ENSAYO">Ensayo</option>
+        <option value="REUNION">Reunión</option>
+        <option value="PRIOSTIA">Priostía</option>
       </select>
 
       <label style={s.label}>Fecha y hora</label>
@@ -432,7 +432,7 @@ function TarjetaEvento({ ev, usuario, esPasado, onEditar, onEliminar, onInscribi
     <div className="event-card" style={{ ...s.card, borderLeft: `4px solid ${col.border || '#ccc'}` }}>
       <div className="event-card-top" style={s.cardTop}>
         <span style={{ ...s.badge, backgroundColor: col.bg, color: col.text, borderColor: col.border }}>
-          {TIPOS[ev.tipo_evento]?.emoji} {TIPOS[ev.tipo_evento]?.label}
+          {TIPOS[ev.tipo_evento]?.label}
         </span>
         {usuario?.is_staff && (
           <div style={{ display: 'flex', gap: '6px' }}>
@@ -544,7 +544,7 @@ function CalendarioMes({ eventos, fechaRef, setFechaRef, usuario, onEditar, onEl
                       const col = colorTipo[ev.tipo_evento] || {}
                       return (
                         <div key={ev.id} style={{ ...s.calEventoPill, backgroundColor: col.bg, color: col.text, borderLeft: `2px solid ${col.border}` }}>
-                          {TIPOS[ev.tipo_evento]?.emoji} {ev.nombre_evento.slice(0, 14)}{ev.nombre_evento.length > 14 ? '…' : ''}
+                          {ev.nombre_evento.slice(0, 14)}{ev.nombre_evento.length > 14 ? '…' : ''}
                         </div>
                       )
                     })}
@@ -639,7 +639,7 @@ function CalendarioSemana({ eventos, fechaRef, setFechaRef, usuario, onEditar, o
                         🕐 {new Date(ev.fecha).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' })}
                       </div>
                       <div style={s.semanaEventoNombre}>
-                        {TIPOS[ev.tipo_evento]?.emoji} {ev.nombre_evento}
+                        {ev.nombre_evento}
                       </div>
                       <div style={s.semanaEventoLugar}>📍 {ev.lugar}</div>
                       {!usuario?.is_staff && (

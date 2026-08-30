@@ -3,9 +3,9 @@ import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 
 const TIPOS = {
-  IMAGEN: { label: 'Imagen devocional', emoji: '🕍' },
-  ENSER:  { label: 'Enser',             emoji: '⚙️' },
-  UTIL:   { label: 'Útil',              emoji: '🧰' },
+  IMAGEN: { label: 'Imagen devocional' },
+  ENSER:  { label: 'Enser' },
+  UTIL:   { label: 'Útil' },
 }
 
 const ENDPOINTS = {
@@ -200,7 +200,7 @@ export default function Inventario() {
             style={{ ...styles.tab, ...(tipoActivo === key ? styles.tabActivo : {}) }}
             onClick={() => cambiarTipo(key)}
           >
-            {val.emoji} {val.label}
+            {val.label}
           </button>
         ))}
       </div>
@@ -255,7 +255,7 @@ export default function Inventario() {
           {objetos.map(obj => (
             <div key={obj.id} style={styles.fila}>
               <span style={{ flex: 1, fontWeight: '600', color: '#2c1810' }}>
-                {TIPOS[tipoActivo].emoji} {obj.nombre}
+                {obj.nombre}
               </span>
               {camposExtra.map(c => (
                 <span key={c.key} style={{ width: '160px', fontSize: '13px', color: '#555' }}>
