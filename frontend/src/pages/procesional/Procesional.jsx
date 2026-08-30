@@ -16,6 +16,7 @@ export default function Procesional() {
   const { usuario } = useAuth()
   const [papeletas, setPapeletas]     = useState([])
   const [busqueda, setBusqueda]       = useState('')
+  const [filtroAnio, setFiltroAnio]   = useState(() => String(new Date().getFullYear()))
   const [cargando, setCargando]       = useState(true)
   const [error, setError]             = useState('')
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -133,7 +134,16 @@ export default function Procesional() {
 
   if (cargando) return <p style={styles.info}>Cargando papeletas...</p>
 
+  const anioActual = new Date().getFullYear()
+  const anioAnterior = anioActual - 1
+  const aniosHistoricos = [...new Set(
+    papeletas
+      .map(papeleta => Number(papeleta.fecha?.slice(0, 4)))
+      .filter(anio => Number.isInteger(anio) && anio < anioAnterior)
+  )].sort((a, b) => b - a)
+
   const papeletasFiltradas = papeletas.filter(papeleta => (
+    papeleta.fecha?.slice(0, 4) === filtroAnio &&
     coincideBusqueda(
       busqueda,
       papeleta.paso,
@@ -150,7 +160,7 @@ export default function Procesional() {
       <div className="page-header" style={styles.header}>
         <h2 style={styles.titulo}>
           Procesional
-          <span style={styles.count}> ({papeletas.length})</span>
+          <span style={styles.count}> ({papeletasFiltradas.length})</span>
         </h2>
         {!usuario?.is_staff && (
           <button
@@ -214,13 +224,38 @@ export default function Procesional() {
         </form>
       )}
 
-      <SearchField
-        value={busqueda}
-        onChange={setBusqueda}
-        placeholder="Buscar por paso, tramo, hermano o estado"
-        ariaLabel="Buscar papeletas de sitio"
-        style={styles.search}
-      />
+      <div style={styles.filtros}>
+        <div style={styles.filtroAnio}>
+          <label htmlFor="filtro-anio-papeletas" style={styles.filterLabel}>Año de la procesión</label>
+          <select
+            id="filtro-anio-papeletas"
+            value={filtroAnio}
+            onChange={e => setFiltroAnio(e.target.value)}
+            style={styles.selectAnio}
+          >
+            <option value={String(anioActual)}>Año actual ({anioActual})</option>
+            <option value={String(anioAnterior)}>Año anterior ({anioAnterior})</option>
+            {aniosHistoricos.length > 0 && (
+              <optgroup label="Años anteriores">
+                {aniosHistoricos.map(anio => (
+                  <option key={anio} value={String(anio)}>{anio}</option>
+                ))}
+              </optgroup>
+            )}
+          </select>
+        </div>
+
+        <div style={styles.filtroBusqueda}>
+          <span style={styles.filterLabel}>Buscar papeletas</span>
+          <SearchField
+            value={busqueda}
+            onChange={setBusqueda}
+            placeholder="Buscar por paso, tramo, hermano o estado"
+            ariaLabel="Buscar papeletas de sitio"
+            style={styles.search}
+          />
+        </div>
+      </div>
 
       {/* Lista de papeletas */}
       {papeletas.length === 0 ? (
@@ -230,7 +265,7 @@ export default function Procesional() {
             : 'No has solicitado ninguna papeleta todavía.'}
         </p>
       ) : papeletasFiltradas.length === 0 ? (
-        <p style={styles.info}>No se han encontrado papeletas con esa búsqueda.</p>
+        <p style={styles.info}>No se han encontrado papeletas para el año {filtroAnio} con esos filtros.</p>
       ) : (
         <div style={styles.lista}>
           {papeletasFiltradas.map(p => {
@@ -358,7 +393,19 @@ const styles = {
   count:   { fontSize: '16px', fontWeight: '400', color: '#888' },
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
-  search:  { marginBottom: '20px' },
+  filtros: {
+    display: 'flex', alignItems: 'flex-end', gap: '12px', flexWrap: 'wrap',
+    marginBottom: '20px',
+  },
+  filtroAnio: { display: 'flex', flex: '0 1 280px', flexDirection: 'column', gap: '5px', minWidth: '210px' },
+  filtroBusqueda: { display: 'flex', flex: '1 1 280px', flexDirection: 'column', gap: '5px', minWidth: '220px' },
+  filterLabel: { fontSize: '12px', fontWeight: '700', color: '#7d5f42' },
+  selectAnio: {
+    minHeight: '58px', boxSizing: 'border-box', padding: '0 20px', borderRadius: '18px',
+    border: '2px solid rgba(117,82,52,0.22)', fontSize: '16px', fontFamily: 'inherit', color: '#2c1810',
+    background: 'rgba(255,253,250,0.86)', boxShadow: '0 5px 14px rgba(44,24,16,0.04)',
+  },
+  search:  { marginBottom: 0 },
 
   form: {
     background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '24px',
