@@ -138,10 +138,10 @@ export default function Publicaciones() {
   if (cargando) return <p style={ps.info}>Cargando publicaciones...</p>
 
   return (
-    <div style={ps.page}>
+    <div className="content-page publicaciones-page" style={ps.page}>
 
       {/* ── Cabecera ── */}
-      <div style={ps.header}>
+      <div className="page-header" style={ps.header}>
         <h2 style={ps.titulo}>Noticias</h2>
         {usuario?.is_staff && (
           <button style={ps.btnPrimary} onClick={() => setModalCrear(true)}>
@@ -170,10 +170,11 @@ export default function Publicaciones() {
       {publicaciones.length === 0 ? (
         <p style={ps.info}>No hay publicaciones todavía.</p>
       ) : (
-        <div style={ps.lista}>
+        <div className="publication-list" style={ps.lista}>
           {publicaciones.map(pub => (
             <div
               key={pub.id}
+              className="publication-card"
               style={ps.card}
               onClick={() => setModalDetalle(pub)}
             >
@@ -233,7 +234,7 @@ export default function Publicaciones() {
       {/* ══ MODAL: Detalle de noticia ══ */}
       {modalDetalle && (
         <div style={ps.overlay} onClick={() => setModalDetalle(null)}>
-          <div style={ps.modalDetalle} onClick={e => e.stopPropagation()}>
+          <div className="responsive-modal publication-detail" style={ps.modalDetalle} onClick={e => e.stopPropagation()}>
 
             {/* Imagen cabecera */}
             {modalDetalle.imagen && (
@@ -296,13 +297,13 @@ export default function Publicaciones() {
       {/* ══ MODAL: Crear publicación ══ */}
       {modalCrear && (
         <div style={ps.overlay} onClick={() => setModalCrear(false)}>
-          <div style={ps.modal} onClick={e => e.stopPropagation()}>
+          <div className="responsive-modal" style={ps.modal} onClick={e => e.stopPropagation()}>
             <div style={ps.modalHeader}>
               <h3 style={ps.modalTitulo}>Nueva publicación</h3>
               <button style={ps.btnCerrar} onClick={() => setModalCrear(false)}>✕</button>
             </div>
 
-            <form onSubmit={handleSubmit} style={ps.form}>
+            <form className="data-form" onSubmit={handleSubmit} style={ps.form}>
               <label style={ps.label}>Titular</label>
               <input
                 style={ps.input} value={form.titular} required
@@ -343,13 +344,13 @@ export default function Publicaciones() {
       {/* ══ MODAL: Editar publicación ══ */}
       {editando && (
         <div style={ps.overlay} onClick={() => setEditando(null)}>
-          <div style={ps.modal} onClick={e => e.stopPropagation()}>
+          <div className="responsive-modal" style={ps.modal} onClick={e => e.stopPropagation()}>
             <div style={ps.modalHeader}>
               <h3 style={ps.modalTitulo}>Editar publicación</h3>
               <button style={ps.btnCerrar} onClick={() => setEditando(null)}>✕</button>
             </div>
 
-            <form onSubmit={handleGuardarEdicion} style={ps.form}>
+            <form className="data-form" onSubmit={handleGuardarEdicion} style={ps.form}>
               <label style={ps.label}>Titular</label>
               <input
                 style={ps.input} value={formEdit.titular} required
@@ -412,7 +413,7 @@ const ps = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)', color: 'white',
+    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '10px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '700', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
   },

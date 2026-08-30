@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import escudo from '../../assets/escudo.png'
-import nazarenoIcon from '../../assets/nazareno.png'
-import costaleroIcon from '../../assets/costalero.png'
-import miembroJuntaIcon from '../../assets/miembroDeJunta.png'
+import CharacterIcon from '../../components/CharacterIcon'
+import { CHARACTER_INFO } from '../../constants/characterInfo'
 import api from '../../api/axios'
 import bienvenida from '../../assets/bienvenida.jpg'
 import footer from '../../assets/footer.jpg'
@@ -12,12 +11,6 @@ import footer from '../../assets/footer.jpg'
 const GOLD  = '#c9a84c'
 const DARK  = '#2c1810'
 const CREAM = '#efe3d7'
-
-const CARACTER_INFO = {
-  NAZARENO:      { label: 'Nazareno', icon: nazarenoIcon },
-  COSTALERO:     { label: 'Costalero', icon: costaleroIcon },
-  MIEMBRO_JUNTA: { label: 'Junta de Gobierno', icon: miembroJuntaIcon },
-}
 
 function useCuentaAtras(fechaObjetivo) {
   const calcular = () => {
@@ -79,15 +72,12 @@ export default function Home() {
     : (usuario?.username || usuario?.email?.split('@')[0] || 'Hermano')
 
   // Rol visible
-  const caracter = CARACTER_INFO[hermano?.caracter]
-  const rolVisible = usuario?.is_staff
-    ? 'Junta de Gobierno'
-    : (caracter?.label || 'Hermano')
-  const iconoRol = usuario?.is_staff
-    ? '⚜️'
-    : (caracter?.icon
-      ? <img src={caracter.icon} alt={caracter.label} style={hs.statRoleImage} />
-      : '⛪')
+  const caracterCodigo = usuario?.is_staff ? 'MIEMBRO_JUNTA' : hermano?.caracter
+  const caracter = CHARACTER_INFO[caracterCodigo]
+  const rolVisible = caracter?.label || 'Hermano'
+  const iconoRol = caracter
+    ? <CharacterIcon caracter={caracterCodigo} alt={caracter.label} style={hs.statRoleImage} />
+    : '⛪'
 
   // Estado cuota
   const estadoVisible = hermano
@@ -95,10 +85,10 @@ export default function Home() {
     : 'Activo'
 
   return (
-    <div style={hs.page}>
+    <div className="home-page" style={hs.page}>
 
       {/* ── Banner de bienvenida ── */}
-      <div style={hs.banner}>
+      <div className="home-banner" style={hs.banner}>
         <div style={hs.bannerContent}>
           <p style={hs.bannerLema}>Hermandad Franciscana del Santísimo Sacramento, Inmaculada Concepción
             y Cofradía de Nazarenos del Santísimo Cristo del Perdón, Nuestra Señora de las Angustias, Santa Clara de Asís y San Juan Evangelista</p>
@@ -110,7 +100,7 @@ export default function Home() {
       </div>
 
       {/* ── Tarjetas de datos ── */}
-      <div style={hs.statsGrid}>
+      <div className="home-stats-grid" style={hs.statsGrid}>
         <CuentaAtrasCard />
         <StatCard icon={iconoRol} label="TU ROL"        value={rolVisible} />
         <StatCard icon="🔔"  label="ESTADO"           value={estadoVisible}
@@ -118,7 +108,7 @@ export default function Home() {
       </div>
 
       {/* ── Tarjetas de acceso rápido ── */}
-      <div style={hs.accesoGrid}>
+      <div className="home-access-grid" style={hs.accesoGrid}>
         <AccesoCard
           icon="💬"
           titulo="Atención al hermano"
@@ -149,9 +139,9 @@ export default function Home() {
         />
       </div>
 
-      <footer style={hs.footer}>
+      <footer className="home-footer" style={hs.footer}>
         <div style={hs.footerOverlay} />
-        <div style={hs.footerContent}>
+        <div className="home-footer-content" style={hs.footerContent}>
           <div style={hs.footerBrand}>
             <img src={escudo} alt="Escudo de la Hermandad" style={hs.footerLogo} />
             <div>
@@ -239,7 +229,9 @@ function CuentaAtrasCard() {
 function AccesoCard({ icon, titulo, desc, onClick }) {
   const [hover, setHover] = useState(false)
   return (
-    <div
+    <button
+      type="button"
+      className="home-access-card"
       style={{ ...hs.accesoCard, ...(hover ? hs.accesoCardHover : {}) }}
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
@@ -248,7 +240,7 @@ function AccesoCard({ icon, titulo, desc, onClick }) {
       <div style={hs.accesoIcon}>{icon}</div>
       <h3 style={hs.accesoTitulo}>{titulo}</h3>
       <p style={hs.accesoDesc}>{desc}</p>
-    </div>
+    </button>
   )
 }
 
@@ -376,6 +368,7 @@ const hs = {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
+    textAlign: 'left',
   },
   accesoCardHover: {
     transform: 'translateY(-2px)',

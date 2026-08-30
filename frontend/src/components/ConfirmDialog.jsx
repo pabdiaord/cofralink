@@ -11,13 +11,13 @@ export default function ConfirmDialog({
   if (!open) return null
 
   return (
-    <div style={styles.overlay} onClick={onCancel}>
-      <div style={styles.modal} onClick={e => e.stopPropagation()}>
+    <div className="confirm-dialog-overlay" style={styles.overlay} onClick={onCancel}>
+      <div className="confirm-dialog" style={styles.modal} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
         <div style={styles.header}>
           <span style={{ ...styles.icon, ...(danger ? styles.iconDanger : {}) }}>
             {danger ? '⚠️' : '✓'}
           </span>
-          <h3 style={styles.title}>{title}</h3>
+          <h3 id="confirm-dialog-title" style={styles.title}>{title}</h3>
         </div>
 
         <p style={styles.message}>{message}</p>
@@ -108,8 +108,8 @@ const styles = {
     padding: '10px 16px',
     borderRadius: '10px',
     border: 'none',
-    background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)',
-    color: '#fff',
+    background: 'linear-gradient(135deg, #2c1810, #563522)',
+    color: '#fff8ee',
     fontWeight: '700',
     cursor: 'pointer',
     boxShadow: '0 8px 16px rgba(44,24,16,0.16)',

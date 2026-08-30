@@ -133,8 +133,8 @@ export default function Donaciones() {
   const huchasActivas = huchas.filter(hucha => hucha.activa)
 
   return (
-    <div style={styles.page}>
-      <header style={styles.header}>
+    <div className="donations-page" style={styles.page}>
+      <header className="donations-header" style={styles.header}>
         <div>
           <h1 style={styles.title}>Donaciones</h1>
           <p style={styles.subtitle}>Apoya la vida diaria de la Hermandad o uno de sus proyectos.</p>
@@ -157,7 +157,7 @@ export default function Donaciones() {
       <ErrorMessage error={error} />
 
       {mostrarForm && (
-        <form style={styles.projectForm} onSubmit={crearHucha}>
+        <form className="donation-project-form" style={styles.projectForm} onSubmit={crearHucha}>
           <h2 style={styles.sectionTitle}>Nueva hucha de proyecto</h2>
           <div style={styles.formGrid}>
             <label style={styles.label}>
@@ -299,7 +299,7 @@ function HuchasCarousel({ huchas, importes, enviandoId, onImporteChange, onDonar
 
   return (
     <>
-      <div style={styles.carouselHeader}>
+      <div className="donation-carousel-header" style={styles.carouselHeader}>
         <h2 style={{ ...styles.sectionTitle, margin: 0 }}>Huchas activas</h2>
         <div style={styles.carouselControls} aria-label="Navegación de huchas">
           <button
@@ -335,7 +335,7 @@ function HuchasCarousel({ huchas, importes, enviandoId, onImporteChange, onDonar
         onKeyDown={manejarTecla}
         style={styles.cardsViewport}
       >
-        <div style={styles.cards}>
+        <div className="donation-cards" style={styles.cards}>
           {huchas.map(hucha => (
             <HuchaCard
               key={hucha.id}
@@ -359,7 +359,7 @@ function HuchaCard({ hucha, importe, enviando, onImporteChange, onDonar }) {
     : 0
 
   return (
-    <article style={{ ...styles.card, ...(hucha.tipo === 'GENERAL' ? styles.generalCard : {}) }}>
+    <article className="donation-card" style={{ ...styles.card, ...(hucha.tipo === 'GENERAL' ? styles.generalCard : {}) }}>
       <div style={styles.cardTopLine}>
         <span style={styles.typeBadge}>{hucha.tipo === 'GENERAL' ? 'HUCHA PRINCIPAL' : 'PROYECTO'}</span>
         <span aria-hidden="true" style={styles.cardIcon}>{hucha.tipo === 'GENERAL' ? '⛪' : '🕯️'}</span>
@@ -409,7 +409,7 @@ function DonacionesTable({ donaciones, mostrarDonante }) {
   if (donaciones.length === 0) return <p style={styles.empty}>Aún no hay donaciones registradas.</p>
 
   return (
-    <div style={styles.tableWrap}>
+    <div className="donation-table-wrap" style={styles.tableWrap}>
       <table style={styles.table}>
         <thead>
           <tr>

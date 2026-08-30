@@ -3,15 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
-import nazarenoIcon from '../../assets/nazareno.png'
-import costaleroIcon from '../../assets/costalero.png'
-import miembroJuntaIcon from '../../assets/miembroDeJunta.png'
-
-const CARACTER_INFO = {
-  NAZARENO:      { label: 'Nazareno',        icon: nazarenoIcon, desc: 'Desfila en el cortejo portando el cirio o la cruz de guía.' },
-  COSTALERO:     { label: 'Costalero',       icon: costaleroIcon, desc: 'Porta un paso durante la estación de penitencia.' },
-  MIEMBRO_JUNTA: { label: 'Junta de Gobierno', icon: miembroJuntaIcon, desc: 'Forma parte del gobierno de la hermandad.' },
-}
+import CharacterIcon from '../../components/CharacterIcon'
+import { CHARACTER_INFO } from '../../constants/characterInfo'
 
 const ESTADO_CUOTA_INFO = {
   PAGADO:    { label: 'Al corriente',  color: '#2d7a45', bg: '#eaf7ee', icon: '✅' },
@@ -104,27 +97,29 @@ export default function Perfil() {
 
   if (cargando) return <p style={styles.info}>Cargando perfil...</p>
 
-  const caracter = CARACTER_INFO[hermano?.caracter]
+  const caracterCodigo = usuario?.is_staff ? 'MIEMBRO_JUNTA' : hermano?.caracter
+  const caracter = CHARACTER_INFO[caracterCodigo]
   const cuota    = ESTADO_CUOTA_INFO[hermano?.estado_cuota]
   const nombreVisible = hermano
     ? `${hermano.nombre} ${hermano.apellidos}`
     : (usuario?.email || 'Junta de Gobierno')
-  const caracterVisible = usuario?.is_staff ? 'Junta de Gobierno' : (caracter?.label || 'Hermano')
+  const nombreEsCorreo = nombreVisible.includes('@')
+  const caracterVisible = caracter?.label || 'Hermano'
   const estadoCuenta = usuario?.is_active ? 'Cuenta activa' : 'Cuenta inactiva'
   const fechaIngreso = hermano?.fecha_ingreso
     ? new Date(hermano.fecha_ingreso).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
     : '—'
 
   return (
-    <div style={styles.page}>
-      <header style={styles.credentialHero}>
-        <div style={styles.heroIdentity}>
+    <div className="profile-page" style={styles.page}>
+      <header className="profile-hero" style={styles.credentialHero}>
+        <div className="profile-identity" style={styles.heroIdentity}>
           <div style={styles.profileSeal}>
-            {usuario?.is_staff ? '⚜️' : (caracter?.icon ? <img src={caracter.icon} alt={caracter.label} style={styles.heroIcon} /> : '⛪')}
+            {caracter ? <CharacterIcon caracter={caracterCodigo} alt={caracter.label} style={styles.heroIcon} /> : '⛪'}
           </div>
           <div>
             <p style={styles.heroEyebrow}>Credencial digital · CofraLink</p>
-            <h1 style={styles.heroNombre}>{nombreVisible}</h1>
+            <h1 className={`profile-name ${nombreEsCorreo ? 'profile-name--email' : ''}`} style={styles.heroNombre}>{nombreVisible}</h1>
             <p style={styles.heroSub}>
               {hermano ? `Hermano Nº ${hermano.numero_hermano}` : 'Administrador'} · {caracterVisible}
             </p>
@@ -145,9 +140,9 @@ export default function Perfil() {
         {exito && <div style={styles.exito}>✅ {exito}</div>}
         {error && <div style={styles.errorBox}>⚠️ {error}</div>}
 
-        <section style={styles.milestoneGrid} aria-label="Resumen de perfil">
+        <section className="profile-milestones" style={styles.milestoneGrid} aria-label="Resumen de perfil">
           <Hito
-            icon={usuario?.is_staff ? '⚜️' : (caracter?.icon ? <img src={caracter.icon} alt="" style={styles.milestoneImage} /> : '⛪')}
+            icon={caracter ? <CharacterIcon caracter={caracterCodigo} alt="" style={styles.milestoneImage} /> : '⛪'}
             label="Carácter"
             value={caracterVisible}
           />
@@ -156,8 +151,8 @@ export default function Perfil() {
           <Hito icon="#" label="Hermano número" value={hermano ? `${hermano.numero_hermano}` : 'Junta'} />
         </section>
 
-        <div style={styles.profileGrid}>
-          <section style={styles.profilePanel}>
+        <div className="profile-grid" style={styles.profileGrid}>
+          <section className="profile-panel" style={styles.profilePanel}>
             <div style={styles.panelHeader}>
               <div>
                 <p style={styles.panelEyebrow}>Información personal</p>
@@ -207,15 +202,15 @@ export default function Perfil() {
             </div>
           </section>
 
-          <aside style={styles.sideStack}>
+          <aside className="profile-side-stack" style={styles.sideStack}>
             <section style={styles.membershipPanel}>
               <div style={styles.membershipIcon}>
-                {caracter?.icon && !usuario?.is_staff ? <img src={caracter.icon} alt="" style={styles.membershipImage} /> : '✦'}
+                {caracter ? <CharacterIcon caracter={caracterCodigo} alt="" style={styles.membershipImage} /> : '✦'}
               </div>
               <div>
                 <p style={styles.panelEyebrow}>En mi último Martes Santo fui</p>
                 <h2 style={styles.membershipTitle}>{caracterVisible}</h2>
-                <p style={styles.membershipDescription}>{caracter?.desc || 'Gestionas la actividad y la comunicación de la Hermandad desde CofraLink.'}</p>
+                <p style={styles.membershipDescription}>{caracter?.description || 'Gestionas la actividad y la comunicación de la Hermandad desde CofraLink.'}</p>
               </div>
             </section>
 
@@ -284,7 +279,7 @@ function Fila({ label, value, readonly }) {
 
 // ── Estilos ───────────────────────────────────────────────────────
 const GOLD   = '#c9a84c'
-const DARK   = '#1a1a2e'
+const DARK   = '#2c1810'
 const CREAM  = '#faf7f2'
 const BORDER = '#e8e0d0'
 
@@ -294,7 +289,7 @@ const styles = {
 
   // Hero
   hero: {
-    background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`,
+    background: 'linear-gradient(135deg, #2c1810, #563522)',
     padding: '40px 32px',
     display: 'flex', alignItems: 'center', gap: '28px',
     borderBottom: `3px solid ${GOLD}`,
@@ -347,7 +342,7 @@ const styles = {
   },
   formBtns: { display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '2px' },
   btnGuardar: {
-    padding: '12px 20px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(84,52,34,0.96) 100%)`, color: 'white',
+    padding: '12px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '10px', fontSize: '15px',
     cursor: 'pointer', fontWeight: '600',
   },
@@ -380,7 +375,7 @@ const styles = {
 
   // Tarjeta de hermano
   tarjeta: {
-    background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`,
+    background: 'linear-gradient(135deg, #2c1810, #563522)',
     borderRadius: '12px', padding: '20px',
     border: `1px solid ${GOLD}`, boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
   },
@@ -402,7 +397,7 @@ const styles = {
   credentialHero: {
     maxWidth: '1240px', margin: '0 auto', minHeight: '202px', padding: 'clamp(22px, 4vw, 36px)', borderRadius: '26px',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap',
-    background: 'radial-gradient(circle at 88% 8%, rgba(231,199,119,0.28), transparent 28%), linear-gradient(125deg, #211612 0%, #493022 54%, #18212a 100%)',
+    background: 'radial-gradient(circle at 88% 8%, rgba(231,199,119,0.28), transparent 28%), linear-gradient(135deg, #2c1810, #563522)',
     border: '1px solid rgba(201,168,76,0.45)', boxShadow: '0 20px 40px rgba(44,24,16,0.18)',
   },
   heroIdentity: { display: 'flex', alignItems: 'center', gap: '22px', minWidth: 0 },

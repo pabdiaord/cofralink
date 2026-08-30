@@ -166,10 +166,10 @@ export default function Inventario() {
   const camposExtra = CAMPOS_EXTRA[tipoActivo]
 
   return (
-    <div style={styles.page}>
+    <div className="content-page inventario-page" style={styles.page}>
 
       {/* Cabecera */}
-      <div style={styles.header}>
+      <div className="page-header" style={styles.header}>
         <h2 style={styles.titulo}>Inventario</h2>
         <button style={styles.btnPrimary} onClick={() => setMostrarForm(!mostrarForm)}>
           {mostrarForm ? 'Cancelar' : `+ Nuevo ${TIPOS[tipoActivo].label.toLowerCase()}`}
@@ -193,7 +193,7 @@ export default function Inventario() {
       />
 
       {/* Tabs de tipo */}
-      <div style={styles.tabs}>
+      <div className="tabs-row" style={styles.tabs}>
         {Object.entries(TIPOS).map(([key, val]) => (
           <button
             key={key}
@@ -207,7 +207,7 @@ export default function Inventario() {
 
       {/* Formulario nuevo objeto */}
       {mostrarForm && (
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
           <h3 style={styles.formTitulo}>Nuevo {TIPOS[tipoActivo].label.toLowerCase()}</h3>
 
           <label style={styles.label}>Nombre</label>
@@ -217,7 +217,7 @@ export default function Inventario() {
             placeholder={`Nombre del ${TIPOS[tipoActivo].label.toLowerCase()}`}
           />
 
-          <div style={styles.grid2}>
+          <div className="form-grid-2" style={styles.grid2}>
             {camposExtra.map(campo => (
               <div key={campo.key}>
                 <label style={styles.label}>{campo.label}</label>
@@ -243,7 +243,7 @@ export default function Inventario() {
       ) : objetos.length === 0 ? (
         <p style={styles.info}>No hay {TIPOS[tipoActivo].label.toLowerCase()}s registradas.</p>
       ) : (
-        <div style={styles.tabla}>
+        <div className="data-table" style={styles.tabla}>
           <div style={styles.tablaHeader}>
             <span style={{ flex: 1 }}>Nombre</span>
             {camposExtra.map(c => (
@@ -254,7 +254,7 @@ export default function Inventario() {
 
           {objetos.map(obj => (
             <div key={obj.id} style={styles.fila}>
-              <span style={{ flex: 1, fontWeight: '600', color: '#1a1a2e' }}>
+              <span style={{ flex: 1, fontWeight: '600', color: '#2c1810' }}>
                 {TIPOS[tipoActivo].emoji} {obj.nombre}
               </span>
               {camposExtra.map(c => (
@@ -278,7 +278,7 @@ export default function Inventario() {
       {/* Modal edición */}
       {editando && (
         <div style={styles.overlay}>
-          <div style={styles.modal}>
+          <div className="responsive-modal" style={styles.modal}>
             <h3 style={styles.formTitulo}>
               Editar {TIPOS[tipoActivo].label.toLowerCase()}
             </h3>
@@ -292,7 +292,7 @@ export default function Inventario() {
                 onChange={e => setFormEdit({ ...formEdit, nombre: e.target.value })}
               />
 
-              <div style={styles.grid2}>
+              <div className="form-grid-2" style={styles.grid2}>
                 {camposExtra.map(campo => (
                   <div key={campo.key}>
                     <label style={styles.label}>{campo.label}</label>
@@ -328,7 +328,7 @@ export default function Inventario() {
 const styles = {
   page:    { padding: '32px', maxWidth: '1440px', width: '100%', margin: '0 auto' },
   header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
-  titulo:  { fontSize: '22px', fontWeight: '700', color: '#1a1a2e' },
+  titulo:  { fontSize: '22px', fontWeight: '700', color: '#2c1810' },
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
 
@@ -340,7 +340,7 @@ const styles = {
     fontSize: '14px', fontWeight: '700', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.04)',
   },
   tabActivo: {
-    background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)', color: '#f5e6c8', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
+    background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
   },
 
   // Formulario
@@ -365,7 +365,7 @@ const styles = {
   },
   tablaHeader: {
     display: 'flex', alignItems: 'center', gap: '12px',
-    padding: '12px 20px', background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)',
+    padding: '12px 20px', background: '#3c2519',
     color: '#f5e6c8', fontSize: '13px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase',
   },
   fila: {
@@ -375,13 +375,13 @@ const styles = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white',
+    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '8px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
   },
   btnEditar: {
     padding: '5px 12px', backgroundColor: 'transparent',
-    color: '#1a1a2e', border: '1px solid #1a1a2e',
+    color: '#2c1810', border: '1px solid #2c1810',
     borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
   },
   btnEliminar: {

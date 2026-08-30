@@ -130,10 +130,10 @@ export default function Procesional() {
   if (cargando) return <p style={styles.info}>Cargando papeletas...</p>
 
   return (
-    <div style={styles.page}>
+    <div className="content-page procesional-page" style={styles.page}>
 
       {/* Cabecera */}
-      <div style={styles.header}>
+      <div className="page-header" style={styles.header}>
         <h2 style={styles.titulo}>
           Procesional
           <span style={styles.count}> ({papeletas.length})</span>
@@ -166,7 +166,7 @@ export default function Procesional() {
 
       {/* Formulario solicitud (solo hermano) */}
       {mostrarForm && !usuario?.is_staff && (
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
           <h3 style={styles.formTitulo}>Solicitud de papeleta de sitio</h3>
 
           <label style={styles.label}>Paso</label>
@@ -176,7 +176,7 @@ export default function Procesional() {
             placeholder="Ej: Paso del Cristo"
           />
 
-          <div style={styles.grid2}>
+          <div className="form-grid-2" style={styles.grid2}>
             <div>
               <label style={styles.label}>Fecha de la procesión</label>
               <input
@@ -262,7 +262,7 @@ export default function Procesional() {
       {/* Modal gestión admin */}
       {editando && (
         <div style={styles.overlay}>
-          <div style={styles.modal}>
+          <div className="responsive-modal" style={styles.modal}>
             <h3 style={styles.formTitulo}>
               Gestionar papeleta — {editando.paso}
             </h3>
@@ -279,7 +279,7 @@ export default function Procesional() {
                 onChange={e => setFormEdit({ ...formEdit, paso: e.target.value })}
               />
 
-              <div style={styles.grid2}>
+              <div className="form-grid-2" style={styles.grid2}>
                 <div>
                   <label style={styles.label}>Fecha</label>
                   <input
@@ -330,7 +330,7 @@ export default function Procesional() {
 const styles = {
   page:    { padding: '32px', maxWidth: '1440px', width: '100%', margin: '0 auto' },
   header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
-  titulo:  { fontSize: '22px', fontWeight: '700', color: '#1a1a2e' },
+  titulo:  { fontSize: '22px', fontWeight: '700', color: '#2c1810' },
   count:   { fontSize: '16px', fontWeight: '400', color: '#888' },
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
@@ -356,7 +356,7 @@ const styles = {
     boxShadow: '0 10px 20px rgba(44,24,16,0.06)', border: '1px solid rgba(117, 82, 52, 0.12)',
   },
   cardTop:   { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' },
-  cardTitulo:{ fontSize: '17px', fontWeight: '700', color: '#1a1a2e', marginBottom: '4px' },
+  cardTitulo:{ fontSize: '17px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },
   cardSub:   { fontSize: '13px', color: '#666' },
   badge: {
     display: 'inline-block', padding: '4px 12px', borderRadius: '20px',
@@ -370,13 +370,13 @@ const styles = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white',
+    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '8px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
   },
   btnEditar: {
     padding: '6px 14px', backgroundColor: 'transparent',
-    color: '#1a1a2e', border: '1px solid #1a1a2e',
+    color: '#2c1810', border: '1px solid #2c1810',
     borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
   },
   btnEliminar: {

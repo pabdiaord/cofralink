@@ -187,10 +187,10 @@ export default function Eventos() {
   if (cargando) return <p style={s.info}>Cargando eventos...</p>
 
   return (
-    <div style={s.page}>
+    <div className="content-page eventos-page" style={s.page}>
 
       {/* ── Cabecera ── */}
-      <div style={s.header}>
+      <div className="page-header" style={s.header}>
         <h2 style={s.titulo}>Eventos</h2>
         {usuario?.is_staff && (
           <button style={s.btnPrimary} onClick={() => setMostrarForm(!mostrarForm)}>
@@ -230,9 +230,9 @@ export default function Eventos() {
       )}
 
       {/* ── Barra de filtros ── */}
-      <div style={s.filtrosBar}>
+      <div className="event-filters" style={s.filtrosBar}>
         {/* Búsqueda */}
-        <div style={s.searchWrap}>
+        <div className="event-search" style={s.searchWrap}>
           <span style={s.searchIcon}>🔍</span>
           <input
             style={s.searchInput}
@@ -246,7 +246,7 @@ export default function Eventos() {
         </div>
 
         {/* Filtros por tipo */}
-        <div style={s.tipoFiltros}>
+        <div className="chip-row" style={s.tipoFiltros}>
           {Object.entries(TIPOS).map(([key, val]) => (
             <button
               key={key}
@@ -265,7 +265,7 @@ export default function Eventos() {
         </div>
 
         {/* Toggle vista */}
-        <div style={s.vistaToggle}>
+        <div className="view-toggle" style={s.vistaToggle}>
           {[
             { key: 'lista',  icon: '☰',  label: 'Lista' },
             { key: 'mes',    icon: '📅',  label: 'Mes' },
@@ -345,7 +345,7 @@ export default function Eventos() {
       {/* ── Modal edición ── */}
       {editando && (
         <div style={s.overlay}>
-          <div style={s.modal}>
+          <div className="responsive-modal" style={s.modal}>
             <h3 style={s.formTitulo}>Editar evento</h3>
             <FormEvento
               form={formEdit} setForm={setFormEdit}
@@ -370,7 +370,7 @@ export default function Eventos() {
 // ══════════════════════════════════════════════════════
 function FormEvento({ form, setForm, onSubmit, enviando, titulo, btnLabel, extra }) {
   return (
-    <form onSubmit={onSubmit} style={s.form}>
+    <form className="data-form" onSubmit={onSubmit} style={s.form}>
       {titulo && <h3 style={s.formTitulo}>{titulo}</h3>}
 
       <label style={s.label}>Nombre del evento</label>
@@ -429,8 +429,8 @@ function ListaEventos({ eventos, usuario, esPasado, onEditar, onEliminar, onInsc
 function TarjetaEvento({ ev, usuario, esPasado, onEditar, onEliminar, onInscribirse }) {
   const col = colorTipo[ev.tipo_evento] || {}
   return (
-    <div style={{ ...s.card, borderLeft: `4px solid ${col.border || '#ccc'}` }}>
-      <div style={s.cardTop}>
+    <div className="event-card" style={{ ...s.card, borderLeft: `4px solid ${col.border || '#ccc'}` }}>
+      <div className="event-card-top" style={s.cardTop}>
         <span style={{ ...s.badge, backgroundColor: col.bg, color: col.text, borderColor: col.border }}>
           {TIPOS[ev.tipo_evento]?.emoji} {TIPOS[ev.tipo_evento]?.label}
         </span>
@@ -448,7 +448,7 @@ function TarjetaEvento({ ev, usuario, esPasado, onEditar, onEliminar, onInscribi
         <span>📍 {ev.lugar}</span>
       </div>
       {ev.descripcion && <p style={s.descripcion}>{ev.descripcion}</p>}
-      <div style={s.cardFooter}>
+      <div className="event-card-footer" style={s.cardFooter}>
         <span style={s.inscritos}>👥 {ev.total_inscritos} inscritos</span>
         {!usuario?.is_staff && !esPasado && (
           <button
@@ -503,9 +503,9 @@ function CalendarioMes({ eventos, fechaRef, setFechaRef, usuario, onEditar, onEl
     : []
 
   return (
-    <div>
+    <div className="calendar-view">
       {/* Navegación mes */}
-      <div style={s.calNav}>
+      <div className="calendar-nav" style={s.calNav}>
         <button style={s.calNavBtn} onClick={() => setFechaRef(new Date(year, month-1, 1))}>‹</button>
         <span style={s.calNavTitulo}>{MESES[month]} {year}</span>
         <button style={s.calNavBtn} onClick={() => setFechaRef(new Date(year, month+1, 1))}>›</button>
@@ -513,14 +513,14 @@ function CalendarioMes({ eventos, fechaRef, setFechaRef, usuario, onEditar, onEl
       </div>
 
       {/* Cabecera días */}
-      <div style={s.calGrid7}>
+      <div className="calendar-grid" style={s.calGrid7}>
         {DIAS_SEMANA.map(d => (
           <div key={d} style={s.calDiaNombre}>{d}</div>
         ))}
       </div>
 
       {/* Celdas */}
-      <div style={s.calGrid7}>
+      <div className="calendar-grid" style={s.calGrid7}>
         {celdas.map((d, i) => {
           const key    = keyDia(d)
           const evs    = d ? (eventosPorDia[key] || []) : []
@@ -610,9 +610,9 @@ function CalendarioSemana({ eventos, fechaRef, setFechaRef, usuario, onEditar, o
   const finStr    = `${dias[6].getDate()} ${MESES[dias[6].getMonth()]} ${dias[6].getFullYear()}`
 
   return (
-    <div>
+    <div className="calendar-view">
       {/* Navegación semana */}
-      <div style={s.calNav}>
+      <div className="calendar-nav" style={s.calNav}>
         <button style={s.calNavBtn} onClick={() => irSemana(-1)}>‹</button>
         <span style={s.calNavTitulo}>{inicioStr} – {finStr}</span>
         <button style={s.calNavBtn} onClick={() => irSemana(1)}>›</button>
@@ -620,7 +620,7 @@ function CalendarioSemana({ eventos, fechaRef, setFechaRef, usuario, onEditar, o
       </div>
 
       {/* Columnas de días */}
-      <div style={s.semanaGrid}>
+      <div className="calendar-week" style={s.semanaGrid}>
         {dias.map((dia, i) => {
           const evs = eventosPorDia[keyFecha(dia)] || []
           return (
@@ -675,7 +675,7 @@ function CalendarioSemana({ eventos, fechaRef, setFechaRef, usuario, onEditar, o
 const s = {
   page:    { padding: '32px', maxWidth: '1440px', width: '100%', margin: '0 auto' },
   header:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
-  titulo:  { fontSize: '22px', fontWeight: '700', color: '#1a1a2e' },
+  titulo:  { fontSize: '22px', fontWeight: '700', color: '#2c1810' },
   info:    { textAlign: 'center', color: '#666', marginTop: '40px' },
   error:   { color: '#e53e3e', marginBottom: '12px', fontSize: '14px' },
   contador:{ fontSize: '13px', color: '#888', marginBottom: '16px' },
@@ -708,7 +708,7 @@ const s = {
     padding: '7px 12px', borderRadius: '10px', border: '1px solid rgba(117, 82, 52, 0.22)',
     background: 'rgba(255,255,255,0.48)', cursor: 'pointer', fontSize: '12px', color: '#3d2a20', fontWeight: '700',
   },
-  vistaBtnActivo: { background: 'linear-gradient(135deg, #2c1810 0%, #4b2d1f 35%, #1d1823 100%)', color: '#f5e6c8', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)' },
+  vistaBtnActivo: { background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)' },
 
   // Formulario
   form: {
@@ -730,7 +730,7 @@ const s = {
     padding: '8px 14px', borderRadius: '10px', border: '1px solid rgba(117, 82, 52, 0.22)',
     background: 'rgba(255,255,255,0.55)', cursor: 'pointer', fontSize: '13px', color: '#5d4a3d', fontWeight: '600',
   },
-  listaSeccionBtnActivo: { background: '#4b2d1f', color: '#f5e6c8', borderColor: '#4b2d1f' },
+  listaSeccionBtnActivo: { background: '#5b3927', color: '#fff8ee', borderColor: '#5b3927' },
   card:  { background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px', padding: '18px', boxShadow: '0 10px 20px rgba(44,24,16,0.06)', border: '1px solid rgba(117, 82, 52, 0.12)' },
   cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' },
   badge: {
@@ -745,19 +745,19 @@ const s = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white',
+    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', fontWeight: '600',
   },
   btnEditar: {
-    padding: '5px 12px', background: 'transparent', color: '#1a1a2e',
-    border: '1px solid #1a1a2e', borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
+    padding: '5px 12px', background: 'transparent', color: '#2c1810',
+    border: '1px solid #2c1810', borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
   },
   btnEliminar: {
     padding: '5px 12px', background: 'transparent', color: '#e53e3e',
     border: '1px solid #e53e3e', borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
   },
   btnInscribirse: {
-    padding: '7px 16px', background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white',
+    padding: '7px 16px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: '600',
   },
   btnInscrito: { background: '#d8d2cc', color: '#655d57', cursor: 'default' },
@@ -784,13 +784,13 @@ const s = {
   },
   calNavBtn: {
     width: '34px', height: '34px', borderRadius: '50%', border: '1px solid #ddd',
-    background: 'white', cursor: 'pointer', fontSize: '18px', color: '#1a1a2e',
+    background: 'white', cursor: 'pointer', fontSize: '18px', color: '#2c1810',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
-  calNavTitulo: { fontWeight: '700', fontSize: '16px', color: '#1a1a2e', flex: 1, textAlign: 'center' },
+  calNavTitulo: { fontWeight: '700', fontSize: '16px', color: '#2c1810', flex: 1, textAlign: 'center' },
   calHoyBtn: {
-    padding: '6px 14px', border: '1px solid #1a1a2e', borderRadius: '6px',
-    background: 'white', cursor: 'pointer', fontSize: '13px', color: '#1a1a2e', fontWeight: '600',
+    padding: '6px 14px', border: '1px solid #2c1810', borderRadius: '6px',
+    background: 'white', cursor: 'pointer', fontSize: '13px', color: '#2c1810', fontWeight: '600',
   },
 
   // Calendario mensual
@@ -799,15 +799,15 @@ const s = {
     gap: '2px', background: '#e5e7eb', borderRadius: '10px', overflow: 'hidden',
   },
   calDiaNombre: {
-    background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)`, color: 'white', textAlign: 'center',
+    background: '#3c2519', color: '#f7ead5', textAlign: 'center',
     padding: '8px 4px', fontSize: '12px', fontWeight: '700',
   },
   calCelda: { background: 'white', minHeight: '100px', padding: '6px', cursor: 'pointer', transition: 'background 0.15s' },
   calCeldaActiva: { background: 'white' },
   calCeldaVacia:  { background: '#f9fafb', cursor: 'default' },
-  calCeldaHoy:    { background: `linear-gradient(135deg, rgba(28,18,15,0.96) 0%, rgba(54,37,27,0.94) 45%, rgba(16,16,26,0.96) 100%)` },
-  calCeldaSeleccionada: { background: '#f0f4ff', outline: '2px solid #1a1a2e' },
-  calNumDia: { fontSize: '13px', fontWeight: '700', color: '#1a1a2e', display: 'block', marginBottom: '4px' },
+  calCeldaHoy:    { background: '#563522' },
+  calCeldaSeleccionada: { background: '#f6ead5', outline: '2px solid #5b3927' },
+  calNumDia: { fontSize: '13px', fontWeight: '700', color: '#2c1810', display: 'block', marginBottom: '4px' },
   calEventsWrap: { display: 'flex', flexDirection: 'column', gap: '2px' },
   calEventoPill: {
     fontSize: '10px', padding: '2px 4px', borderRadius: '3px',
@@ -820,7 +820,7 @@ const s = {
     marginTop: '20px', padding: '16px', background: '#f8faff',
     borderRadius: '10px', border: '1px solid #dde',
   },
-  detalleDiaTitulo: { fontSize: '15px', fontWeight: '700', color: '#1a1a2e', marginBottom: '14px' },
+  detalleDiaTitulo: { fontSize: '15px', fontWeight: '700', color: '#2c1810', marginBottom: '14px' },
 
   // Calendario semanal
   semanaGrid: {
@@ -831,15 +831,15 @@ const s = {
     background: 'white', borderRadius: '8px', padding: '10px',
     boxShadow: '0 1px 4px rgba(0,0,0,0.06)', minHeight: '200px',
   },
-  semanaColHoy: { outline: '2px solid #1a1a2e' },
+  semanaColHoy: { outline: '2px solid #5b3927' },
   semanaDiaNombre: { fontSize: '11px', fontWeight: '700', color: '#888', textAlign: 'center', marginBottom: '4px' },
   semanaDiaNum: {
-    fontSize: '18px', fontWeight: '700', color: '#1a1a2e',
+    fontSize: '18px', fontWeight: '700', color: '#2c1810',
     textAlign: 'center', marginBottom: '10px',
   },
   semanaDiaNumHoy: {
     width: '30px', height: '30px', borderRadius: '50%',
-    backgroundColor: '#1a1a2e', color: 'white',
+    backgroundColor: '#5b3927', color: '#fff8ee',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     margin: '0 auto 10px', fontSize: '14px',
   },
@@ -853,8 +853,8 @@ const s = {
   semanaEventoNombre: { fontWeight: '700', fontSize: '12px', marginBottom: '2px' },
   semanaEventoLugar:  { color: '#555', marginBottom: '4px' },
   semanaEventoBtn: {
-    fontSize: '10px', padding: '3px 8px', backgroundColor: '#1a1a2e',
-    color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%',
+    fontSize: '10px', padding: '3px 8px', backgroundColor: '#5b3927',
+    color: '#fff8ee', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%',
   },
   semanaEditBtn: {
     flex: 1, fontSize: '11px', padding: '2px', background: 'transparent',

@@ -16,10 +16,10 @@ export default function Auth({ initialTab = 'login' }) {
   const [tab, setTab] = useState(initialTab)
 
   return (
-    <div style={as.page}>
+    <div className="auth-page" style={as.page}>
 
       {/* ── Panel izquierdo ── */}
-      <div style={as.left}>
+      <div className="auth-panel auth-panel--brand" style={as.left}>
         <div style={as.leftInner}>
 
           <div style={as.fundacion}>
@@ -47,12 +47,11 @@ export default function Auth({ initialTab = 'login' }) {
 
         {/* Indicador de slide */}
         <div style={as.indicator}>
-          <div style={as.dot} />
         </div>
       </div>
 
       {/* ── Panel derecho ── */}
-      <div style={as.right}>
+      <div className="auth-panel auth-panel--form" style={as.right}>
         <div style={as.rightInner}>
 
           {/* Logo */}
@@ -309,7 +308,7 @@ const as = {
   },
   error: { fontSize: '12px', color: '#c0392b', textAlign: 'center', margin: 0 },
   btnSubmit: {
-    padding: '14px', backgroundColor: DARK, color: 'white',
+    padding: '14px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '8px', fontSize: '13px',
     cursor: 'pointer', fontWeight: '700', letterSpacing: '0.1em',
     marginTop: '4px', transition: 'opacity 0.2s',
