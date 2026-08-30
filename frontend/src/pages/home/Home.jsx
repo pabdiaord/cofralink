@@ -104,7 +104,6 @@ export default function Home() {
         {error && <p style={hs.error}>{error}</p>}
 
         <section style={hs.dashboardSection}>
-          <SectionHeading eyebrow="Tu situación" title="Todo a un vistazo" />
           <div style={hs.overviewGrid}>
             <MetricCard icon={estadoCuota.icono} label="Estado de cuota" value={estadoCuota.texto} color={estadoCuota.color} />
             <MetricCard icon={iconoRol} label="Tu carácter" value={rolVisible} />
