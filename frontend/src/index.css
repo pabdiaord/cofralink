@@ -66,6 +66,128 @@ button:hover {
   transform: translateY(-1px);
 }
 
+.legal-page {
+  min-height: 100vh;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(201, 168, 76, 0.18), transparent 32%),
+    linear-gradient(180deg, #f4efe8 0%, #efe3d7 100%);
+}
+
+.legal-page__bar,
+.legal-document {
+  width: min(100%, 920px);
+  margin: 0 auto;
+}
+
+.legal-page__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 2px 22px;
+}
+
+.legal-page__brand {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.legal-page__brand img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: var(--cofrade-ink);
+  box-shadow: 0 4px 12px rgba(44, 24, 16, 0.18);
+}
+
+.legal-page__back {
+  color: #684a30;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.legal-page__back:hover,
+.legal-page__back:focus-visible,
+.legal-page__brand:hover,
+.legal-page__brand:focus-visible {
+  text-decoration: underline;
+}
+
+.legal-document {
+  padding: clamp(24px, 5vw, 52px);
+  border: 1px solid rgba(117, 82, 52, 0.16);
+  border-radius: 20px;
+  background: rgba(255, 253, 250, 0.92);
+  box-shadow: 0 18px 40px rgba(44, 24, 16, 0.1);
+}
+
+.legal-document h1 {
+  margin: 0 0 8px;
+  color: var(--cofrade-ink);
+  font-size: clamp(27px, 5vw, 38px);
+}
+
+.legal-document h2 {
+  margin: 34px 0 12px;
+  color: #563522;
+  font-size: clamp(19px, 3vw, 24px);
+}
+
+.legal-document h3 {
+  margin: 26px 0 10px;
+  color: #65462f;
+  font-size: 18px;
+}
+
+.legal-document p {
+  margin: 0 0 16px;
+  color: #4f3a2d;
+  line-height: 1.72;
+}
+
+.legal-document h1 + p {
+  color: #80684f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.legal-document ul {
+  margin: 0 0 18px 22px;
+  color: #4f3a2d;
+}
+
+.legal-document li {
+  margin: 7px 0;
+  padding-left: 4px;
+  line-height: 1.62;
+}
+
+.legal-document a {
+  color: #684a30;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .legal-page {
+    padding: 16px;
+  }
+
+  .legal-page__bar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 16px;
+  }
+
+  .legal-document {
+    border-radius: 14px;
+  }
+}
+
 .donation-carousel::-webkit-scrollbar {
   display: none;
 }

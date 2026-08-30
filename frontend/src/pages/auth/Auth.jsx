@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import logo   from '../../assets/logo.png'
@@ -75,6 +75,12 @@ export default function Auth({ initialTab = 'login' }) {
             ? <FormLogin />
             : <FormRegistro onExito={() => setTab('login')} />
           }
+
+          <p style={as.legalNotice}>
+            <Link to="/politica-de-privacidad" style={as.legalLink}>Política de privacidad</Link>
+            <span aria-hidden="true"> · </span>
+            <Link to="/terminos-de-servicio" style={as.legalLink}>Términos de servicio</Link>
+          </p>
 
         </div>
       </div>
@@ -317,6 +323,11 @@ const as = {
     fontSize: '12px', color: '#9a8866', textAlign: 'center',
     lineHeight: '1.5', margin: 0,
   },
+  legalNotice: {
+    fontSize: '12px', color: '#9a8866', textAlign: 'center',
+    lineHeight: '1.5', margin: '2px 0 0',
+  },
+  legalLink: { color: '#765a3f', fontWeight: '600' },
   linkPass: {
   background: 'none', border: 'none', cursor: 'pointer',
   fontSize: '12px', color: '#9a8866', textAlign: 'center',

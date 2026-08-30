@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import escudo from '../../assets/escudo.png'
 import CharacterIcon from '../../components/CharacterIcon'
@@ -190,15 +190,9 @@ export default function Home() {
           </div>
 
           <div style={hs.footerColumn}>
-            <p style={hs.footerHeading}>
-              #PerdónDeAlcalá
-            </p>
-            <p style={hs.footerHeading}>
-              #ReinaAngustias
-            </p>
-            <p style={hs.footerHeading}>
-              #MartesSantoAlcalá
-            </p>
+            <p style={hs.footerHeading}>Información legal</p>
+            <Link to="/politica-de-privacidad" style={hs.footerLink}>Política de privacidad</Link>
+            <Link to="/terminos-de-servicio" style={hs.footerLink}>Términos de servicio</Link>
           </div>
         </div>
       </footer>
