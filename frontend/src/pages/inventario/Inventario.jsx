@@ -17,6 +17,15 @@ const ENDPOINTS = {
   UTIL:   'utiles',
 }
 
+const formatearFecha = fecha => {
+  if (!fecha) return '—'
+
+  const [anio, mes, dia] = String(fecha).split('T')[0].split('-')
+  if (!anio || !mes || !dia) return fecha
+
+  return `${Number(dia)}/${Number(mes)}/${anio}`
+}
+
 const CAMPOS_EXTRA = {
   IMAGEN: [
     { key: 'fecha_realizacion',        label: 'Fecha de realización',   type: 'date' },
@@ -286,7 +295,7 @@ export default function Inventario() {
               </span>
               {camposExtra.map(c => (
                 <span key={c.key} style={{ width: '160px', fontSize: '13px', color: '#555' }}>
-                  {obj[c.key] || '—'}
+                  {c.type === 'date' ? formatearFecha(obj[c.key]) : obj[c.key] || '—'}
                 </span>
               ))}
               <div style={{ width: '140px', display: 'flex', gap: '6px' }}>
