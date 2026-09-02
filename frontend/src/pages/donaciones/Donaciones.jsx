@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import AppIcon from '../../components/AppIcon'
 import SearchField from '../../components/SearchField'
+import Pagination, { getPageData } from '../../components/Pagination'
 import { coincideBusqueda } from '../../utils/search'
 
 const ESTADOS = {
@@ -243,7 +244,10 @@ export default function Donaciones() {
 
       <section style={styles.historySection}>
         <h2 style={styles.sectionTitle}>Mis donaciones</h2>
-        <DonacionesTable donaciones={misDonaciones} mostrarDonante={false} />
+        <DonacionesTable
+          donaciones={misDonaciones}
+          mostrarDonante={false}
+        />
       </section>
 
       {usuario?.is_staff && (
@@ -447,11 +451,17 @@ function HuchaCard({ hucha, importe, enviando, onImporteChange, onDonar }) {
 }
 
 function DonacionesTable({ donaciones, mostrarDonante, mensajeVacio = 'Aún no hay donaciones registradas.' }) {
+  const [paginaActual, setPaginaActual] = useState(1)
+  const { currentPage, pageItems: donacionesPaginadas } = getPageData(donaciones, paginaActual)
+
+  useEffect(() => setPaginaActual(1), [donaciones])
+
   if (donaciones.length === 0) return <p style={styles.empty}>{mensajeVacio}</p>
 
   return (
-    <div className="donation-table-wrap" style={styles.tableWrap}>
-      <table style={styles.table}>
+    <>
+      <div className="donation-table-wrap" style={styles.tableWrap}>
+        <table style={styles.table}>
         <thead>
           <tr>
             <th style={styles.th}>Fecha</th>
@@ -462,7 +472,7 @@ function DonacionesTable({ donaciones, mostrarDonante, mensajeVacio = 'Aún no h
           </tr>
         </thead>
         <tbody>
-          {donaciones.map(donacion => {
+          {donacionesPaginadas.map(donacion => {
             const estado = ESTADOS[donacion.estado] || ESTADOS.PENDIENTE
             return (
               <tr key={donacion.id}>
@@ -477,8 +487,15 @@ function DonacionesTable({ donaciones, mostrarDonante, mensajeVacio = 'Aún no h
             )
           })}
         </tbody>
-      </table>
-    </div>
+        </table>
+      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalItems={donaciones.length}
+        onPageChange={setPaginaActual}
+        itemLabel="donaciones"
+      />
+    </>
   )
 }
 

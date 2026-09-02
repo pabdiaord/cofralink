@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import SearchField from '../../components/SearchField'
+import Pagination, { getPageData } from '../../components/Pagination'
 import { coincideBusqueda } from '../../utils/search'
 
 const TIPOS = {
@@ -50,6 +51,7 @@ export default function Inventario() {
   const [tipoActivo, setTipoActivo]   = useState('IMAGEN')
   const [objetos, setObjetos]         = useState([])
   const [busqueda, setBusqueda]       = useState('')
+  const [paginaActual, setPaginaActual] = useState(1)
   const [cargando, setCargando]       = useState(true)
   const [error, setError]             = useState('')
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -159,6 +161,7 @@ export default function Inventario() {
   const cambiarTipo = tipo => {
     setTipoActivo(tipo)
     setBusqueda('')
+    setPaginaActual(1)
     setCargando(true)
     setMostrarForm(false)
     setForm(formBase(tipo))
@@ -170,6 +173,7 @@ export default function Inventario() {
   const objetosFiltrados = objetos.filter(objeto => (
     coincideBusqueda(busqueda, objeto.nombre, ...camposExtra.map(campo => objeto[campo.key]))
   ))
+  const { currentPage, pageItems: objetosPaginados } = getPageData(objetosFiltrados, paginaActual)
 
   return (
     <div className="content-page inventario-page" style={styles.page}>
@@ -220,7 +224,7 @@ export default function Inventario() {
 
       <SearchField
         value={busqueda}
-        onChange={setBusqueda}
+        onChange={valor => { setBusqueda(valor); setPaginaActual(1) }}
         placeholder="Buscar por nombre, ubicación o estado"
         ariaLabel="Buscar en el inventario"
         style={styles.search}
@@ -275,7 +279,7 @@ export default function Inventario() {
             <span style={{ width: '140px' }}>Acciones</span>
           </div>
 
-          {objetosFiltrados.map(obj => (
+          {objetosPaginados.map(obj => (
             <div key={obj.id} style={styles.fila}>
               <span style={{ flex: 1, fontWeight: '600', color: '#2c1810' }}>
                 {obj.nombre}
@@ -299,6 +303,15 @@ export default function Inventario() {
       )}
 
       {/* Modal edición */}
+      {!cargando && (
+        <Pagination
+          currentPage={currentPage}
+          totalItems={objetosFiltrados.length}
+          onPageChange={setPaginaActual}
+          itemLabel="elementos"
+        />
+      )}
+
       {editando && (
         <div style={styles.overlay}>
           <div className="responsive-modal" style={styles.modal}>

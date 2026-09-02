@@ -3,6 +3,7 @@ import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import CharacterIcon from '../../components/CharacterIcon'
 import SearchField from '../../components/SearchField'
+import Pagination, { getPageData } from '../../components/Pagination'
 import { CHARACTER_INFO } from '../../constants/characterInfo'
 
 const ESTADOS_CUOTA = {
@@ -17,6 +18,7 @@ export default function Hermanos() {
   const [busqueda, setBusqueda]       = useState('')
   const [filtroEstado, setFiltroEstado] = useState('TODOS')
   const [filtroCaracter, setFiltroCaracter] = useState('TODOS')
+  const [paginaActual, setPaginaActual] = useState(1)
   const [mostrarForm, setMostrarForm] = useState(false)
   const [enviando, setEnviando]       = useState(false)
   const [editando, setEditando]       = useState(null)
@@ -154,6 +156,7 @@ const openConfirm = (action, payload = null) => {
 
     return coincideBusqueda && coincideEstado && coincideCaracter
   })
+  const { currentPage, pageItems: hermanosPaginados } = getPageData(hermonosFiltrados, paginaActual)
 
   if (cargando) return <p style={styles.info}>Cargando hermanos...</p>
 
@@ -199,7 +202,7 @@ const openConfirm = (action, payload = null) => {
               <button
                 key={opcion}
                 type="button"
-                onClick={() => setFiltroEstado(opcion)}
+                onClick={() => { setFiltroEstado(opcion); setPaginaActual(1) }}
                 style={{
                   ...styles.filterChip,
                   ...(filtroEstado === opcion ? styles.filterChipActive : {}),
@@ -218,7 +221,7 @@ const openConfirm = (action, payload = null) => {
               <button
                 key={opcion}
                 type="button"
-                onClick={() => setFiltroCaracter(opcion)}
+                onClick={() => { setFiltroCaracter(opcion); setPaginaActual(1) }}
                 style={{
                   ...styles.filterChip,
                   ...(filtroCaracter === opcion ? styles.filterChipActive : {}),
@@ -236,7 +239,7 @@ const openConfirm = (action, payload = null) => {
         className="search-wrap"
         style={styles.searchWrap}
         value={busqueda}
-        onChange={setBusqueda}
+        onChange={valor => { setBusqueda(valor); setPaginaActual(1) }}
         placeholder="Buscar por nombre o número..."
         ariaLabel="Buscar hermanos"
       />
@@ -342,7 +345,7 @@ const openConfirm = (action, payload = null) => {
           </div>
 
           {/* Filas */}
-          {hermonosFiltrados.map(h => (
+          {hermanosPaginados.map(h => (
             <div key={h.id} style={styles.fila}>
               <span style={{ width: '60px', fontWeight: '700', color: '#2c1810' }}>
                 #{h.numero_hermano}
@@ -377,6 +380,13 @@ const openConfirm = (action, payload = null) => {
       )}
 
       {/* Modal edición */}
+      <Pagination
+        currentPage={currentPage}
+        totalItems={hermonosFiltrados.length}
+        onPageChange={setPaginaActual}
+        itemLabel="hermanos"
+      />
+
       {editando && (
         <div style={styles.overlay}>
           <div className="responsive-modal" style={styles.modal}>
