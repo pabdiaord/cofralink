@@ -112,6 +112,26 @@ class TestListarHermanos(HermanoTestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(res.data), 2)
 
+    def test_listar_hermanos_ordenados_por_numero(self):
+        """El listado se devuelve en orden ascendente de número de hermano."""
+        usuario = Usuario.objects.create_user(
+            username='hermano10', email='hermano10@cofralink.com',
+            password='Cofralink123!'
+        )
+        Hermano.objects.create(
+            usuario=usuario, nombre='Pedro', apellidos='Martínez',
+            numero_hermano=10, estado_cuota='PAGADO', caracter='NAZARENO'
+        )
+
+        self._auth_admin()
+        res = self.client.get('/api/hermanos/')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            [hermano['numero_hermano'] for hermano in res.data],
+            [1, 2, 10]
+        )
+
     def test_listar_hermanos_no_admin(self):
         """Hermano no admin no puede listar hermanos — 403."""
         self._auth_hermano()

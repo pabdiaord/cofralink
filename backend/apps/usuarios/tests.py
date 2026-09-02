@@ -1,3 +1,9 @@
+import os
+from io import StringIO
+from unittest.mock import patch
+
+from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.core.cache import cache
 # from django.urls import reverse
@@ -8,6 +14,13 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from .models import Usuario
 from .throttles import LoginIPThrottle
+from apps.comunicaciones.models import MensajeGeneral
+from apps.donaciones.models import Donacion, Hucha
+from apps.eventos.models import Evento
+from apps.hermanos.models import Hermano
+from apps.inventario.models import Enser, Imagen, Util
+from apps.procesional.models import Papeleta
+from apps.publicaciones.models import Publicacion
 
 
 class UsuarioTestCase(TestCase):
@@ -246,3 +259,124 @@ class TestRegistroSerializer(UsuarioTestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.hermano.refresh_from_db()
         self.assertEqual(self.hermano.email, 'actualizado@cofralink.com')
+
+
+class TestSeedInitial(TestCase):
+
+    def setUp(self):
+        self.admin = Usuario.objects.create_superuser(
+            username='admin_existente',
+            email='admin.existente@cofralink.test',
+            password='AdminExistente#2026',
+        )
+        self.hermano = Usuario.objects.create_user(
+            username='hermano_existente',
+            email='hermano.existente@cofralink.test',
+            password='HermanoExistente#2026',
+        )
+        Hermano.objects.create(
+            usuario=self.hermano,
+            nombre='Hermano',
+            apellidos='Existente',
+            numero_hermano=1,
+        )
+        self.hucha = Hucha.objects.get(tipo='GENERAL')
+        self.donacion = Donacion.objects.create(
+            donante=self.hermano,
+            hucha=self.hucha,
+            importe_centimos=500,
+        )
+
+    def _ejecutar_seed(self):
+        entorno = {
+            'SEED_INITIAL_ENABLED': 'true',
+            'SEED_DEMO_PASSWORD': 'ClaveDemoSegura#2026',
+        }
+        with patch.dict(os.environ, entorno, clear=False):
+            call_command('seed_initial', stdout=StringIO())
+
+    def test_seed_agrega_contenido_y_conserva_los_datos_existentes(self):
+        usuarios_iniciales = Usuario.objects.count()
+        huchas_iniciales = Hucha.objects.count()
+        donaciones_iniciales = Donacion.objects.count()
+
+        self._ejecutar_seed()
+
+        self.assertEqual(Usuario.objects.count(), usuarios_iniciales + 50)
+        self.assertTrue(self.admin.check_password('AdminExistente#2026'))
+        self.assertTrue(Usuario.objects.filter(
+            email='hermano.demo01@cofralink.test', is_staff=True
+        ).exists())
+        self.assertEqual(
+            list(Hermano.objects.filter(
+                usuario__email__startswith='hermano.demo'
+            ).order_by('numero_hermano').values_list(
+                'numero_hermano', flat=True)),
+            list(range(200, 250)),
+        )
+        self.assertEqual(Hucha.objects.count(), huchas_iniciales)
+        self.assertEqual(Donacion.objects.count(), donaciones_iniciales)
+        self.assertEqual(
+            Donacion.objects.get(pk=self.donacion.pk).importe_centimos, 500)
+        self.assertGreater(Evento.objects.count(), 0)
+        self.assertGreater(Publicacion.objects.count(), 0)
+        self.assertGreater(MensajeGeneral.objects.count(), 0)
+        self.assertGreater(Papeleta.objects.count(), 0)
+        self.assertGreater(Imagen.objects.count(), 0)
+        self.assertGreater(Enser.objects.count(), 0)
+        self.assertGreater(Util.objects.count(), 0)
+
+    def test_seed_es_idempotente(self):
+        self._ejecutar_seed()
+        conteos = {
+            'usuarios': Usuario.objects.count(),
+            'hermanos': Hermano.objects.count(),
+            'eventos': Evento.objects.count(),
+            'publicaciones': Publicacion.objects.count(),
+            'mensajes': MensajeGeneral.objects.count(),
+            'papeletas': Papeleta.objects.count(),
+            'imagenes': Imagen.objects.count(),
+            'enseres': Enser.objects.count(),
+            'utiles': Util.objects.count(),
+        }
+
+        self._ejecutar_seed()
+
+        self.assertEqual(Usuario.objects.count(), conteos['usuarios'])
+        self.assertEqual(Hermano.objects.count(), conteos['hermanos'])
+        self.assertEqual(Evento.objects.count(), conteos['eventos'])
+        self.assertEqual(Publicacion.objects.count(), conteos['publicaciones'])
+        self.assertEqual(MensajeGeneral.objects.count(), conteos['mensajes'])
+        self.assertEqual(Papeleta.objects.count(), conteos['papeletas'])
+        self.assertEqual(Imagen.objects.count(), conteos['imagenes'])
+        self.assertEqual(Enser.objects.count(), conteos['enseres'])
+        self.assertEqual(Util.objects.count(), conteos['utiles'])
+
+    def test_seed_requiere_una_contrasena_secreta(self):
+        with patch.dict(os.environ, {
+            'SEED_INITIAL_ENABLED': 'true',
+            'SEED_DEMO_PASSWORD': '',
+        }, clear=False):
+            with self.assertRaises(CommandError):
+                call_command('seed_initial', stdout=StringIO())
+
+    def test_seed_migra_solo_los_numeros_de_las_cuentas_demo_previas(self):
+        demo = Usuario.objects.create_user(
+            username='perdon_demo_01',
+            email='hermano.demo01@cofralink.test',
+            password='ClaveDemoSegura#2026',
+            is_staff=True,
+        )
+        Hermano.objects.create(
+            usuario=demo,
+            nombre='Alberto',
+            apellidos='Campos',
+            numero_hermano=9001,
+        )
+
+        self._ejecutar_seed()
+
+        demo.hermano.refresh_from_db()
+        self.assertEqual(demo.hermano.numero_hermano, 200)
+        self.hermano.hermano.refresh_from_db()
+        self.assertEqual(self.hermano.hermano.numero_hermano, 1)
