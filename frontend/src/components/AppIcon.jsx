@@ -22,6 +22,19 @@ export default function AppIcon({ name, size = 22, style, title }) {
     search: <><circle cx="10.8" cy="10.8" r="5.6" /><path d="m15 15 4.5 4.5" /></>,
     pin: <><path d="M19 10.5c0 5-7 10-7 10s-7-5-7-10a7 7 0 1 1 14 0Z" /><circle cx="12" cy="10.5" r="2.3" /></>,
     clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7v5l3.2 2" /></>,
+    hourglass: <>
+      <path d="M6 3.5h12M6 20.5h12" />
+      <path d="M7.5 3.5c0 4.2 1.7 5.7 4.5 8.5-2.8 2.8-4.5 4.3-4.5 8.5h9c0-4.2-1.7-5.7-4.5-8.5 2.8-2.8 4.5-4.3 4.5-8.5z" />
+      <path fill="currentColor" stroke="none" d="M8.9 5.2h6.2L12 10.2Z">
+        <animate attributeName="d" dur="4s" repeatCount="indefinite" values="M8.9 5.2h6.2L12 10.2Z;M12 10.2h0L12 10.2Z" keyTimes="0;0.85" />
+      </path>
+      <path fill="currentColor" stroke="none" d="M12 13.8h0L12 13.8Z">
+        <animate attributeName="d" dur="4s" repeatCount="indefinite" values="M12 13.8h0L12 13.8Z;M8.9 18.8h6.2L12 13.8Z" keyTimes="0;0.85" />
+      </path>
+      <path d="M12 10.2v3.6" stroke="currentColor" strokeWidth="1.2" opacity="0">
+        <animate attributeName="opacity" dur="4s" repeatCount="indefinite" values="0;1;1;0" keyTimes="0;0.08;0.85;1" />
+      </path>
+    </>,
     check: <><circle cx="12" cy="12" r="8.5" /><path d="m8.2 12 2.4 2.4 5.2-5.2" /></>,
     alert: <><path d="m12 3.5 8.5 15H3.5z" /><path d="M12 9v4.2M12 16.3h.01" /></>,
     send: <><path d="m21 3-7.6 18-3.1-7.3L3 10.6z" /><path d="m10.3 13.7 4.1-4.1" /></>,

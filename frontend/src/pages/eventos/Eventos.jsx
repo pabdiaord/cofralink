@@ -4,6 +4,7 @@ import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import SearchField from '../../components/SearchField'
 import AppIcon from '../../components/AppIcon'
+import Pagination, { getPageData } from '../../components/Pagination'
 
 const TIPOS = {
   TODOS:   { label: 'Todos' },
@@ -38,6 +39,7 @@ export default function Eventos() {
   // ── Filtros ────────────────────────────────────────────────────
   const [busqueda, setBusqueda]         = useState('')
   const [filtroTipo, setFiltroTipo]     = useState('TODOS')
+  const [paginaActual, setPaginaActual] = useState(1)
 
   // ── Vista: 'lista' | 'mes' | 'semana' ──────────────────────────
   const [vista, setVista]               = useState('lista')
@@ -86,6 +88,7 @@ export default function Eventos() {
   const eventosFuturos = eventosFiltrados.filter(ev => new Date(ev.fecha) >= ahora)
   const eventosPasados = eventosFiltrados.filter(ev => new Date(ev.fecha) < ahora)
   const eventosDeLista = seccionLista === 'proximos' ? eventosFuturos : eventosPasados
+  const { currentPage, pageItems: eventosPaginados } = getPageData(eventosDeLista, paginaActual, 10)
 
   // ── Crear ─────────────────────────────────────────────────────
   const openConfirm = (action, payload = null) => {
@@ -232,7 +235,7 @@ export default function Eventos() {
           className="event-search"
           style={s.searchWrap}
           value={busqueda}
-          onChange={setBusqueda}
+          onChange={valor => { setBusqueda(valor); setPaginaActual(1) }}
           placeholder="Buscar evento o lugar..."
           ariaLabel="Buscar eventos"
         />
@@ -249,7 +252,7 @@ export default function Eventos() {
                   ? { backgroundColor: colorTipo[key]?.bg, borderColor: colorTipo[key]?.border, color: colorTipo[key]?.text }
                   : {})
               }}
-              onClick={() => setFiltroTipo(key)}
+              onClick={() => { setFiltroTipo(key); setPaginaActual(1) }}
             >
               {val.label}
             </button>
@@ -266,7 +269,7 @@ export default function Eventos() {
             <button
               key={v.key}
               style={{ ...s.vistaBtn, ...(vista === v.key ? s.vistaBtnActivo : {}) }}
-              onClick={() => setVista(v.key)}
+              onClick={() => { setVista(v.key); setPaginaActual(1) }}
               title={v.label}
             >
               {v.icon} {v.label}
@@ -288,24 +291,31 @@ export default function Eventos() {
           <div style={s.listaSecciones}>
             <button
               style={{ ...s.listaSeccionBtn, ...(seccionLista === 'proximos' ? s.listaSeccionBtnActivo : {}) }}
-              onClick={() => setSeccionLista('proximos')}
+              onClick={() => { setSeccionLista('proximos'); setPaginaActual(1) }}
             >
               Próximos eventos ({eventosFuturos.length})
             </button>
             <button
               style={{ ...s.listaSeccionBtn, ...(seccionLista === 'pasados' ? s.listaSeccionBtnActivo : {}) }}
-              onClick={() => setSeccionLista('pasados')}
+              onClick={() => { setSeccionLista('pasados'); setPaginaActual(1) }}
             >
               Eventos ya sucedidos ({eventosPasados.length})
             </button>
           </div>
           <ListaEventos
-            eventos={eventosDeLista}
+            eventos={eventosPaginados}
             usuario={usuario}
             esPasado={seccionLista === 'pasados'}
             onEditar={abrirEdicion}
             onEliminar={handleEliminar}
             onInscribirse={handleInscribirse}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalItems={eventosDeLista.length}
+            onPageChange={setPaginaActual}
+            itemLabel="eventos"
+            pageSize={10}
           />
         </>
       )}

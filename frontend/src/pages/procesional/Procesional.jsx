@@ -4,6 +4,7 @@ import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import AppIcon from '../../components/AppIcon'
 import SearchField from '../../components/SearchField'
+import Pagination, { getPageData } from '../../components/Pagination'
 import { coincideBusqueda } from '../../utils/search'
 
 const ESTADOS = {
@@ -17,6 +18,7 @@ export default function Procesional() {
   const [papeletas, setPapeletas]     = useState([])
   const [busqueda, setBusqueda]       = useState('')
   const [filtroAnio, setFiltroAnio]   = useState(() => String(new Date().getFullYear()))
+  const [paginaActual, setPaginaActual] = useState(1)
   const [cargando, setCargando]       = useState(true)
   const [error, setError]             = useState('')
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -152,6 +154,7 @@ export default function Procesional() {
       ESTADOS[papeleta.estado]?.label,
     )
   ))
+  const { currentPage, pageItems: papeletasPaginadas } = getPageData(papeletasFiltradas, paginaActual, 10)
 
   return (
     <div className="content-page procesional-page" style={styles.page}>
@@ -234,7 +237,7 @@ export default function Procesional() {
           <select
             id="filtro-anio-papeletas"
             value={filtroAnio}
-            onChange={e => setFiltroAnio(e.target.value)}
+            onChange={e => { setFiltroAnio(e.target.value); setPaginaActual(1) }}
             style={styles.selectAnio}
           >
             <option value={String(anioActual)}>Año actual ({anioActual})</option>
@@ -253,7 +256,7 @@ export default function Procesional() {
           <span style={styles.filterLabel}>Buscar papeletas</span>
           <SearchField
             value={busqueda}
-            onChange={setBusqueda}
+            onChange={valor => { setBusqueda(valor); setPaginaActual(1) }}
             placeholder="Buscar por paso, tramo, hermano o estado"
             ariaLabel="Buscar papeletas de sitio"
             style={styles.search}
@@ -272,7 +275,7 @@ export default function Procesional() {
         <p style={styles.info}>No se han encontrado papeletas para el año {filtroAnio} con esos filtros.</p>
       ) : (
         <div style={styles.lista}>
-          {papeletasFiltradas.map(p => {
+          {papeletasPaginadas.map(p => {
             const estado = ESTADOS[p.estado] || ESTADOS.pendiente
             return (
               <div key={p.id} style={styles.card}>
@@ -323,6 +326,14 @@ export default function Procesional() {
       )}
 
       {/* Modal gestión admin */}
+      <Pagination
+        currentPage={currentPage}
+        totalItems={papeletasFiltradas.length}
+        onPageChange={setPaginaActual}
+        itemLabel="papeletas"
+        pageSize={10}
+      />
+
       {editando && (
         <div style={styles.overlay}>
           <div className="responsive-modal" style={styles.modal}>
