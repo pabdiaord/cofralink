@@ -180,8 +180,7 @@ export default function Donaciones() {
       <div style={styles.sandboxNotice}>
         <span aria-hidden="true">ℹ</span>
         <div>
-          <strong>Donaciones simuladas.</strong> Este entorno académico usa Stripe Sandbox:
-          no se carga dinero real ni se vincula ninguna cuenta bancaria.
+          <strong>Importante.</strong> Cualquier hermano interesado en hacer una donación material a la Hermandad debe ponerse en contacto con algún miembro de la Junta de Gobierno.
         </div>
       </div>
 
