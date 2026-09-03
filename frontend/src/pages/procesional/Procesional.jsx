@@ -165,7 +165,7 @@ export default function Procesional() {
           <p style={styles.eyebrow}>Organización del cortejo</p>
           <h2 style={styles.titulo}>Procesional</h2>
           <div style={styles.headerMeta}>
-            <p style={styles.intro}>Consulta y gestiona las solicitudes de participación en la procesión.</p>
+            <p style={styles.intro}>Consulta y gestiona las solicitudes de participación en cultos externos.</p>
             <span style={styles.totalBadge}>{papeletasFiltradas.length} mostrada{papeletasFiltradas.length !== 1 ? 's' : ''} · {papeletas.length} en total</span>
           </div>
         </div>
