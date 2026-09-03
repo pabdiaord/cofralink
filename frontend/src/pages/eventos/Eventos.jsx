@@ -24,6 +24,14 @@ const colorTipo = {
   PRIOSTIA: { bg: '#dcfce7', border: '#16a34a', text: '#14532d' },
 }
 
+// Tonos claros para conservar contraste sobre el fondo marrón del filtro activo.
+const colorFiltroActivo = {
+  CULTO:    '#ffd166',
+  ENSAYO:   '#d8b4fe',
+  REUNION:  '#93c5fd',
+  PRIOSTIA: '#86efac',
+}
+
 export default function Eventos() {
   const { usuario } = useAuth()
   const [eventos, setEventos]           = useState([])
@@ -249,7 +257,11 @@ export default function Eventos() {
                 ...s.tipoBtn,
                 ...(filtroTipo === key ? s.tipoBtnActivo : {}),
                 ...(filtroTipo === key && key !== 'TODOS'
-                  ? { backgroundColor: colorTipo[key]?.bg, borderColor: colorTipo[key]?.border, color: colorTipo[key]?.text }
+                  ? {
+                      borderColor: colorFiltroActivo[key],
+                      color: colorFiltroActivo[key],
+                      boxShadow: `0 7px 14px ${colorFiltroActivo[key]}38`,
+                    }
                   : {})
               }}
               onClick={() => { setFiltroTipo(key); setPaginaActual(1) }}
@@ -430,39 +442,49 @@ function ListaEventos({ eventos, usuario, esPasado, onEditar, onEliminar, onInsc
 
 function TarjetaEvento({ ev, usuario, esPasado, onEditar, onEliminar, onInscribirse }) {
   const col = colorTipo[ev.tipo_evento] || {}
+  const fecha = new Date(ev.fecha)
   return (
-    <div className="event-card" style={{ ...s.card, borderLeft: `4px solid ${col.border || '#ccc'}` }}>
-      <div className="event-card-top" style={s.cardTop}>
-        <span style={{ ...s.badge, backgroundColor: col.bg, color: col.text, borderColor: col.border }}>
-          {TIPOS[ev.tipo_evento]?.label}
-        </span>
-        {usuario?.is_staff && (
-          <div style={{ display: 'flex', gap: '6px' }}>
-            <button style={s.btnEditar} onClick={() => onEditar(ev)}>Editar</button>
-            <button style={s.btnEliminar} onClick={() => onEliminar(ev.id)}>Eliminar</button>
-          </div>
-        )}
+    <article className="event-card" style={s.card}>
+      <div style={s.fechaCard} aria-label={fecha.toLocaleDateString('es-ES')}>
+        <span style={s.fechaDia}>{fecha.toLocaleDateString('es-ES', { day: '2-digit' })}</span>
+        <span style={s.fechaMes}>{fecha.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '')}</span>
       </div>
-      <h3 style={s.cardTitulo}>{ev.nombre_evento}</h3>
-      <div style={s.meta}>
-        <span style={s.metaItem}><AppIcon name="calendar" size={15} />{new Date(ev.fecha).toLocaleDateString('es-ES', { weekday:'long', day:'2-digit', month:'long', year:'numeric' })}</span>
-        <span style={s.metaItem}><AppIcon name="clock" size={15} />{new Date(ev.fecha).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' })}</span>
-        <span style={s.metaItem}><AppIcon name="pin" size={15} />{ev.lugar}</span>
+
+      <div style={s.cardContenido}>
+        <div className="event-card-top" style={s.cardTop}>
+          <span style={s.badge}>
+            <span style={{ ...s.tipoPunto, backgroundColor: colorFiltroActivo[ev.tipo_evento] || col.border || '#95713a' }} />
+            {TIPOS[ev.tipo_evento]?.label}
+          </span>
+          {usuario?.is_staff && (
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button style={s.btnEditar} onClick={() => onEditar(ev)}>Editar</button>
+              <button style={s.btnEliminar} onClick={() => onEliminar(ev.id)}>Eliminar</button>
+            </div>
+          )}
+        </div>
+
+        <h3 style={s.cardTitulo}>{ev.nombre_evento}</h3>
+        <div style={s.meta}>
+          <span style={s.metaItem}><AppIcon name="calendar" size={15} />{fecha.toLocaleDateString('es-ES', { weekday:'long', year:'numeric' })}</span>
+          <span style={s.metaItem}><AppIcon name="clock" size={15} />{fecha.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' })}</span>
+          <span style={s.metaItem}><AppIcon name="pin" size={15} />{ev.lugar}</span>
+        </div>
+        {ev.descripcion && <p style={s.descripcion}>{ev.descripcion}</p>}
+        <div className="event-card-footer" style={s.cardFooter}>
+          <span style={s.inscritos}><AppIcon name="people" size={16} />{ev.total_inscritos} inscritos</span>
+          {!usuario?.is_staff && !esPasado && (
+            <button
+              style={{ ...s.btnInscribirse, ...(ev.ya_inscrito ? s.btnInscrito : {}) }}
+              onClick={() => !ev.ya_inscrito && onInscribirse(ev.id)}
+              disabled={ev.ya_inscrito}
+            >
+              {ev.ya_inscrito ? 'Ya estás inscrito' : 'Inscribirme'}
+            </button>
+          )}
+        </div>
       </div>
-      {ev.descripcion && <p style={s.descripcion}>{ev.descripcion}</p>}
-      <div className="event-card-footer" style={s.cardFooter}>
-        <span style={s.inscritos}>👥 {ev.total_inscritos} inscritos</span>
-        {!usuario?.is_staff && !esPasado && (
-          <button
-            style={{ ...s.btnInscribirse, ...(ev.ya_inscrito ? s.btnInscrito : {}) }}
-            onClick={() => !ev.ya_inscrito && onInscribirse(ev.id)}
-            disabled={ev.ya_inscrito}
-          >
-            {ev.ya_inscrito ? 'Ya estás inscrito' : 'Inscribirme'}
-          </button>
-        )}
-      </div>
-    </div>
+    </article>
   )
 }
 
@@ -702,7 +724,11 @@ const s = {
     padding: '7px 12px', borderRadius: '999px', border: '1px solid rgba(117, 82, 52, 0.22)',
     background: 'rgba(255,255,255,0.48)', cursor: 'pointer', fontSize: '12px', fontWeight: '700', color: '#3d2a20',
   },
-  tipoBtnActivo: { fontWeight: '700', transform: 'translateY(-1px)' },
+  tipoBtnActivo: {
+    fontWeight: '700', transform: 'translateY(-1px)',
+    background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
+    borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
+  },
   vistaToggle: { display: 'flex', gap: '4px', marginLeft: 'auto' },
   vistaBtn: {
     padding: '7px 12px', borderRadius: '10px', border: '1px solid rgba(117, 82, 52, 0.22)',
@@ -731,18 +757,32 @@ const s = {
     background: 'rgba(255,255,255,0.55)', cursor: 'pointer', fontSize: '13px', color: '#5d4a3d', fontWeight: '600',
   },
   listaSeccionBtnActivo: { background: '#5b3927', color: '#fff8ee', borderColor: '#5b3927' },
-  card:  { background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px', padding: '18px', boxShadow: '0 10px 20px rgba(44,24,16,0.06)', border: '1px solid rgba(117, 82, 52, 0.12)' },
-  cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' },
-  badge: {
-    display: 'inline-block', padding: '4px 12px', borderRadius: '20px',
-    fontSize: '12px', fontWeight: '700', border: '1px solid',
+  card: {
+    display: 'grid', gridTemplateColumns: '76px minmax(0, 1fr)', gap: '18px',
+    background: 'rgba(255,253,250,0.94)', borderRadius: '18px', padding: '14px',
+    boxShadow: '0 10px 22px rgba(44,24,16,0.055)', border: '1px solid rgba(117, 82, 52, 0.13)',
   },
-  cardTitulo:  { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '8px' },
-  meta:        { display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px', color: '#5d4a3d', marginBottom: '8px' },
+  fechaCard: {
+    minHeight: '118px', padding: '12px 8px', borderRadius: '13px',
+    background: 'linear-gradient(155deg, #3c2519, #68432c)', color: '#fff8ee',
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+    boxShadow: '0 7px 15px rgba(44, 24, 16, 0.16)',
+  },
+  fechaDia: { fontSize: '28px', fontWeight: '800', lineHeight: 1, letterSpacing: '-0.04em' },
+  fechaMes: { marginTop: '7px', fontSize: '11px', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase' },
+  cardContenido: { minWidth: 0, padding: '2px 2px 1px 0' },
+  cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '9px' },
+  badge: {
+    display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '12px',
+    fontWeight: '800', color: '#6d5746', letterSpacing: '0.02em', textTransform: 'uppercase',
+  },
+  tipoPunto: { width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0 },
+  cardTitulo:  { fontSize: '17px', fontWeight: '750', color: '#2c1810', margin: '0 0 9px', lineHeight: '1.3' },
+  meta:        { display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '13px', color: '#6b584a', marginBottom: '10px' },
   metaItem:    { display: 'inline-flex', alignItems: 'center', gap: '5px' },
-  descripcion: { fontSize: '13px', color: '#5a4a3a', lineHeight: '1.5', marginBottom: '10px' },
-  cardFooter:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  inscritos:   { fontSize: '13px', color: '#7c5d49' },
+  descripcion: { fontSize: '13px', color: '#5a4a3a', lineHeight: '1.55', margin: '0 0 12px' },
+  cardFooter:  { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', paddingTop: '11px', borderTop: '1px solid rgba(117, 82, 52, 0.12)' },
+  inscritos:   { display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#7c5d49', fontWeight: '600' },
 
   // Botones
   btnPrimary: {

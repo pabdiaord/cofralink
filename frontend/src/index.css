@@ -526,6 +526,11 @@ button:disabled {
     margin-left: 0 !important;
   }
 
+  .event-card {
+    grid-template-columns: 64px minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
   .data-table {
     overflow-x: auto !important;
     overscroll-behavior-inline: contain;
@@ -808,6 +813,17 @@ button:disabled {
   .confirm-dialog > :last-child {
     display: grid !important;
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (hover: hover) {
+  .event-card {
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .event-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 28px rgba(44, 24, 16, 0.1) !important;
   }
 }
 
