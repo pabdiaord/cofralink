@@ -25,7 +25,7 @@ class HermanoViewSet(viewsets.ModelViewSet):
         Usuario.objects.filter(pk=usuario_id).delete()
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        qs = super().get_queryset().order_by('numero_hermano')
         nombre = self.request.query_params.get('nombre')
         numero = self.request.query_params.get('numero')
         if nombre:

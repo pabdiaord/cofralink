@@ -4,6 +4,7 @@ import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import SearchField from '../../components/SearchField'
 import AppIcon from '../../components/AppIcon'
+import Pagination, { getPageData } from '../../components/Pagination'
 import { coincideBusqueda } from '../../utils/search'
 
 const DARK  = '#2c1810'
@@ -14,6 +15,7 @@ export default function Publicaciones() {
   const { usuario } = useAuth()
   const [publicaciones, setPublicaciones] = useState([])
   const [busqueda, setBusqueda]           = useState('')
+  const [paginaActual, setPaginaActual]   = useState(1)
   const [cargando, setCargando]           = useState(true)
   const [error, setError]                 = useState('')
 
@@ -142,6 +144,7 @@ export default function Publicaciones() {
   const publicacionesFiltradas = publicaciones.filter(publicacion => (
     coincideBusqueda(busqueda, publicacion.titular, publicacion.descripcion, publicacion.hermano_nombre)
   ))
+  const { currentPage, pageItems: publicacionesPaginadas } = getPageData(publicacionesFiltradas, paginaActual, 5)
 
   if (cargando) return <p style={ps.info}>Cargando publicaciones...</p>
 
@@ -187,8 +190,8 @@ export default function Publicaciones() {
             <p style={ps.info}>No se han encontrado publicaciones con esa búsqueda.</p>
           ) : (
             <div className="publication-list" style={ps.lista}>
-              {publicacionesFiltradas.map((pub, index) => {
-                const esDestacada = index === 0 && Boolean(pub.imagen)
+              {publicacionesPaginadas.map((pub, index) => {
+                const esDestacada = currentPage === 1 && index === 0 && Boolean(pub.imagen)
                 const descripcion = pub.descripcion || 'Consulta esta publicación para conocer todos los detalles.'
 
                 return (
@@ -252,6 +255,13 @@ export default function Publicaciones() {
               })}
             </div>
           )}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={publicacionesFiltradas.length}
+            onPageChange={setPaginaActual}
+            itemLabel="publicaciones"
+            pageSize={5}
+          />
         </main>
 
         <aside className="publication-sidebar" style={ps.sidebar}>
@@ -260,7 +270,7 @@ export default function Publicaciones() {
           <p style={ps.sidebarText}>Busca comunicados, cultos y avisos de la Hermandad.</p>
           <SearchField
             value={busqueda}
-            onChange={setBusqueda}
+            onChange={valor => { setBusqueda(valor); setPaginaActual(1) }}
             placeholder="Buscar publicaciones"
             ariaLabel="Buscar publicaciones"
             style={ps.search}

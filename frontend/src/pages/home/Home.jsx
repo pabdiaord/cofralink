@@ -14,9 +14,19 @@ const DARK  = '#2c1810'
 const CREAM = '#efe3d7'
 const TIPO_EVENTO = { CULTO: 'Culto', ENSAYO: 'Ensayo', REUNION: 'Reunión', PRIOSTIA: 'Priostía' }
 
-const formatearEuros = centimos => new Intl.NumberFormat('es-ES', {
-  style: 'currency', currency: 'EUR',
-}).format((centimos || 0) / 100)
+const FECHA_MARTES_SANTO_2027 = new Date(2027, 2, 23, 0, 0, 0)
+
+const obtenerCuentaAtras = () => {
+  let restante = Math.max(0, FECHA_MARTES_SANTO_2027.getTime() - Date.now())
+  const dias = Math.floor(restante / 86_400_000)
+  restante %= 86_400_000
+  const horas = Math.floor(restante / 3_600_000)
+  restante %= 3_600_000
+  const minutos = Math.floor(restante / 60_000)
+  const segundos = Math.floor((restante % 60_000) / 1_000)
+
+  return { dias, horas, minutos, segundos }
+}
 
 const formatearFecha = (fecha, opciones = { day: '2-digit', month: 'short' }) => (
   new Intl.DateTimeFormat('es-ES', opciones).format(new Date(fecha))
@@ -26,7 +36,7 @@ export default function Home() {
   const { usuario } = useAuth()
   const navigate    = useNavigate()
   const [hermano, setHermano] = useState(null)
-  const [dashboard, setDashboard] = useState({ eventos: [], publicaciones: [], totalDonado: 0 })
+  const [dashboard, setDashboard] = useState({ eventos: [], publicaciones: [] })
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -35,7 +45,6 @@ export default function Home() {
       const peticiones = [
         api.get('/eventos/'),
         api.get('/publicaciones/'),
-        api.get('/donaciones/mis-donaciones/'),
       ]
       if (!usuario?.is_staff) peticiones.push(api.get('/mi-perfil/'))
 
@@ -45,15 +54,10 @@ export default function Home() {
       const obtenerDatos = (indice, valorInicial) => (
         resultados[indice]?.status === 'fulfilled' ? resultados[indice].value.data : valorInicial
       )
-      const donaciones = obtenerDatos(2, [])
-
-      setHermano(usuario?.is_staff ? null : obtenerDatos(3, null))
+      setHermano(usuario?.is_staff ? null : obtenerDatos(2, null))
       setDashboard({
         eventos: obtenerDatos(0, []),
         publicaciones: obtenerDatos(1, []),
-        totalDonado: donaciones
-          .filter(donacion => donacion.estado === 'PAGADA')
-          .reduce((total, donacion) => total + donacion.importe_centimos, 0),
       })
       setError(resultados.some(resultado => resultado.status === 'rejected')
         ? 'Algunos datos no se han podido actualizar.'
@@ -107,7 +111,7 @@ export default function Home() {
           <div style={hs.overviewGrid}>
             <MetricCard icon={estadoCuota.icono} label="Estado de cuota" value={estadoCuota.texto} color={estadoCuota.color} />
             <MetricCard icon={iconoRol} label="Tu carácter" value={rolVisible} />
-            <MetricCard icon={<AppIcon name="coin" />} label="Donado a la Hermandad" value={formatearEuros(dashboard.totalDonado)} />
+            <CountdownCard />
             <MetricCard icon={<AppIcon name="calendar" />} label="Próxima cita" value={proximoEvento ? formatearFecha(proximoEvento.fecha) : 'Sin eventos'} onClick={proximoEvento ? () => navigate('/eventos') : undefined} />
           </div>
         </section>
@@ -225,6 +229,43 @@ function MetricCard({ icon, label, value, color, onClick }) {
   return onClick
     ? <button type="button" style={{ ...hs.overviewCard, ...hs.overviewButton }} onClick={onClick}>{contenido}</button>
     : <div style={hs.overviewCard}>{contenido}</div>
+}
+
+function CountdownCard() {
+  const [cuentaAtras, setCuentaAtras] = useState(obtenerCuentaAtras)
+
+  useEffect(() => {
+    const intervalo = window.setInterval(() => setCuentaAtras(obtenerCuentaAtras()), 1_000)
+    return () => window.clearInterval(intervalo)
+  }, [])
+
+  const unidades = [
+    ['Días', cuentaAtras.dias],
+    ['Horas', cuentaAtras.horas],
+    ['Min.', cuentaAtras.minutos],
+    ['Seg.', cuentaAtras.segundos],
+  ]
+
+  return (
+    <div
+      style={{ ...hs.overviewCard, ...hs.countdownCard }}
+      role="timer"
+      aria-label={`Faltan ${cuentaAtras.dias} días, ${cuentaAtras.horas} horas, ${cuentaAtras.minutos} minutos y ${cuentaAtras.segundos} segundos para el Martes Santo de 2027`}
+    >
+      <span aria-hidden="true" style={hs.overviewIcon}><AppIcon name="hourglass" /></span>
+      <div style={hs.countdownContent}>
+        <p style={hs.overviewLabel}>Martes Santo 2027</p>
+        <div style={hs.countdownValues}>
+          {unidades.map(([etiqueta, valor]) => (
+            <span key={etiqueta} style={hs.countdownUnit}>
+              <strong style={hs.countdownNumber}>{valor}</strong>
+              <small style={hs.countdownLabel}>{etiqueta}</small>
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function QuickAccess({ icon, title, description, onClick }) {
@@ -560,6 +601,13 @@ const hs = {
   overviewImage: { width: '100%', height: '100%', objectFit: 'contain', padding: '4px' },
   overviewLabel: { margin: 0, color: '#836c57', fontSize: '12px', fontWeight: '700', letterSpacing: '0.035em', textTransform: 'uppercase' },
   overviewValue: { margin: '3px 0 0', color: DARK, fontSize: '17px', fontWeight: '700', lineHeight: 1.2 },
+  countdownCard: { alignItems: 'flex-start' },
+  countdownContent: { minWidth: 0, flex: 1 },
+  countdownDate: { margin: '2px 0 7px', color: DARK, fontSize: '13px', fontWeight: '700', lineHeight: 1.2 },
+  countdownValues: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '5px' },
+  countdownUnit: { display: 'flex', flexDirection: 'column', minWidth: 0 },
+  countdownNumber: { color: DARK, fontSize: '16px', lineHeight: 1.05 },
+  countdownLabel: { marginTop: '2px', color: '#836c57', fontSize: '9px', fontWeight: '700', lineHeight: 1.1 },
   cardArrow: { marginLeft: 'auto', color: '#9b7b4d', fontSize: '20px', lineHeight: 1 },
   activityGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 330px), 1fr))', gap: '18px', marginTop: '30px' },
   nextEventCard: { minHeight: '300px', padding: '26px', borderRadius: '20px', color: '#fffaf4', background: 'linear-gradient(135deg, #251813, #593a28 65%, #242830)', boxShadow: '0 16px 30px rgba(44,24,16,0.16)', border: '1px solid rgba(201,168,76,0.45)' },

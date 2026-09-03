@@ -36,6 +36,34 @@ Las altas de hermanos ahora envían un enlace individual para establecer la
 contraseña; no hay contraseña compartida. Las papeletas solo pueden ser
 aprobadas o rechazadas por una cuenta `is_staff`.
 
+## Carga inicial de contenido
+
+La aplicación dispone de un comando idempotente para llenar una instalación
+nueva con contenido institucional orientativo, inventario, comunicaciones,
+eventos y cuentas ficticias de demostración. No modifica ni elimina usuarios,
+hermanos, huchas o donaciones reales existentes; solo puede actualizar las
+cuentas demo identificables que el propio comando creó en una versión previa.
+
+Las cuentas de demostración usan correos con el dominio `@cofralink.app` y
+números libres entre 200 y 300. Su contraseña nunca se guarda en Git: configura el secreto
+`SEED_DEMO_PASSWORD` en `backend/.env` durante desarrollo o en el gestor de
+secretos del proveedor. En producción habilita explícitamente el comando:
+
+```env
+SEED_INITIAL_ENABLED=true
+SEED_DEMO_PASSWORD=elige-una-contraseña-larga-solo-en-el-entorno-de-despliegue
+```
+
+Tras las migraciones, ejecútalo en el proceso de despliegue:
+
+```powershell
+backend/.venv/Scripts/python.exe backend/manage.py seed_initial
+```
+
+En una base de datos de producción nueva, los usuarios, administrador y
+donaciones ya existentes en otro entorno deben migrarse mediante el respaldo
+seguro de PostgreSQL; no se incluyen en este comando ni en el repositorio.
+
 ## Verificación local
 
 ```powershell

@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.test import TestCase
+from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework import status
 from apps.usuarios.models import Usuario
@@ -121,6 +124,58 @@ class TestConversacionPrivada(ComunicacionesTestCase):
             'contenido': 'Hola, te respondemos desde la Junta.'
         }, format='json')
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_mensajes_de_la_junta_se_muestran_como_propios_para_el_admin(self):
+        """El buzón privado es compartido por todos los miembros de Junta."""
+        otro_miembro_junta = Usuario.objects.create_user(
+            username='secretaria', email='secretaria@cofralink.com',
+            password='Secretaria123!', is_staff=True,
+        )
+        conversacion = Conversacion.objects.create(
+            hermano=self.usuario_hermano
+        )
+        MensajePrivado.objects.create(
+            conversacion=conversacion,
+            remitente=otro_miembro_junta,
+            contenido='Respondemos desde Secretaría.',
+        )
+
+        self._auth_admin()
+        res = self.client.get(f'/api/conversaciones/{conversacion.id}/mensajes/')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertTrue(res.data[0]['es_mio'])
+
+    def test_admin_lista_conversaciones_por_actividad_mas_reciente(self):
+        """La conversación con el último mensaje debe aparecer en primer lugar."""
+        conversacion_antigua = Conversacion.objects.create(
+            hermano=self.usuario_hermano
+        )
+        conversacion_reciente = Conversacion.objects.create(
+            hermano=self.usuario_hermano2
+        )
+        mensaje_antiguo = MensajePrivado.objects.create(
+            conversacion=conversacion_antigua,
+            remitente=self.usuario_hermano,
+            contenido='Mensaje antiguo.',
+        )
+        mensaje_reciente = MensajePrivado.objects.create(
+            conversacion=conversacion_reciente,
+            remitente=self.usuario_hermano2,
+            contenido='Mensaje reciente.',
+        )
+        MensajePrivado.objects.filter(pk=mensaje_antiguo.pk).update(
+            fecha=timezone.now() - timedelta(days=1)
+        )
+        MensajePrivado.objects.filter(pk=mensaje_reciente.pk).update(
+            fecha=timezone.now()
+        )
+
+        self._auth_admin()
+        res = self.client.get('/api/conversaciones/')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0]['id'], conversacion_reciente.id)
 
     def test_mensajes_se_marcan_leidos(self):
         """Al leer los mensajes como admin, se marcan como leídos."""

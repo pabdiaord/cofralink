@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import AppIcon from '../../components/AppIcon'
 import SearchField from '../../components/SearchField'
+import Pagination, { getPageData } from '../../components/Pagination'
 import { coincideBusqueda } from '../../utils/search'
 
 const ESTADOS = {
@@ -34,6 +35,7 @@ export default function Donaciones() {
   const [misDonaciones, setMisDonaciones] = useState([])
   const [donacionesAdmin, setDonacionesAdmin] = useState([])
   const [busquedaGestion, setBusquedaGestion] = useState('')
+  const [filtroHucha, setFiltroHucha] = useState('')
   const [importes, setImportes] = useState({})
   const [cargando, setCargando] = useState(true)
   const [enviandoId, setEnviandoId] = useState(null)
@@ -126,6 +128,7 @@ export default function Donaciones() {
     setError('')
     try {
       await api.patch(`/donaciones/huchas/${hucha.id}/`, { activa: false })
+      if (filtroHucha === String(hucha.id)) setFiltroHucha('')
       await cargar()
     } catch (err) {
       setError(err.response?.data?.detail || 'No se pudo cerrar la hucha.')
@@ -145,6 +148,7 @@ export default function Donaciones() {
     )
   ))
   const donacionesGestionFiltradas = donacionesAdmin.filter(donacion => (
+    (!filtroHucha || String(donacion.hucha) === filtroHucha) &&
     coincideBusqueda(
       busquedaGestion,
       donacion.donante_email,
@@ -243,7 +247,10 @@ export default function Donaciones() {
 
       <section style={styles.historySection}>
         <h2 style={styles.sectionTitle}>Mis donaciones</h2>
-        <DonacionesTable donaciones={misDonaciones} mostrarDonante={false} />
+        <DonacionesTable
+          donaciones={misDonaciones}
+          mostrarDonante={false}
+        />
       </section>
 
       {usuario?.is_staff && (
@@ -274,11 +281,28 @@ export default function Donaciones() {
           {proyectosGestion.length > 0 && proyectosGestionFiltrados.length === 0 && (
             <p style={styles.adminEmpty}>No se han encontrado proyectos con esa búsqueda.</p>
           )}
-          <h3 style={styles.tableTitle}>Todas las donaciones</h3>
+          <div style={styles.tableFilters}>
+            <label htmlFor="filtro-hucha-donaciones" style={styles.filterLabel}>
+              Selecciona una hucha 
+            </label>
+            <select
+              id="filtro-hucha-donaciones"
+              value={filtroHucha}
+              onChange={event => setFiltroHucha(event.target.value)}
+              style={styles.filterSelect}
+            >
+              <option value="">Todas las huchas</option>
+              {huchasActivas.map(hucha => (
+                <option key={hucha.id} value={hucha.id}>{hucha.nombre}</option>
+              ))}
+            </select>
+          </div>
           <DonacionesTable
             donaciones={donacionesGestionFiltradas}
             mostrarDonante
-            mensajeVacio={busquedaGestion ? 'No se han encontrado donaciones con esa búsqueda.' : undefined}
+            mensajeVacio={filtroHucha
+              ? 'No hay donaciones para la hucha seleccionada.'
+              : busquedaGestion ? 'No se han encontrado donaciones con esa búsqueda.' : undefined}
           />
         </section>
       )}
@@ -447,11 +471,17 @@ function HuchaCard({ hucha, importe, enviando, onImporteChange, onDonar }) {
 }
 
 function DonacionesTable({ donaciones, mostrarDonante, mensajeVacio = 'Aún no hay donaciones registradas.' }) {
+  const [paginaActual, setPaginaActual] = useState(1)
+  const { currentPage, pageItems: donacionesPaginadas } = getPageData(donaciones, paginaActual)
+
+  useEffect(() => setPaginaActual(1), [donaciones])
+
   if (donaciones.length === 0) return <p style={styles.empty}>{mensajeVacio}</p>
 
   return (
-    <div className="donation-table-wrap" style={styles.tableWrap}>
-      <table style={styles.table}>
+    <>
+      <div className="donation-table-wrap" style={styles.tableWrap}>
+        <table style={styles.table}>
         <thead>
           <tr>
             <th style={styles.th}>Fecha</th>
@@ -462,7 +492,7 @@ function DonacionesTable({ donaciones, mostrarDonante, mensajeVacio = 'Aún no h
           </tr>
         </thead>
         <tbody>
-          {donaciones.map(donacion => {
+          {donacionesPaginadas.map(donacion => {
             const estado = ESTADOS[donacion.estado] || ESTADOS.PENDIENTE
             return (
               <tr key={donacion.id}>
@@ -477,8 +507,15 @@ function DonacionesTable({ donaciones, mostrarDonante, mensajeVacio = 'Aún no h
             )
           })}
         </tbody>
-      </table>
-    </div>
+        </table>
+      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalItems={donaciones.length}
+        onPageChange={setPaginaActual}
+        itemLabel="donaciones"
+      />
+    </>
   )
 }
 
@@ -534,6 +571,9 @@ const styles = {
   adminEmpty: { color: '#725d4b', margin: '0 0 24px', fontSize: '14px' },
   closeButton: { border: '1px solid #a34a37', color: '#982d1f', background: '#fff7f5', borderRadius: '8px', padding: '7px 9px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' },
   tableTitle: { fontSize: '15px', color: '#593d2c', margin: '24px 0 11px' },
+  tableFilters: { display: 'flex', flexDirection: 'column', gap: '5px', maxWidth: '360px', marginBottom: '12px' },
+  filterLabel: { fontSize: '12px', color: '#725d4b', fontWeight: '700' },
+  filterSelect: { border: '1px solid rgba(117,82,52,0.25)', borderRadius: '9px', background: '#fffdfa', color: '#2c1810', padding: '9px 11px', font: 'inherit' },
   tableWrap: { overflowX: 'auto', background: 'rgba(255,253,250,0.9)', border: '1px solid rgba(117,82,52,0.14)', borderRadius: '13px' },
   table: { width: '100%', borderCollapse: 'collapse', minWidth: '560px' },
   th: { color: '#f7ead5', background: '#3c2519', padding: '11px 14px', textAlign: 'left', fontSize: '12px', letterSpacing: '0.04em', textTransform: 'none' },

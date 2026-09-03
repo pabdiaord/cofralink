@@ -2,6 +2,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db.models import F, Max
 from .models import Conversacion, MensajePrivado, MensajeGeneral, ReaccionMensaje
 from .serializers import (
     ConversacionSerializer, MensajePrivadoSerializer, MensajeGeneralSerializer
@@ -15,8 +16,14 @@ class ConversacionViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_staff:
-            return Conversacion.objects.all().order_by('-creada_en')
-        return Conversacion.objects.filter(hermano=user)
+            return Conversacion.objects.annotate(
+                ultima_actividad=Max('mensajes__fecha')
+            ).order_by(
+                F('ultima_actividad').desc(nulls_last=True), '-creada_en'
+            )
+        return Conversacion.objects.filter(hermano=user).annotate(
+            ultima_actividad=Max('mensajes__fecha')
+        ).order_by(F('ultima_actividad').desc(nulls_last=True), '-creada_en')
 
     def get_serializer_context(self):
         ctx = super().get_serializer_context()

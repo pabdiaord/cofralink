@@ -23,7 +23,16 @@ class MensajePrivadoSerializer(serializers.ModelSerializer):
 
     def get_es_mio(self, obj):
         request = self.context.get('request')
-        return request and obj.remitente_id == request.user.id
+        if not request:
+            return False
+
+        # Los mensajes privados se gestionan como un buzón compartido por la
+        # Junta. Por eso, para cualquier miembro de Junta, los mensajes
+        # enviados por otro miembro de Junta se muestran también como propios.
+        if request.user.is_staff:
+            return obj.remitente.is_staff
+
+        return obj.remitente_id == request.user.id
 
 
 class ConversacionSerializer(serializers.ModelSerializer):
