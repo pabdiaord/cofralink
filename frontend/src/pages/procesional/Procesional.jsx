@@ -311,10 +311,10 @@ export default function Procesional() {
                 {/* Acciones */}
                 {usuario?.is_staff && (
                   <div style={styles.cardFooter}>
-                    <button style={styles.btnEditar} onClick={() => abrirEdicion(p)}>
+                    <button className="action-button action-button--edit" onClick={() => abrirEdicion(p)}>
                       Gestionar
                     </button>
-                    <button style={styles.btnEliminar} onClick={() => handleEliminar(p.id)}>
+                    <button className="action-button action-button--danger" onClick={() => handleEliminar(p.id)}>
                       Eliminar
                     </button>
                   </div>
@@ -466,16 +466,6 @@ const styles = {
     padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '8px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
-  },
-  btnEditar: {
-    padding: '6px 14px', backgroundColor: 'transparent',
-    color: '#2c1810', border: '1px solid #2c1810',
-    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
-  },
-  btnEliminar: {
-    padding: '6px 14px', backgroundColor: 'transparent',
-    color: '#e53e3e', border: '1px solid #e53e3e',
-    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
   },
   btnCancelar: {
     padding: '10px 20px', backgroundColor: '#eee', color: '#333',

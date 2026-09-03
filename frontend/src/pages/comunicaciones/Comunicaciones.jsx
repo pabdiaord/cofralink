@@ -468,7 +468,7 @@ function MensajeCanal({ msg, usuario, selectorAbierto, onAbrirSelector, onReacci
 
           {/* Eliminar solo admin */}
           {usuario?.is_staff && (
-            <button style={canalStyles.btnEliminar} onClick={() => onEliminar(msg.id)}>
+            <button className="action-button action-button--danger" onClick={() => onEliminar(msg.id)}>
               <AppIcon name="trash" size={14} />Eliminar
             </button>
           )}
@@ -497,7 +497,7 @@ function BurbujaMensaje({ msg, onEliminar, mostrarNombre = false }) {
               {new Date(msg.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
             </span>
             {onEliminar && (
-              <button style={styles.btnBorrarMsg} onClick={onEliminar}>✕</button>
+              <button aria-label="Eliminar mensaje" title="Eliminar mensaje" className="action-button action-button--danger action-button--icon" onClick={onEliminar}>✕</button>
             )}
           </div>
         </div>
@@ -558,7 +558,6 @@ const styles = {
   burbujaTexto:  { margin: 0, fontSize: '14px', lineHeight: '1.4' },
   burbujaFooter: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px', marginTop: '4px' },
   burbujaHora:   { fontSize: '10px', opacity: 0.6 },
-  btnBorrarMsg:  { background: 'none', border: 'none', cursor: 'pointer', fontSize: '10px', opacity: 0.5, color: 'inherit', padding: '0' },
 
   adminWrap: {
     flex: 1, display: 'flex', borderRadius: '12px',
@@ -609,10 +608,6 @@ const canalStyles = {
   btnReaccionar: {
     fontSize: '12px', padding: '4px 10px', borderRadius: '6px',
     border: '1px solid #ddd', background: '#fafafa', cursor: 'pointer', color: '#555',
-  },
-  btnEliminar: {
-    fontSize: '12px', padding: '4px 10px', borderRadius: '6px',
-    border: '1px solid #fca5a5', background: '#fff5f5', cursor: 'pointer', color: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '4px',
   },
 
   selectorEmoji: {

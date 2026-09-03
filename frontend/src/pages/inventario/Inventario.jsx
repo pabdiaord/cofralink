@@ -299,10 +299,10 @@ export default function Inventario() {
                 </span>
               ))}
               <div style={{ width: '140px', display: 'flex', gap: '6px' }}>
-                <button style={styles.btnEditar} onClick={() => abrirEdicion(obj)}>
+                <button className="action-button action-button--edit" onClick={() => abrirEdicion(obj)}>
                   Editar
                 </button>
-                <button style={styles.btnEliminar} onClick={() => handleEliminar(obj.id)}>
+                <button className="action-button action-button--danger" onClick={() => handleEliminar(obj.id)}>
                   Eliminar
                 </button>
               </div>
@@ -428,16 +428,6 @@ const styles = {
     padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '8px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
-  },
-  btnEditar: {
-    padding: '5px 12px', backgroundColor: 'transparent',
-    color: '#2c1810', border: '1px solid #2c1810',
-    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
-  },
-  btnEliminar: {
-    padding: '5px 12px', backgroundColor: 'transparent',
-    color: '#e53e3e', border: '1px solid #e53e3e',
-    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
   },
   btnCancelar: {
     padding: '10px 20px', backgroundColor: '#eee', color: '#333',

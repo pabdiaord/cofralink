@@ -235,13 +235,13 @@ export default function Publicaciones() {
                         {usuario?.is_staff && (
                           <div style={ps.adminActions}>
                             <button
-                              style={ps.btnEditar}
+                              className="action-button action-button--edit"
                               onClick={e => abrirEdicion(pub, e)}
                             >
                               Editar
                             </button>
                             <button
-                              style={ps.btnEliminar}
+                              className="action-button action-button--danger"
                               onClick={e => handleEliminar(pub.id, e)}
                             >
                               Eliminar
@@ -329,13 +329,13 @@ export default function Publicaciones() {
               {usuario?.is_staff && (
                 <div style={ps.detalleAcciones}>
                   <button
-                    style={ps.btnEditar}
+                    className="action-button action-button--edit"
                     onClick={e => { abrirEdicion(modalDetalle, e); setModalDetalle(null) }}
                   >
                     Editar
                   </button>
                   <button
-                    style={ps.btnEliminar}
+                    className="action-button action-button--danger"
                     onClick={e => handleEliminar(modalDetalle.id, e)}
                   >
                     Eliminar
@@ -501,16 +501,6 @@ const ps = {
     padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '10px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '700', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
-  },
-  btnEditar: {
-    padding: '5px 12px', backgroundColor: 'transparent',
-    color: '#2c1810', border: '1px solid rgba(44,24,16,0.7)',
-    borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: '700',
-  },
-  btnEliminar: {
-    padding: '5px 12px', backgroundColor: 'transparent',
-    color: '#b3261e', border: '1px solid rgba(179, 38, 30, 0.7)',
-    borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: '700',
   },
   btnCancelar: {
     padding: '10px 20px', backgroundColor: '#ece6da', color: DARK,

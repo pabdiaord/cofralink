@@ -137,7 +137,7 @@ export default function Perfil() {
           </div>
         </div>
         {!usuario?.is_staff && (
-          <button type="button" style={styles.heroEditButton} onClick={() => setEditando(true)}>
+          <button type="button" className="action-button action-button--edit action-button--on-dark" onClick={() => setEditando(true)}>
             Editar mi ficha
           </button>
         )}
@@ -166,7 +166,7 @@ export default function Perfil() {
                 <h2 style={styles.panelTitle}>Mi ficha</h2>
               </div>
               {!usuario?.is_staff && !editando && (
-                <button type="button" style={styles.outlineButton} onClick={() => setEditando(true)}>Editar</button>
+                <button type="button" className="action-button action-button--edit" onClick={() => setEditando(true)}>Editar</button>
               )}
             </div>
 
@@ -361,11 +361,6 @@ const styles = {
     padding: '12px 20px', backgroundColor: '#f3ece3', color: '#5d4a3d',
     border: `1px solid ${BORDER}`, borderRadius: '10px', fontSize: '15px', cursor: 'pointer',
   },
-  btnEditar: {
-    padding: '5px 14px', backgroundColor: 'transparent',
-    border: `1px solid ${GOLD}`, color: GOLD,
-    borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: '600',
-  },
 
   // Carácter
   caracterBox: {
@@ -421,7 +416,6 @@ const styles = {
   heroEyebrow: { margin: 0, color: '#e7c777', fontSize: '13px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase' },
   heroTags: { display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '15px' },
   heroTag: { border: '1px solid rgba(255,255,255,0.18)', borderRadius: '999px', padding: '5px 10px', color: 'rgba(255,250,244,0.9)', background: 'rgba(255,255,255,0.07)', fontSize: '13px' },
-  heroEditButton: { border: `1px solid ${GOLD}`, borderRadius: '10px', padding: '11px 16px', color: '#fff8e9', background: 'rgba(255,255,255,0.06)', cursor: 'pointer', fontSize: '15px', fontWeight: '700', whiteSpace: 'nowrap' },
   profileContent: { maxWidth: '1240px', margin: '0 auto' },
   milestoneGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', margin: '-18px clamp(0px, 2vw, 24px) 24px', position: 'relative', zIndex: 1 },
   milestone: { minHeight: '78px', display: 'flex', alignItems: 'center', gap: '11px', padding: '13px 15px', border: `1px solid ${BORDER}`, borderRadius: '14px', background: 'rgba(255,253,250,0.98)', boxShadow: '0 10px 22px rgba(44,24,16,0.08)' },
@@ -434,7 +428,6 @@ const styles = {
   panelHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '22px' },
   panelEyebrow: { margin: 0, color: '#95713a', fontSize: '12px', fontWeight: '700', letterSpacing: '0.06em', textTransform: 'uppercase' },
   panelTitle: { margin: '3px 0 0', color: '#2c1810', fontSize: '22px' },
-  outlineButton: { padding: '9px 14px', border: '1px solid rgba(117,82,52,0.34)', borderRadius: '9px', background: 'transparent', color: '#5b3927', cursor: 'pointer', fontWeight: '700', fontSize: '14px' },
   detailGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0 22px' },
   detailRow: { padding: '15px 0', borderBottom: '1px solid rgba(117,82,52,0.14)', display: 'flex', flexDirection: 'column', gap: '4px' },
   detailLabel: { color: '#826b57', fontSize: '13px', fontWeight: '700', letterSpacing: '0.02em' },

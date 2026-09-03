@@ -367,10 +367,10 @@ const openConfirm = (action, payload = null) => {
                 </span>
               </span>
               <div style={{ width: '140px', display: 'flex', gap: '6px' }}>
-                <button style={styles.btnEditar} onClick={() => abrirEdicion(h)}>
+                <button className="action-button action-button--edit" onClick={() => abrirEdicion(h)}>
                   Editar
                 </button>
-                <button style={styles.btnEliminar} onClick={() => handleBaja(h)}>
+                <button className="action-button action-button--danger" onClick={() => handleBaja(h)}>
                   Baja
                 </button>
               </div>
@@ -577,16 +577,6 @@ const styles = {
     padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '10px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '700', alignSelf: 'flex-start', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
-  },
-  btnEditar: {
-    padding: '5px 12px', backgroundColor: 'transparent',
-    color: '#2c1810', border: '1px solid rgba(44,24,16,0.7)',
-    borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: '700',
-  },
-  btnEliminar: {
-    padding: '5px 12px', backgroundColor: 'transparent',
-    color: '#b3261e', border: '1px solid rgba(179, 38, 30, 0.7)',
-    borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: '700',
   },
   btnCancelar: {
     padding: '10px 20px', backgroundColor: '#efe4d9', color: '#2c1810',

@@ -458,8 +458,8 @@ function TarjetaEvento({ ev, usuario, esPasado, onEditar, onEliminar, onInscribi
           </span>
           {usuario?.is_staff && (
             <div style={{ display: 'flex', gap: '6px' }}>
-              <button style={s.btnEditar} onClick={() => onEditar(ev)}>Editar</button>
-              <button style={s.btnEliminar} onClick={() => onEliminar(ev.id)}>Eliminar</button>
+              <button className="action-button action-button--edit" onClick={() => onEditar(ev)}>Editar</button>
+              <button className="action-button action-button--danger" onClick={() => onEliminar(ev.id)}>Eliminar</button>
             </div>
           )}
         </div>
@@ -677,8 +677,8 @@ function CalendarioSemana({ eventos, fechaRef, setFechaRef, usuario, onEditar, o
                       )}
                       {usuario?.is_staff && (
                         <div style={{ display: 'flex', gap: '4px', marginTop: '6px' }}>
-                          <button aria-label="Editar evento" title="Editar evento" style={s.semanaEditBtn} onClick={() => onEditar(ev)}><AppIcon name="edit" size={13} /></button>
-                          <button aria-label="Eliminar evento" title="Eliminar evento" style={s.semanaDeleteBtn} onClick={() => onEliminar(ev.id)}><AppIcon name="trash" size={13} /></button>
+                          <button aria-label="Editar evento" title="Editar evento" className="action-button action-button--edit action-button--icon" onClick={() => onEditar(ev)}><AppIcon name="edit" size={13} /></button>
+                          <button aria-label="Eliminar evento" title="Eliminar evento" className="action-button action-button--danger action-button--icon" onClick={() => onEliminar(ev.id)}><AppIcon name="trash" size={13} /></button>
                         </div>
                       )}
                     </div>
@@ -789,14 +789,6 @@ const s = {
     padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', fontWeight: '600',
   },
-  btnEditar: {
-    padding: '5px 12px', background: 'transparent', color: '#2c1810',
-    border: '1px solid #2c1810', borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
-  },
-  btnEliminar: {
-    padding: '5px 12px', background: 'transparent', color: '#e53e3e',
-    border: '1px solid #e53e3e', borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
-  },
   btnInscribirse: {
     padding: '7px 16px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
     border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: '600',
@@ -897,13 +889,5 @@ const s = {
   semanaEventoBtn: {
     fontSize: '10px', padding: '3px 8px', backgroundColor: '#5b3927',
     color: '#fff8ee', border: 'none', borderRadius: '4px', cursor: 'pointer', width: '100%',
-  },
-  semanaEditBtn: {
-    flex: 1, fontSize: '11px', padding: '2px', background: 'transparent',
-    border: 'none', cursor: 'pointer',
-  },
-  semanaDeleteBtn: {
-    flex: 1, fontSize: '11px', padding: '2px', background: 'transparent',
-    border: 'none', cursor: 'pointer',
   },
 }
