@@ -44,8 +44,8 @@ eventos y cuentas ficticias de demostración. No modifica ni elimina usuarios,
 hermanos, huchas o donaciones reales existentes; solo puede actualizar las
 cuentas demo identificables que el propio comando creó en una versión previa.
 
-Las cuentas de demostración usan correos `@cofralink.test` y números libres
-entre 200 y 300. Su contraseña nunca se guarda en Git: configura el secreto
+Las cuentas de demostración usan correos con el dominio `@cofralink.app` y
+números libres entre 200 y 300. Su contraseña nunca se guarda en Git: configura el secreto
 `SEED_DEMO_PASSWORD` en `backend/.env` durante desarrollo o en el gestor de
 secretos del proveedor. En producción habilita explícitamente el comando:
 

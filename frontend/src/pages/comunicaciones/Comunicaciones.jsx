@@ -168,8 +168,12 @@ function ChatAdminPrivado() {
     try {
       await api.post(`/conversaciones/${convActiva.id}/enviar/`, { contenido: texto.trim() })
       setTexto('')
-      const res = await api.get(`/conversaciones/${convActiva.id}/mensajes/`)
+      const [res, conversacionesRes] = await Promise.all([
+        api.get(`/conversaciones/${convActiva.id}/mensajes/`),
+        api.get('/conversaciones/')
+      ])
       setMensajes(res.data)
+      setConversaciones(conversacionesRes.data)
     } finally {
       setEnviando(false)
     }

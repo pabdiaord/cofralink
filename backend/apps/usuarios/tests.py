@@ -5,6 +5,7 @@ from unittest.mock import patch
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
+from datetime import date
 from django.core.cache import cache
 # from django.urls import reverse
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -14,7 +15,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from .models import Usuario
 from .throttles import LoginIPThrottle
-from apps.comunicaciones.models import MensajeGeneral
+from apps.comunicaciones.models import MensajeGeneral, MensajePrivado
 from apps.donaciones.models import Donacion, Hucha
 from apps.eventos.models import Evento
 from apps.hermanos.models import Hermano
@@ -305,11 +306,11 @@ class TestSeedInitial(TestCase):
         self.assertEqual(Usuario.objects.count(), usuarios_iniciales + 50)
         self.assertTrue(self.admin.check_password('AdminExistente#2026'))
         self.assertTrue(Usuario.objects.filter(
-            email='hermano.demo01@cofralink.test', is_staff=True
+            email='alberto.campos@cofralink.app', is_staff=True
         ).exists())
         self.assertEqual(
             list(Hermano.objects.filter(
-                usuario__email__startswith='hermano.demo'
+                usuario__email__endswith='@cofralink.app'
             ).order_by('numero_hermano').values_list(
                 'numero_hermano', flat=True)),
             list(range(200, 250)),
@@ -322,6 +323,15 @@ class TestSeedInitial(TestCase):
         self.assertGreater(Publicacion.objects.count(), 0)
         self.assertGreater(MensajeGeneral.objects.count(), 0)
         self.assertGreater(Papeleta.objects.count(), 0)
+        self.assertEqual(
+            set(Papeleta.objects.filter(
+                usuario__email__endswith='@cofralink.app'
+            ).values_list('fecha', flat=True)),
+            {date(2026, 3, 31)},
+        )
+        self.assertFalse(MensajePrivado.objects.filter(
+            contenido__icontains='demostración'
+        ).exists())
         self.assertGreater(Imagen.objects.count(), 0)
         self.assertGreater(Enser.objects.count(), 0)
         self.assertGreater(Util.objects.count(), 0)
@@ -378,5 +388,8 @@ class TestSeedInitial(TestCase):
 
         demo.hermano.refresh_from_db()
         self.assertEqual(demo.hermano.numero_hermano, 200)
+        demo.refresh_from_db()
+        self.assertEqual(demo.email, 'alberto.campos@cofralink.app')
+        self.assertEqual(demo.username, 'alberto.campos')
         self.hermano.hermano.refresh_from_db()
         self.assertEqual(self.hermano.hermano.numero_hermano, 1)

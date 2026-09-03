@@ -7,6 +7,7 @@ existentes. Las cuentas creadas aquí son ficticias y usan el dominio reservado
 """
 
 import os
+import unicodedata
 from datetime import date, datetime, time, timedelta
 
 from django.conf import settings
@@ -89,11 +90,67 @@ DEMO_HERMANOS = (
 )
 
 
+DIRECCIONES_HERMANOS = (
+    'C/ Gracia Sáenz de Tejada, 8, Alcalá de Guadaíra',
+    'C/ Ramón J. Sénder, 11, Alcalá de Guadaíra',
+    'C/ Sanlúcar la Mayor, 6, Alcalá de Guadaíra',
+    'C/ Atilano de Acevedo, 15, Alcalá de Guadaíra',
+    'C/ Telmo Maqueda, 7, Alcalá de Guadaíra',
+    'C/ Pérez Galdós, 12, Alcalá de Guadaíra',
+    'C/ Gutiérrez de Alba, 4, Alcalá de Guadaíra',
+    'C/ Nuestra Señora del Águila, 9, Alcalá de Guadaíra',
+    'C/ Herreros, 5, Alcalá de Guadaíra',
+    'C/ Alcalá y Ortí, 16, Alcalá de Guadaíra',
+    'C/ La Plata, 3, Alcalá de Guadaíra',
+    'C/ Barrio Nuevo, 10, Alcalá de Guadaíra',
+    'C/ Manuel de Falla, 14, Alcalá de Guadaíra',
+    'C/ Cereales, 6, Alcalá de Guadaíra',
+    'C/ Centeno, 18, Alcalá de Guadaíra',
+    'C/ Trigo, 9, Alcalá de Guadaíra',
+    'C/ Silos, 12, Alcalá de Guadaíra',
+    'Avda. de la Constitución, 21, Alcalá de Guadaíra',
+    'C/ Calderón de la Barca, 8, Alcalá de Guadaíra',
+    'C/ Profesora Francisca Laguna, 17, Alcalá de Guadaíra',
+    'C/ Ramón y Cajal, 11, Alcalá de Guadaíra',
+    'C/ Mairena, 7, Alcalá de Guadaíra',
+    'C/ Marchena, 4, Alcalá de Guadaíra',
+    'C/ Arahal, 13, Alcalá de Guadaíra',
+    'C/ Gandul, 6, Alcalá de Guadaíra',
+    'C/ Oromana, 15, Alcalá de Guadaíra',
+    'C/ Duquesa de Talavera, 8, Alcalá de Guadaíra',
+    'C/ Carmen Amaya, 5, Alcalá de Guadaíra',
+    'C/ Aguas, 9, Alcalá de Guadaíra',
+    'C/ Castillo, 16, Alcalá de Guadaíra',
+    'C/ Santa Clara, 7, Alcalá de Guadaíra',
+    'C/ San Francisco, 12, Alcalá de Guadaíra',
+    'C/ Concepción, 4, Alcalá de Guadaíra',
+    'C/ Martínez Montañés, 10, Alcalá de Guadaíra',
+    'C/ Maestro Serrano, 14, Alcalá de Guadaíra',
+    'C/ Almazara, 6, Alcalá de Guadaíra',
+    'C/ Olivo, 18, Alcalá de Guadaíra',
+    'C/ Molino, 3, Alcalá de Guadaíra',
+    'C/ Naranjo, 11, Alcalá de Guadaíra',
+    'C/ Azahar, 8, Alcalá de Guadaíra',
+    'C/ Clavel, 5, Alcalá de Guadaíra',
+    'C/ Laurel, 13, Alcalá de Guadaíra',
+    'C/ Jazmín, 7, Alcalá de Guadaíra',
+    'C/ Romero, 16, Alcalá de Guadaíra',
+    'C/ Violeta, 9, Alcalá de Guadaíra',
+    'C/ Sevilla, 4, Alcalá de Guadaíra',
+    'C/ Málaga, 12, Alcalá de Guadaíra',
+    'C/ Córdoba, 6, Alcalá de Guadaíra',
+    'C/ Granada, 15, Alcalá de Guadaíra',
+    'C/ Huelva, 8, Alcalá de Guadaíra',
+)
+
+FECHA_MARTES_SANTO_2026 = date(2026, 3, 31)
+
+
 EVENTOS = (
     (
         'Misa de Hermandad', 'CULTO', 10,
         'Parroquia de la Inmaculada Concepción',
-        'Convocatoria orientativa de la instalación inicial. La Hermandad confirmará el horario definitivo.',
+        'Celebración de la Misa de Hermandad en torno a nuestros Sagrados Titulares.',
     ),
     (
         'Jornada de priostía y preparación de enseres', 'PRIOSTIA', 17,
@@ -141,6 +198,13 @@ EVENTOS = (
         'Reunión de evaluación y propuestas de mejora para próximos años.',
     ),
 )
+
+EVENTOS_LEGADOS = {
+    (
+        'Misa de Hermandad',
+        'Convocatoria orientativa de la instalación inicial. La Hermandad confirmará el horario definitivo.',
+    ): 'Celebración de la Misa de Hermandad en torno a nuestros Sagrados Titulares.',
+}
 
 
 PUBLICACIONES = (
@@ -196,6 +260,90 @@ UTILES = (
 )
 
 
+CONVERSACIONES_PRIVADAS = (
+    (
+        3,
+        (
+            (
+                'hermano',
+                'Buenas tardes. He visto que mi papeleta de sitio para el paso del Santísimo Cristo del Perdón aparece aprobada. ¿Me confirmáis que corresponde al tramo 2 de nazarenos?',
+                datetime(2026, 2, 18, 19, 5),
+            ),
+            (
+                'junta',
+                'Buenas tardes, Marta. Confirmamos la asignación para el tramo 2 de nazarenos del paso del Santísimo Cristo del Perdón. Te avisaremos cuando se comunique el reparto definitivo.',
+                datetime(2026, 2, 19, 12, 20),
+            ),
+            (
+                'hermano',
+                'Perfecto, muchas gracias por la información.',
+                datetime(2026, 2, 19, 13, 4),
+            ),
+        ),
+    ),
+    (
+        4,
+        (
+            (
+                'hermano',
+                'Buenas noches. Soy Javier Santos, de la cuadrilla de costaleros. ¿Se mantiene el ensayo del paso de palio previsto en el calendario?',
+                datetime(2026, 2, 25, 21, 12),
+            ),
+            (
+                'junta',
+                'Buenas noches, Javier. El ensayo sigue previsto. La cuadrilla confirmará por el canal habitual la hora de citación y el punto de encuentro.',
+                datetime(2026, 2, 26, 10, 15),
+            ),
+            (
+                'hermano',
+                'De acuerdo, estaré pendiente. Gracias.',
+                datetime(2026, 2, 26, 10, 31),
+            ),
+        ),
+    ),
+    (
+        5,
+        (
+            (
+                'hermano',
+                'Buenas tardes. Quisiera saber cuándo se comunicará el reparto definitivo de papeletas de sitio.',
+                datetime(2026, 3, 2, 18, 42),
+            ),
+            (
+                'junta',
+                'Buenas tardes, Lucía. La Diputación Mayor de Gobierno informará del reparto una vez cierre el plazo de solicitudes y se revisen las incidencias.',
+                datetime(2026, 3, 3, 9, 20),
+            ),
+            (
+                'hermano',
+                'Muchas gracias. Quedo pendiente de la comunicación.',
+                datetime(2026, 3, 3, 9, 38),
+            ),
+        ),
+    ),
+    (
+        6,
+        (
+            (
+                'hermano',
+                'Hola. Para el próximo ensayo del paso del Cristo, ¿debo llevar ya la ropa de trabajo habitual?',
+                datetime(2026, 3, 9, 20, 8),
+            ),
+            (
+                'junta',
+                'Hola, Francisco. Sí, te recomendamos acudir con la ropa y el calzado habituales de ensayo. Cualquier indicación adicional se comunicará por la cuadrilla.',
+                datetime(2026, 3, 10, 11, 5),
+            ),
+            (
+                'hermano',
+                'Muchas gracias, allí estaremos.',
+                datetime(2026, 3, 10, 11, 26),
+            ),
+        ),
+    ),
+)
+
+
 class Command(BaseCommand):
     help = (
         'Añade contenido inicial de CofraLink sin modificar ni eliminar '
@@ -236,16 +384,18 @@ class Command(BaseCommand):
         )
 
     def _crear_hermanos(self, password):
-        self._comprobar_conflictos_usuarios()
+        identidades = self._identidades_demo()
+        self._migrar_identidades_demo_legadas(identidades)
+        self._comprobar_conflictos_usuarios(identidades)
         numeros = self._obtener_numeros_demo()
         self._renumerar_perfiles_demo(numeros)
+        self._actualizar_direcciones_demo(identidades)
         hermanos = []
         for indice, (nombre, apellidos, es_junta, caracter) in enumerate(
             DEMO_HERMANOS, start=1
         ):
             numero = numeros[indice - 1]
-            email = f'hermano.demo{indice:02d}@cofralink.test'
-            username = f'perdon_demo_{indice:02d}'
+            username, email = identidades[indice - 1]
             usuario, creado = Usuario.objects.get_or_create(
                 email=email,
                 defaults={
@@ -270,10 +420,7 @@ class Command(BaseCommand):
                     usuario=usuario,
                     nombre=nombre,
                     apellidos=apellidos,
-                    direccion=(
-                        f'C/ CofraLink, {indice} — Alcalá de Guadaíra '
-                        '(dato de demostración)'
-                    ),
+                    direccion=DIRECCIONES_HERMANOS[indice - 1],
                     fecha_ingreso=date(
                         2014 + (indice % 10), (indice % 12) + 1, 1),
                     numero_hermano=numero,
@@ -286,12 +433,9 @@ class Command(BaseCommand):
             hermanos.append(hermano)
         return hermanos
 
-    def _comprobar_conflictos_usuarios(self):
+    def _comprobar_conflictos_usuarios(self, identidades):
         emails = self._emails_demo()
-        usernames = {
-            f'perdon_demo_{indice:02d}'
-            for indice in range(1, len(DEMO_HERMANOS) + 1)
-        }
+        usernames = {username for username, _ in identidades}
 
         usuario_conflictivo = Usuario.objects.exclude(email__in=emails).filter(
             username__in=usernames
@@ -302,11 +446,62 @@ class Command(BaseCommand):
                 'No se ha modificado ningún dato.'
             )
 
+    @staticmethod
+    def _normalizar_identidad(valor):
+        valor = unicodedata.normalize('NFKD', valor)
+        valor = valor.encode('ascii', 'ignore').decode('ascii').lower()
+        return '.'.join(valor.split())
+
+    def _identidades_demo(self):
+        identidades = []
+        for nombre, apellidos, _, _ in DEMO_HERMANOS:
+            username = (
+                f'{self._normalizar_identidad(nombre)}.'
+                f'{self._normalizar_identidad(apellidos)}'
+            )
+            identidades.append((username, f'{username}@cofralink.app'))
+        return tuple(identidades)
+
     def _emails_demo(self):
+        return {email for _, email in self._identidades_demo()}
+
+    def _emails_demo_legado(self):
         return {
             f'hermano.demo{indice:02d}@cofralink.test'
             for indice in range(1, len(DEMO_HERMANOS) + 1)
         }
+
+    def _migrar_identidades_demo_legadas(self, identidades):
+        """Reemplaza identificadores visibles de versiones anteriores."""
+        for indice, (username, email) in enumerate(identidades, start=1):
+            email_legado = f'hermano.demo{indice:02d}@cofralink.test'
+            usuario_legado = Usuario.objects.filter(email=email_legado).first()
+            if usuario_legado is None:
+                continue
+
+            existe_email = Usuario.objects.exclude(pk=usuario_legado.pk).filter(
+                email=email
+            ).exists()
+            existe_username = Usuario.objects.exclude(
+                pk=usuario_legado.pk
+            ).filter(username=username).exists()
+            if existe_email or existe_username:
+                raise CommandError(
+                    'No se pueden actualizar los identificadores de una cuenta '
+                    'de carga inicial porque ya están en uso. No se ha modificado '
+                    'ningún dato.'
+                )
+
+            usuario_legado.email = email
+            usuario_legado.username = username
+            usuario_legado.save(update_fields=('email', 'username'))
+
+    def _actualizar_direcciones_demo(self, identidades):
+        for (_, email), direccion in zip(identidades, DIRECCIONES_HERMANOS):
+            perfil = Hermano.objects.filter(usuario__email=email).first()
+            if perfil and perfil.direccion.startswith('C/ CofraLink,'):
+                perfil.direccion = direccion
+                perfil.save(update_fields=('direccion',))
 
     def _obtener_numeros_demo(self):
         ocupados = set(Hermano.objects.exclude(
@@ -334,8 +529,8 @@ class Command(BaseCommand):
             return
 
         numeros_por_email = {
-            f'hermano.demo{indice:02d}@cofralink.test': numero
-            for indice, numero in enumerate(numeros, start=1)
+            email: numero
+            for (_, email), numero in zip(self._identidades_demo(), numeros)
         }
         ocupados = set(Hermano.objects.values_list('numero_hermano', flat=True))
         temporales = []
@@ -355,6 +550,7 @@ class Command(BaseCommand):
             perfil.save(update_fields=('numero_hermano',))
 
     def _crear_eventos(self):
+        self._migrar_eventos_legados()
         hoy = timezone.localdate()
         eventos = {}
         for nombre, tipo, dias, lugar, descripcion in EVENTOS:
@@ -383,6 +579,13 @@ class Command(BaseCommand):
                 )
             eventos[nombre] = evento
         return eventos
+
+    def _migrar_eventos_legados(self):
+        for (nombre, descripcion_legada), descripcion_actual in EVENTOS_LEGADOS.items():
+            Evento.objects.filter(
+                nombre_evento=nombre,
+                descripcion=descripcion_legada,
+            ).update(descripcion=descripcion_actual)
 
     def _crear_inscripciones(self, hermanos, eventos):
         if not eventos:
@@ -439,7 +642,6 @@ class Command(BaseCommand):
                 )
 
     def _crear_papeletas(self, hermanos):
-        hoy = timezone.localdate()
         configuracion = (
             ('Paso del Santísimo Cristo del Perdón',
              'Tramo 2 — Nazarenos', 'aprobada'),
@@ -454,11 +656,12 @@ class Command(BaseCommand):
             ('Paso de Nuestra Señora de las Angustias',
              'Tramo 4 — Nazarenos', 'aprobada'),
         )
-        fecha = hoy + timedelta(days=210)
+        fecha = FECHA_MARTES_SANTO_2026
         for hermano, (paso, tramo, estado) in zip(hermanos[3:9], configuracion):
-            if not Papeleta.objects.filter(
+            papeleta = Papeleta.objects.filter(
                 usuario=hermano.usuario, paso=paso, tramo=tramo
-            ).exists():
+            ).first()
+            if papeleta is None:
                 Papeleta.objects.create(
                     usuario=hermano.usuario,
                     paso=paso,
@@ -466,6 +669,9 @@ class Command(BaseCommand):
                     fecha=fecha,
                     estado=estado,
                 )
+            elif papeleta.fecha != fecha:
+                papeleta.fecha = fecha
+                papeleta.save(update_fields=('fecha',))
 
     def _crear_comunicaciones(self, hermanos):
         junta = hermanos[0].usuario
@@ -497,30 +703,50 @@ class Command(BaseCommand):
                     defaults={'emoji': '🙏' if indice != 1 else '👍'},
                 )
 
-        for indice, hermano in enumerate(hermanos[3:6], start=1):
+        for indice_hermano, mensajes in CONVERSACIONES_PRIVADAS:
+            hermano = hermanos[indice_hermano]
             conversacion, _ = Conversacion.objects.get_or_create(
                 hermano=hermano.usuario
             )
-            consulta = (
-                f'Consulta de demostración {indice}: ¿podéis confirmar la información de la próxima convocatoria?'
-            )
-            respuesta = (
-                'Gracias por escribirnos. La Junta publicará la convocatoria definitiva por los canales habituales.'
-            )
-            if not MensajePrivado.objects.filter(
-                conversacion=conversacion, contenido=consulta
-            ).exists():
-                MensajePrivado.objects.create(
+            self._eliminar_mensajes_privados_legados(conversacion, junta)
+            for tipo_remitente, contenido, fecha in mensajes:
+                remitente = junta if tipo_remitente == 'junta' else hermano.usuario
+                self._crear_mensaje_privado(
                     conversacion=conversacion,
-                    remitente=hermano.usuario,
-                    contenido=consulta,
+                    remitente=remitente,
+                    contenido=contenido,
+                    fecha=fecha,
                 )
-            if not MensajePrivado.objects.filter(
-                conversacion=conversacion, contenido=respuesta
-            ).exists():
-                MensajePrivado.objects.create(
-                    conversacion=conversacion,
-                    remitente=junta,
-                    contenido=respuesta,
-                    leido=True,
-                )
+
+    @staticmethod
+    def _eliminar_mensajes_privados_legados(conversacion, junta):
+        MensajePrivado.objects.filter(
+            conversacion=conversacion,
+            contenido__startswith='Consulta de demostración ',
+        ).delete()
+        MensajePrivado.objects.filter(
+            conversacion=conversacion,
+            remitente=junta,
+            contenido=(
+                'Gracias por escribirnos. La Junta publicará la convocatoria '
+                'definitiva por los canales habituales.'
+            ),
+        ).delete()
+
+    @staticmethod
+    def _crear_mensaje_privado(conversacion, remitente, contenido, fecha):
+        if MensajePrivado.objects.filter(
+            conversacion=conversacion,
+            remitente=remitente,
+            contenido=contenido,
+        ).exists():
+            return
+        mensaje = MensajePrivado.objects.create(
+            conversacion=conversacion,
+            remitente=remitente,
+            contenido=contenido,
+            leido=True,
+        )
+        MensajePrivado.objects.filter(pk=mensaje.pk).update(
+            fecha=timezone.make_aware(fecha)
+        )
