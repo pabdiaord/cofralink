@@ -297,15 +297,12 @@ function EmptyState({ icon, title, text, action, onClick, dark = false }) {
 // ── Estilos ───────────────────────────────────────────────────────
 const hs = {
   page: {
-  padding: '32px',
-  maxWidth: '1440px',
-  width: '100%',
-  margin: '0 auto',
-  background: '#efe3d7',
-  borderRadius: '24px',
-  boxShadow: '0 18px 45px rgba(44, 24, 16, 0.08)',
-  boxSizing: 'border-box',
-},
+    padding: '32px',
+    maxWidth: '1440px',
+    width: '100%',
+    margin: '0 auto',
+    boxSizing: 'border-box',
+  },
 
   // Banner
   banner: {
@@ -356,7 +353,6 @@ const hs = {
     justifyContent: 'center',
     flexShrink: 0,
     background: 'radial-gradient(circle at 30% 30%, rgba(255,245,216,0.12), rgba(201,168,76,0.05))',
-    boxShadow: 'inset 0 0 0 8px rgba(201,168,76,0.06)',
   },
   escudoImg: {
     width: '260px',
