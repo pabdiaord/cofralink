@@ -172,7 +172,7 @@ export default function CambiarPassword() {
 }
 
 const cs = {
-  page: { display: 'flex', minHeight: '100vh', fontFamily: "'Segoe UI', sans-serif" },
+  page: { display: 'flex', minHeight: '100vh' },
   left: {
     width: '50%', flexShrink: 0,
     background: 'radial-gradient(ellipse at 30% 40%, #4a2c1a 0%, #2c1810 40%, #150c08 100%)',
@@ -187,7 +187,7 @@ const cs = {
   escudo: { width: '180px', height: '180px', objectFit: 'contain', filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.4))' },
   hermandadInfo: { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' },
   hermandadLabel: { fontSize: '10px', color: 'rgba(201,168,76,0.7)', letterSpacing: '0.2em', margin: 0 },
-  hermandadNombre: { color: 'white', fontSize: '32px', fontWeight: '700', margin: 0, lineHeight: '1.2', textAlign: 'center', fontFamily: 'Georgia, serif' },
+  hermandadNombre: { color: 'white', fontSize: '32px', fontWeight: '700', margin: 0, lineHeight: '1.2', textAlign: 'center' },
   separador: { display: 'flex', alignItems: 'center', gap: '10px', width: '120px' },
   lineaOroFina: { flex: 1, height: '1px', backgroundColor: 'rgba(201,168,76,0.5)' },
   cruz: { color: GOLD, fontSize: '14px', fontWeight: '300' },
@@ -197,7 +197,7 @@ const cs = {
   logoWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' },
   logoBox: { width: '64px', height: '64px', borderRadius: '16px', backgroundColor: DARK, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(44,24,16,0.25)' },
   logoImg: { width: '44px', height: '44px', objectFit: 'contain' },
-  appName: { fontSize: '24px', fontWeight: '700', color: DARK, margin: 0, fontFamily: 'Georgia, serif' },
+  appName: { fontSize: '24px', fontWeight: '700', color: DARK, margin: 0 },
   appSub: { fontSize: '10px', fontWeight: '700', color: GOLD, letterSpacing: '0.15em', margin: 0 },
   accesoRow: { display: 'flex', alignItems: 'center', gap: '12px' },
   lineaGris: { flex: 1, height: '1px', backgroundColor: '#d8cfc4' },

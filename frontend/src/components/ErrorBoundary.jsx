@@ -83,7 +83,6 @@ const styles = {
     minHeight: '100vh',
     background: 'linear-gradient(135deg, rgba(249,245,241,0.9) 0%, rgba(245,240,235,0.9) 100%)',
     padding: '20px',
-    fontFamily: '"Crimson Text", serif, system-ui',
   },
   container: {
     textAlign: 'center',

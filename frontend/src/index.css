@@ -1,6 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('./assets/fonts/PlayfairDisplay-VariableFont_wght.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+}
 
 :root {
+  --font-app: 'Playfair Display', Georgia, serif;
   --cofrade-ink: #2c1810;
   --cofrade-ink-strong: #1a120d;
   --cofrade-gold: #c9a84c;
@@ -26,7 +33,7 @@ html {
 }
 
 body {
-  font-family: 'Source Sans 3', Arial, sans-serif;
+  font-family: var(--font-app);
   background: linear-gradient(180deg, #f4efe8 0%, #f8f3ee 100%);
   color: var(--cofrade-ink);
   font-size: 17px;
@@ -38,12 +45,12 @@ button,
 input,
 textarea,
 select {
-  font-family: 'Source Sans 3', Arial, sans-serif;
+  font-family: var(--font-app);
   line-height: 1.4;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Libre Baskerville', Georgia, serif;
+  font-family: var(--font-app);
   font-weight: 700;
   line-height: 1.35;
   letter-spacing: 0.02em;
@@ -51,7 +58,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 p, span, a, li, small, strong, label {
-  font-family: 'Source Sans 3', Arial, sans-serif;
+  font-family: var(--font-app);
 }
 
 small {

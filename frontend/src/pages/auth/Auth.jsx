@@ -220,7 +220,6 @@ function FormLogin() {
 const as = {
   page: {
     display: 'flex', minHeight: '100vh',
-    fontFamily: "'Segoe UI', sans-serif",
   },
 
   // ── Panel izquierdo ──
@@ -247,7 +246,6 @@ const as = {
   hermandadNombre: {
     color: 'white', fontSize: '32px', fontWeight: '700',
     margin: 0, lineHeight: '1.2', textAlign: 'center',
-    fontFamily: 'Georgia, serif',
   },
   separador: { display: 'flex', alignItems: 'center', gap: '10px', width: '120px' },
   lineaOroFina: { flex: 1, height: '1px', backgroundColor: 'rgba(201,168,76,0.5)' },
@@ -272,7 +270,7 @@ const as = {
     boxShadow: '0 4px 16px rgba(44,24,16,0.25)',
   },
   logoImg:  { width: '84px', height: '84px', objectFit: 'contain' },
-  appName:  { fontSize: '24px', fontWeight: '700', color: DARK, margin: 0, fontFamily: 'Georgia, serif' },
+  appName:  { fontSize: '24px', fontWeight: '700', color: DARK, margin: 0 },
   appSub:   { fontSize: '10px', fontWeight: '700', color: GOLD, letterSpacing: '0.15em', margin: 0 },
 
   // Separador ACCESO
