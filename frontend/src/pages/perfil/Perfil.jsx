@@ -136,11 +136,6 @@ export default function Perfil() {
             </div>
           </div>
         </div>
-        {!usuario?.is_staff && (
-          <button type="button" className="action-button action-button--edit action-button--on-dark" onClick={() => setEditando(true)}>
-            Editar mi ficha
-          </button>
-        )}
       </header>
 
       <main style={styles.profileContent}>
@@ -163,19 +158,17 @@ export default function Perfil() {
             <div style={styles.panelHeader}>
               <div>
                 <p style={styles.panelEyebrow}>Información personal</p>
-                <h2 style={styles.panelTitle}>Mi ficha</h2>
+                <h2 style={styles.panelTitle}>Datos de contacto</h2>
               </div>
               {!usuario?.is_staff && !editando && (
-                <button type="button" className="action-button action-button--edit" onClick={() => setEditando(true)}>Editar</button>
+                <button type="button" className="action-button action-button--edit" onClick={() => setEditando(true)}>
+                  Editar datos
+                </button>
               )}
             </div>
 
             {editando ? (
               <form onSubmit={handleGuardar} style={styles.form}>
-                <div style={styles.formReadOnly}>
-                  <Fila label="Nombre" value={`${hermano.nombre} ${hermano.apellidos}`} readonly />
-                  <Fila label="Número de hermano" value={`#${hermano.numero_hermano}`} readonly />
-                </div>
                 <div style={styles.formFields}>
                   <div style={styles.campo}>
                     <label style={styles.campoLabel}>Correo electrónico</label>
@@ -193,48 +186,40 @@ export default function Perfil() {
               </form>
             ) : (
               <div style={styles.detailGrid}>
-                {hermano && <Fila label="Nombre completo" value={nombreVisible} />}
-                <Fila label="Correo electrónico" value={usuario?.email} />
+                <Fila label="Correo electrónico" value={form.email || usuario?.email} />
                 {hermano && <Fila label="Dirección" value={hermano.direccion || 'No indicada'} />}
-                {hermano?.fecha_ingreso && <Fila label="Fecha de ingreso" value={new Date(hermano.fecha_ingreso).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })} />}
               </div>
             )}
-
-            <div style={styles.accountBand}>
-              <div>
-                <p style={styles.panelEyebrow}>Acceso a CofraLink</p>
-                <h3 style={styles.accountTitle}>{usuario?.username || 'Cuenta de Hermandad'}</h3>
-              </div>
-              <span style={styles.accountStatus}>{estadoCuenta}</span>
-            </div>
           </section>
 
-          <aside className="profile-side-stack" style={styles.sideStack}>
-            <section style={styles.membershipPanel}>
-              <div style={styles.membershipIcon}>
-                {caracter ? <CharacterIcon caracter={caracterCodigo} alt="" style={styles.membershipImage} /> : '✦'}
-              </div>
+          <section className="profile-panel" style={styles.quickAccessPanel}>
+            <div style={styles.panelHeader}>
               <div>
-                <p style={styles.panelEyebrow}>En mi último Martes Santo fui</p>
-                <h2 style={styles.membershipTitle}>{caracterVisible}</h2>
-                <p style={styles.membershipDescription}>{caracter?.description || 'Gestionas la actividad y la comunicación de la Hermandad desde CofraLink.'}</p>
+                <p style={styles.panelEyebrow}>Gestiones habituales</p>
+                <h2 style={styles.panelTitle}>Accesos rápidos</h2>
               </div>
-            </section>
-
-            <section style={styles.quickAccessPanel}>
-              <div style={styles.panelHeader}>
-                <div>
-                  <p style={styles.panelEyebrow}>Continúa desde aquí</p>
-                  <h2 style={styles.panelTitle}>Mi actividad</h2>
-                </div>
-              </div>
-              <div style={styles.quickLinks}>
-                <AccesoPerfil icon={<AppIcon name="calendar" size={17} />} label="Próximos eventos" onClick={() => navigate('/eventos')} />
-                <AccesoPerfil icon={<AppIcon name="document" size={17} />} label="Papeleta de sitio" onClick={() => navigate('/procesional')} />
-                <AccesoPerfil icon={<AppIcon name="coin" size={17} />} label="Donaciones" onClick={() => navigate('/donaciones')} />
-              </div>
-            </section>
-          </aside>
+            </div>
+            <div style={styles.quickLinks}>
+              <AccesoPerfil
+                icon={<AppIcon name="calendar" size={19} />}
+                label="Próximos eventos"
+                description="Consulta nuestro calendario"
+                onClick={() => navigate('/eventos')}
+              />
+              <AccesoPerfil
+                icon={<AppIcon name="document" size={19} />}
+                label="Papeleta de sitio"
+                description="Gestiona tus solicitudes"
+                onClick={() => navigate('/procesional')}
+              />
+              <AccesoPerfil
+                icon={<AppIcon name="coin" size={19} />}
+                label="Donaciones"
+                description="Revisa o realiza tus aportaciones"
+                onClick={() => navigate('/donaciones')}
+              />
+            </div>
+          </section>
         </div>
       </main>
 
@@ -263,23 +248,24 @@ function Hito({ icon, label, value, color }) {
   )
 }
 
-function AccesoPerfil({ icon, label, onClick }) {
+function AccesoPerfil({ icon, label, description, onClick }) {
   return (
-    <button type="button" style={styles.quickLink} onClick={onClick}>
+    <button type="button" className="profile-quick-link" style={styles.quickLink} onClick={onClick}>
       <span style={styles.quickLinkIcon}>{icon}</span>
-      <span>{label}</span>
+      <span style={styles.quickLinkText}>
+        <span style={styles.quickLinkLabel}>{label}</span>
+        <span style={styles.quickLinkDescription}>{description}</span>
+      </span>
       <span aria-hidden="true" style={styles.quickLinkArrow}>→</span>
     </button>
   )
 }
 
-function Fila({ label, value, readonly }) {
+function Fila({ label, value }) {
   return (
     <div style={styles.detailRow}>
       <span style={styles.detailLabel}>{label}</span>
-      <span style={{ ...styles.detailValue, ...(readonly ? styles.detailReadOnly : {}) }}>
-        {value || '—'}
-      </span>
+      <span style={styles.detailValue}>{value || '—'}</span>
     </div>
   )
 }
@@ -423,30 +409,23 @@ const styles = {
   milestoneImage: { width: '100%', height: '100%', objectFit: 'contain', padding: '3px' },
   milestoneLabel: { margin: 0, color: '#826b57', fontSize: '12px', fontWeight: '700', letterSpacing: '0.04em', textTransform: 'uppercase' },
   milestoneValue: { margin: '2px 0 0', color: '#2c1810', fontSize: '16px', fontWeight: '700', lineHeight: 1.25 },
-  profileGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '20px', alignItems: 'start' },
+  profileGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '20px', alignItems: 'stretch' },
   profilePanel: { padding: '26px', borderRadius: '20px', border: `1px solid ${BORDER}`, background: 'rgba(255,253,250,0.94)', boxShadow: '0 12px 28px rgba(44,24,16,0.06)' },
-  panelHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '22px' },
+  panelHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '8px' },
   panelEyebrow: { margin: 0, color: '#95713a', fontSize: '12px', fontWeight: '700', letterSpacing: '0.06em', textTransform: 'uppercase' },
   panelTitle: { margin: '3px 0 0', color: '#2c1810', fontSize: '22px' },
-  detailGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0 22px' },
-  detailRow: { padding: '15px 0', borderBottom: '1px solid rgba(117,82,52,0.14)', display: 'flex', flexDirection: 'column', gap: '4px' },
+  panelDescription: { margin: '0 0 20px', maxWidth: '520px', color: '#765f4d', fontSize: '14px', lineHeight: 1.55 },
+  detailGrid: { display: 'grid', gridTemplateColumns: '1fr', gap: '10px' },
+  detailRow: { padding: '14px 16px', border: '1px solid rgba(117,82,52,0.12)', borderRadius: '12px', background: '#fbf8f3', display: 'flex', flexDirection: 'column', gap: '4px' },
   detailLabel: { color: '#826b57', fontSize: '13px', fontWeight: '700', letterSpacing: '0.02em' },
-  detailValue: { color: '#2c1810', fontSize: '16px', fontWeight: '600', lineHeight: 1.4 },
-  detailReadOnly: { color: '#867767', fontWeight: '500' },
-  formReadOnly: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0 18px', padding: '0 14px', borderRadius: '12px', background: '#f7f0e6' },
+  detailValue: { color: '#2c1810', fontSize: '16px', fontWeight: '600', lineHeight: 1.4, overflowWrap: 'anywhere' },
   formFields: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' },
-  accountBand: { marginTop: '25px', padding: '17px 18px', borderRadius: '13px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: '#f2e6cf' },
-  accountTitle: { margin: '3px 0 0', color: '#2c1810', fontSize: '17px' },
-  accountStatus: { padding: '6px 10px', borderRadius: '999px', color: '#27633a', background: '#dcf3e1', fontSize: '13px', fontWeight: '700', whiteSpace: 'nowrap' },
-  sideStack: { display: 'flex', flexDirection: 'column', gap: '16px' },
-  membershipPanel: { display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '19px', borderRadius: '17px', border: '1px solid rgba(201,168,76,0.45)', background: 'linear-gradient(135deg, #fff8eb, #f2e3c6)' },
-  membershipIcon: { width: '48px', height: '48px', flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '14px', color: '#775420', background: 'rgba(201,168,76,0.22)', fontSize: '23px', overflow: 'hidden' },
-  membershipImage: { width: '100%', height: '100%', objectFit: 'contain', padding: '4px' },
-  membershipTitle: { margin: '3px 0 5px', color: '#2c1810', fontSize: '18px' },
-  membershipDescription: { margin: 0, color: '#654f3b', fontSize: '15px', lineHeight: 1.5 },
-  quickAccessPanel: { padding: '22px', borderRadius: '18px', border: `1px solid ${BORDER}`, background: 'rgba(255,253,250,0.94)' },
-  quickLinks: { display: 'flex', flexDirection: 'column', gap: '8px' },
-  quickLink: { width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', color: '#4f3829', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(117,82,52,0.12)', cursor: 'pointer', fontSize: '15px', fontWeight: '600', textAlign: 'left' },
-  quickLinkIcon: { width: '25px', height: '25px', display: 'grid', placeItems: 'center', borderRadius: '8px', color: '#775420', background: '#f2e6cf', fontSize: '15px' },
+  quickAccessPanel: { padding: '26px', borderRadius: '20px', border: `1px solid ${BORDER}`, background: 'rgba(255,253,250,0.94)', boxShadow: '0 12px 28px rgba(44,24,16,0.06)' },
+  quickLinks: { display: 'flex', flexDirection: 'column', gap: '0' },
+  quickLink: { width: '100%', minHeight: '66px', display: 'flex', alignItems: 'center', gap: '13px', padding: '10px 0', color: '#4f3829', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(117,82,52,0.12)', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' },
+  quickLinkIcon: { width: '40px', height: '40px', flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '12px', color: '#775420', background: '#f2e6cf' },
+  quickLinkText: { minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' },
+  quickLinkLabel: { color: '#3f2a1f', fontSize: '15px', fontWeight: '700', lineHeight: 1.35 },
+  quickLinkDescription: { color: '#826b57', fontSize: '13px', fontWeight: '400', lineHeight: 1.4 },
   quickLinkArrow: { marginLeft: 'auto', color: '#9b7b4d', fontSize: '19px' },
 }

@@ -353,6 +353,19 @@ button:disabled {
   box-sizing: border-box;
 }
 
+.profile-quick-link:hover {
+  background: rgba(201, 168, 76, 0.08) !important;
+  padding-inline: 10px !important;
+}
+
+.profile-quick-link:hover > :first-child {
+  background: #ead7b5 !important;
+}
+
+.profile-quick-link:last-child {
+  border-bottom-color: transparent !important;
+}
+
 .home-access-card {
   font: inherit;
   text-align: left;
