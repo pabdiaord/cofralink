@@ -214,6 +214,20 @@ class TestFiltrosHermanos(HermanoTestCase):
 
 class TestMiPerfilEdicion(HermanoTestCase):
 
+    def test_editar_mi_perfil_nombre_y_apellidos(self):
+        """Hermano puede actualizar su nombre y sus apellidos."""
+        self._auth_hermano()
+        res = self.client.patch('/api/mi-perfil/', {
+            'nombre': 'Juan Manuel',
+            'apellidos': 'García López',
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.hermano2.refresh_from_db()
+        self.assertEqual(self.hermano2.nombre, 'Juan Manuel')
+        self.assertEqual(self.hermano2.apellidos, 'García López')
+        self.assertEqual(res.data['nombre'], 'Juan Manuel')
+        self.assertEqual(res.data['apellidos'], 'García López')
+
     def test_editar_mi_perfil_direccion(self):
         """Hermano puede actualizar su dirección."""
         self._auth_hermano()

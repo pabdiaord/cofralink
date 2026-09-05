@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import SearchField from '../../components/SearchField'
+import SelectField from '../../components/SelectField'
 import AppIcon from '../../components/AppIcon'
 import Pagination, { getPageData } from '../../components/Pagination'
 
@@ -196,7 +197,6 @@ export default function Eventos() {
           <p style={s.eyebrow}>Calendario de la Hermandad</p>
           <h2 style={s.titulo}>Eventos y convocatorias</h2>
           <div style={s.headerMeta}>
-            <p style={s.intro}>Consulta cultos, ensayos, reuniones y actividades programadas.</p>
           </div>
         </div>
         {usuario?.is_staff && (
@@ -289,14 +289,6 @@ export default function Eventos() {
           ))}
         </div>
       </div>
-
-      {/* ── Contador de resultados ── */}
-      <p style={s.contador}>
-        {eventosDeLista.length === 0
-          ? 'No hay eventos con estos filtros.'
-          : `${eventosDeLista.length} evento${eventosDeLista.length !== 1 ? 's' : ''} encontrado${eventosDeLista.length !== 1 ? 's' : ''}`}
-      </p>
-
       {/* ── Contenido según vista ── */}
       {vista === 'lista' && (
         <>
@@ -393,13 +385,15 @@ function FormEvento({ form, setForm, onSubmit, enviando, titulo, btnLabel, extra
         placeholder="Ej: Ensayo general de costaleros" />
 
       <label style={s.label}>Tipo</label>
-      <select style={s.input} value={form.tipo_evento}
-        onChange={e => setForm({ ...form, tipo_evento: e.target.value })}>
-        <option value="CULTO">Culto</option>
-        <option value="ENSAYO">Ensayo</option>
-        <option value="REUNION">Reunión</option>
-        <option value="PRIOSTIA">Priostía</option>
-      </select>
+      <SelectField
+        value={form.tipo_evento}
+        onChange={value => setForm({ ...form, tipo_evento: value })}
+        options={Object.entries(TIPOS)
+          .filter(([value]) => value !== 'TODOS')
+          .map(([value, tipo]) => ({ value, label: tipo.label }))}
+        ariaLabel="Tipo de evento"
+        style={s.input}
+      />
 
       <label style={s.label}>Fecha y hora</label>
       <input type="datetime-local" style={s.input} value={form.fecha} required
@@ -466,7 +460,6 @@ function TarjetaEvento({ ev, usuario, esPasado, onEditar, onEliminar, onInscribi
 
         <h3 style={s.cardTitulo}>{ev.nombre_evento}</h3>
         <div style={s.meta}>
-          <span style={s.metaItem}><AppIcon name="calendar" size={15} />{fecha.toLocaleDateString('es-ES', { weekday:'long', year:'numeric' })}</span>
           <span style={s.metaItem}><AppIcon name="clock" size={15} />{fecha.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' })}</span>
           <span style={s.metaItem}><AppIcon name="pin" size={15} />{ev.lugar}</span>
         </div>

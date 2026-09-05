@@ -28,9 +28,14 @@ export default function Publicaciones() {
 
   // Formularios
   const [form, setForm]         = useState({ titular: '', descripcion: '', imagen: null })
-  const [formEdit, setFormEdit] = useState({ titular: '', descripcion: '' })
+  const [formEdit, setFormEdit] = useState({ titular: '', descripcion: '', imagen: null })
+  const [imagenEditPreview, setImagenEditPreview] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [guardando, setGuardando] = useState(false)
+
+  useEffect(() => () => {
+    if (imagenEditPreview.startsWith('blob:')) URL.revokeObjectURL(imagenEditPreview)
+  }, [imagenEditPreview])
 
   // ── Cargar ────────────────────────────────────────────────────
   useEffect(() => {
@@ -88,10 +93,17 @@ export default function Publicaciones() {
     if (action === 'edit-publicacion') {
       setGuardando(true)
       try {
-        await api.patch(`/publicaciones/${payload.id}/`, payload.data)
-        setEditando(null)
+        const data = new FormData()
+        data.append('titular', payload.data.titular)
+        data.append('descripcion', payload.data.descripcion)
+        if (payload.data.imagen) data.append('imagen', payload.data.imagen)
+
+        const res = await api.patch(`/publicaciones/${payload.id}/`, data, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        cerrarEdicion()
         if (modalDetalle?.id === payload.id) {
-          setModalDetalle({ ...modalDetalle, ...payload.data })
+          setModalDetalle(res.data)
         }
         await recargar()
       } catch {
@@ -123,7 +135,14 @@ export default function Publicaciones() {
   const abrirEdicion = (pub, e) => {
     e.stopPropagation() // evita abrir el detalle al pulsar Editar
     setEditando(pub)
-    setFormEdit({ titular: pub.titular, descripcion: pub.descripcion })
+    setFormEdit({ titular: pub.titular, descripcion: pub.descripcion, imagen: null })
+    setImagenEditPreview(pub.imagen ? imgUrl(pub.imagen) : '')
+  }
+
+  const handleImagenEditChange = e => {
+    const imagen = e.target.files?.[0] || null
+    setFormEdit(prev => ({ ...prev, imagen }))
+    setImagenEditPreview(imagen ? URL.createObjectURL(imagen) : (editando?.imagen ? imgUrl(editando.imagen) : ''))
   }
 
   const handleGuardarEdicion = async e => {
@@ -141,6 +160,11 @@ export default function Publicaciones() {
   const imgUrl = src =>
     src?.startsWith('http') ? src : `http://localhost:8000${src}`
 
+  const cerrarEdicion = () => {
+    setEditando(null)
+    setImagenEditPreview('')
+  }
+
   const publicacionesFiltradas = publicaciones.filter(publicacion => (
     coincideBusqueda(busqueda, publicacion.titular, publicacion.descripcion, publicacion.hermano_nombre)
   ))
@@ -156,7 +180,6 @@ export default function Publicaciones() {
         <div>
           <p style={ps.eyebrow}>Diario de la Hermandad</p>
           <h2 style={ps.titulo}>Noticias y publicaciones</h2>
-          <p style={ps.intro}>Toda la información oficial, reunida en un mismo lugar.</p>
         </div>
         {usuario?.is_staff && (
           <button style={ps.btnPrimary} onClick={() => setModalCrear(true)}>
@@ -215,8 +238,6 @@ export default function Publicaciones() {
                         <div>
                           <p style={ps.autor}>{pub.hermano_nombre || 'Hermandad del Perdón'}</p>
                           <p style={ps.metaPublicacion}>
-                            <span style={ps.etiqueta}>Comunicado</span>
-                            {' · '}
                             {new Date(pub.fecha).toLocaleDateString('es-ES', {
                               day: '2-digit', month: 'long', year: 'numeric'
                             })}
@@ -397,11 +418,11 @@ export default function Publicaciones() {
 
       {/* ══ MODAL: Editar publicación ══ */}
       {editando && (
-        <div style={ps.overlay} onClick={() => setEditando(null)}>
+        <div style={ps.overlay} onClick={cerrarEdicion}>
           <div className="responsive-modal" style={ps.modal} onClick={e => e.stopPropagation()}>
             <div style={ps.modalHeader}>
               <h3 style={ps.modalTitulo}>Editar publicación</h3>
-              <button style={ps.btnCerrar} onClick={() => setEditando(null)}>✕</button>
+              <button style={ps.btnCerrar} onClick={cerrarEdicion}>✕</button>
             </div>
 
             <form className="data-form" onSubmit={handleGuardarEdicion} style={ps.form}>
@@ -418,13 +439,38 @@ export default function Publicaciones() {
                 onChange={e => setFormEdit({ ...formEdit, descripcion: e.target.value })}
               />
 
+              <label style={ps.label}>Imagen de la publicación</label>
+              <div style={ps.imageEditBox}>
+                {imagenEditPreview ? (
+                  <img
+                    src={imagenEditPreview}
+                    alt="Previsualización de la imagen de la publicación"
+                    style={ps.imageEditPreview}
+                  />
+                ) : (
+                  <div style={ps.imageEditEmpty}>
+                    <AppIcon name="news" size={22} />
+                    <span>Esta publicación no tiene imagen</span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={ps.input}
+                  onChange={handleImagenEditChange}
+                />
+                <p style={ps.imageEditHelp}>
+                  Selecciona una imagen solo si quieres sustituir la actual.
+                </p>
+              </div>
+
               <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
                 <button type="submit" disabled={guardando} style={ps.btnPrimary}>
                   {guardando ? 'Guardando...' : 'Guardar cambios'}
                 </button>
                 <button
                   type="button" style={ps.btnCancelar}
-                  onClick={() => setEditando(null)}
+                  onClick={cerrarEdicion}
                 >
                   Cancelar
                 </button>
@@ -543,6 +589,10 @@ const ps = {
     outline: 'none', fontFamily: 'inherit', color: DARK,
     backgroundColor: '#faf7f2',
   },
+  imageEditBox: { display: 'flex', flexDirection: 'column', gap: '10px' },
+  imageEditPreview: { width: '100%', height: '190px', objectFit: 'cover', borderRadius: '10px', border: '1px solid #e8e0d0', background: CREAM },
+  imageEditEmpty: { height: '110px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '7px', borderRadius: '10px', border: '1px dashed #d8c9b8', color: '#8b765f', background: '#faf7f2', fontSize: '13px' },
+  imageEditHelp: { margin: '-3px 0 0', color: '#8b765f', fontSize: '12px', lineHeight: 1.45 },
 
   // Modal detalle
   modalDetalle: {

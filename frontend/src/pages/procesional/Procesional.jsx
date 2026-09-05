@@ -3,14 +3,16 @@ import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import AppIcon from '../../components/AppIcon'
+import StatusBadge from '../../components/StatusBadge'
+import SelectField from '../../components/SelectField'
 import SearchField from '../../components/SearchField'
 import Pagination, { getPageData } from '../../components/Pagination'
 import { coincideBusqueda } from '../../utils/search'
 
 const ESTADOS = {
-  pendiente:  { label: 'Pendiente',  color: '#d69e2e', bg: '#fffff0' },
-  aprobada:   { label: 'Aprobada',   color: '#38a169', bg: '#f0fff4' },
-  rechazada:  { label: 'Rechazada',  color: '#e53e3e', bg: '#fff5f5' },
+  pendiente: { label: 'Pendiente', tone: 'warning' },
+  aprobada:  { label: 'Aprobada', tone: 'success' },
+  rechazada: { label: 'Rechazada', tone: 'danger' },
 }
 
 export default function Procesional() {
@@ -165,7 +167,6 @@ export default function Procesional() {
           <p style={styles.eyebrow}>Organización del cortejo</p>
           <h2 style={styles.titulo}>Procesional</h2>
           <div style={styles.headerMeta}>
-            <p style={styles.intro}>Consulta y gestiona las solicitudes de participación en cultos externos.</p>
             <span style={styles.totalBadge}>{papeletasFiltradas.length} mostrada{papeletasFiltradas.length !== 1 ? 's' : ''} · {papeletas.length} en total</span>
           </div>
         </div>
@@ -234,22 +235,22 @@ export default function Procesional() {
       <div style={styles.filtros}>
         <div style={styles.filtroAnio}>
           <label htmlFor="filtro-anio-papeletas" style={styles.filterLabel}>Año de la procesión</label>
-          <select
+          <SelectField
             id="filtro-anio-papeletas"
             value={filtroAnio}
-            onChange={e => { setFiltroAnio(e.target.value); setPaginaActual(1) }}
+            onChange={value => { setFiltroAnio(value); setPaginaActual(1) }}
+            options={[
+              { value: String(anioActual), label: `Año actual (${anioActual})` },
+              { value: String(anioAnterior), label: `Año anterior (${anioAnterior})` },
+              ...aniosHistoricos.map(anio => ({
+                value: String(anio),
+                label: String(anio),
+                group: 'Años anteriores',
+              })),
+            ]}
+            ariaLabel="Año de la procesión"
             style={styles.selectAnio}
-          >
-            <option value={String(anioActual)}>Año actual ({anioActual})</option>
-            <option value={String(anioAnterior)}>Año anterior ({anioAnterior})</option>
-            {aniosHistoricos.length > 0 && (
-              <optgroup label="Años anteriores">
-                {aniosHistoricos.map(anio => (
-                  <option key={anio} value={String(anio)}>{anio}</option>
-                ))}
-              </optgroup>
-            )}
-          </select>
+          />
         </div>
 
         <div style={styles.filtroBusqueda}>
@@ -283,29 +284,22 @@ export default function Procesional() {
                 {/* Header card */}
                 <div style={styles.cardTop}>
                   <div>
-                    <h3 style={styles.cardTitulo}><AppIcon name="document" size={18} style={styles.cardTitleIcon} />{p.paso}</h3>
+                    <h3 style={styles.cardTitulo}><AppIcon name="document" size={18} style={styles.cardTitleIcon} />{p.tramo}</h3>
                     {usuario?.is_staff && (
                       <p style={styles.cardSub}>
                         <AppIcon name="people" size={15} />{p.usuario_email}
                       </p>
                     )}
                   </div>
-                  <span style={{
-                    ...styles.badge,
-                    color: estado.color,
-                    backgroundColor: estado.bg,
-                    border: `1px solid ${estado.color}`,
-                  }}>
-                    {estado.label}
-                  </span>
+                  <StatusBadge tone={estado.tone}>{estado.label}</StatusBadge>
                 </div>
 
                 {/* Detalles */}
                 <div style={styles.meta}>
                   <span style={styles.metaItem}><AppIcon name="calendar" size={15} />{new Date(p.fecha).toLocaleDateString('es-ES', {
-                    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+                    day: '2-digit', month: 'long', year: 'numeric'
                   })}</span>
-                  <span style={styles.metaItem}><AppIcon name="pin" size={15} />{p.tramo}</span>
+                  <span style={styles.metaItem}><AppIcon name="pin" size={15} />{p.paso}</span>
                 </div>
 
                 {/* Acciones */}
@@ -372,14 +366,17 @@ export default function Procesional() {
               </div>
 
               <label style={styles.label}>Estado</label>
-              <select
-                style={styles.input} value={formEdit.estado || 'pendiente'}
-                onChange={e => setFormEdit({ ...formEdit, estado: e.target.value })}
-              >
-                <option value="pendiente">Pendiente</option>
-                <option value="aprobada">Aprobada</option>
-                <option value="rechazada">Rechazada</option>
-              </select>
+              <SelectField
+                value={formEdit.estado || 'pendiente'}
+                onChange={value => setFormEdit({ ...formEdit, estado: value })}
+                options={[
+                  { value: 'pendiente', label: 'Pendiente' },
+                  { value: 'aprobada', label: 'Aprobada' },
+                  { value: 'rechazada', label: 'Rechazada' },
+                ]}
+                ariaLabel="Estado de la papeleta"
+                style={styles.input}
+              />
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
                 <button type="submit" disabled={guardando} style={styles.btnPrimary}>
@@ -449,10 +446,6 @@ const styles = {
   cardTitulo:{ fontSize: '17px', fontWeight: '700', color: '#2c1810', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '7px' },
   cardTitleIcon: { color: '#775420', flexShrink: 0 },
   cardSub:   { fontSize: '13px', color: '#666', display: 'flex', alignItems: 'center', gap: '6px' },
-  badge: {
-    display: 'inline-block', padding: '4px 12px', borderRadius: '20px',
-    fontSize: '12px', fontWeight: '600', whiteSpace: 'nowrap',
-  },
   meta: {
     display: 'flex', flexWrap: 'wrap', gap: '16px',
     fontSize: '13px', color: '#555', marginBottom: '12px',

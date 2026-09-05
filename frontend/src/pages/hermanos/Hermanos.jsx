@@ -2,14 +2,27 @@ import { useState, useEffect } from 'react'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import CharacterIcon from '../../components/CharacterIcon'
+import StatusBadge from '../../components/StatusBadge'
+import SelectField from '../../components/SelectField'
 import SearchField from '../../components/SearchField'
 import Pagination, { getPageData } from '../../components/Pagination'
 import { CHARACTER_INFO } from '../../constants/characterInfo'
 
 const ESTADOS_CUOTA = {
-  PAGADO:    { label: 'Pagado',     color: '#38a169' },
-  NO_PAGADO: { label: 'No pagado',  color: '#e53e3e' },
+  PAGADO:    { label: 'Pagado', tone: 'success' },
+  NO_PAGADO: { label: 'No pagado', tone: 'danger' },
 }
+
+const OPCIONES_ESTADO_CUOTA = [
+  { value: 'PAGADO', label: 'Pagado' },
+  { value: 'NO_PAGADO', label: 'No pagado' },
+]
+
+const OPCIONES_CARACTER = [
+  { value: 'NAZARENO', label: 'Nazareno' },
+  { value: 'COSTALERO', label: 'Costalero' },
+  { value: 'MIEMBRO_JUNTA', label: 'Miembro de Junta' },
+]
 
 export default function Hermanos() {
   const [hermanos, setHermanos]       = useState([])
@@ -169,8 +182,7 @@ const openConfirm = (action, payload = null) => {
           <p style={styles.eyebrow}>Gestión de la Hermandad</p>
           <h2 style={styles.titulo}>Hermanos</h2>
           <div style={styles.headerMeta}>
-            <p style={styles.intro}>Consulta y gestiona el censo de la Hermandad.</p>
-            <span style={styles.totalBadge}>{totalHermanos} hermano{totalHermanos !== 1 ? 's' : ''}</span>
+          <span style={styles.totalBadge}>{totalHermanos} hermano{totalHermanos !== 1 ? 's' : ''}</span>
           </div>
         </div>
         <button style={styles.btnPrimary} onClick={() => setMostrarForm(!mostrarForm)}>
@@ -292,24 +304,23 @@ const openConfirm = (action, payload = null) => {
             </div>
             <div>
               <label style={styles.label}>Estado cuota</label>
-              <select
-                style={styles.input} value={form.estado_cuota}
-                onChange={e => setForm({ ...form, estado_cuota: e.target.value })}
-              >
-                <option value="PAGADO">Pagado</option>
-                <option value="NO_PAGADO">No pagado</option>
-              </select>
+              <SelectField
+                value={form.estado_cuota}
+                onChange={value => setForm({ ...form, estado_cuota: value })}
+                options={OPCIONES_ESTADO_CUOTA}
+                ariaLabel="Estado de la cuota"
+                style={styles.input}
+              />
             </div>
             <div>
               <label style={styles.label}>Carácter</label>
-              <select
-                style={styles.input} value={form.caracter}
-                onChange={e => setForm({ ...form, caracter: e.target.value })}
-              >
-                <option value="NAZARENO">Nazareno</option>
-                <option value="COSTALERO">Costalero</option>
-                <option value="MIEMBRO_JUNTA">Miembro de Junta</option>
-              </select>
+              <SelectField
+                value={form.caracter}
+                onChange={value => setForm({ ...form, caracter: value })}
+                options={OPCIONES_CARACTER}
+                ariaLabel="Carácter del hermano"
+                style={styles.input}
+              />
             </div>
           </div>
 
@@ -359,12 +370,9 @@ const openConfirm = (action, payload = null) => {
                 {CHARACTER_INFO[h.caracter]?.label || h.caracter}
               </span>
               <span style={{ width: '110px' }}>
-                <span style={{
-                  ...styles.badge,
-                  backgroundColor: ESTADOS_CUOTA[h.estado_cuota]?.color || '#888',
-                }}>
+                <StatusBadge tone={ESTADOS_CUOTA[h.estado_cuota]?.tone}>
                   {ESTADOS_CUOTA[h.estado_cuota]?.label || h.estado_cuota}
-                </span>
+                </StatusBadge>
               </span>
               <div style={{ width: '140px', display: 'flex', gap: '6px' }}>
                 <button className="action-button action-button--edit" onClick={() => abrirEdicion(h)}>
@@ -430,24 +438,23 @@ const openConfirm = (action, payload = null) => {
                 </div>
                 <div>
                   <label style={styles.label}>Estado cuota</label>
-                  <select
-                    style={styles.input} value={formEdit.estado_cuota}
-                    onChange={e => setFormEdit({ ...formEdit, estado_cuota: e.target.value })}
-                  >
-                    <option value="PAGADO">Pagado</option>
-                    <option value="NO_PAGADO">No pagado</option>
-                  </select>
+                  <SelectField
+                    value={formEdit.estado_cuota}
+                    onChange={value => setFormEdit({ ...formEdit, estado_cuota: value })}
+                    options={OPCIONES_ESTADO_CUOTA}
+                    ariaLabel="Estado de la cuota"
+                    style={styles.input}
+                  />
                 </div>
                 <div>
                   <label style={styles.label}>Carácter</label>
-                  <select
-                    style={styles.input} value={formEdit.caracter}
-                    onChange={e => setFormEdit({ ...formEdit, caracter: e.target.value })}
-                  >
-                    <option value="NAZARENO">Nazareno</option>
-                    <option value="COSTALERO">Costalero</option>
-                    <option value="MIEMBRO_JUNTA">Miembro de Junta</option>
-                  </select>
+                  <SelectField
+                    value={formEdit.caracter}
+                    onChange={value => setFormEdit({ ...formEdit, caracter: value })}
+                    options={OPCIONES_CARACTER}
+                    ariaLabel="Carácter del hermano"
+                    style={styles.input}
+                  />
                 </div>
               </div>
 
@@ -563,11 +570,6 @@ const styles = {
     display: 'flex', alignItems: 'center', gap: '12px',
     padding: '14px 20px', borderBottom: '1px solid rgba(117, 82, 52, 0.08)',
     fontSize: '14px',
-  },
-  badge: {
-    display: 'inline-block', padding: '3px 10px',
-    borderRadius: '20px', fontSize: '12px',
-    fontWeight: '700', color: 'white',
   },
   characterCell: { display: 'flex', alignItems: 'center', gap: '7px' },
   characterIcon: { width: '24px', height: '24px', objectFit: 'contain', flexShrink: 0 },

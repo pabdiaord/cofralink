@@ -2,16 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import AppIcon from '../../components/AppIcon'
+import StatusBadge from '../../components/StatusBadge'
+import SelectField from '../../components/SelectField'
 import SearchField from '../../components/SearchField'
 import Pagination, { getPageData } from '../../components/Pagination'
 import { coincideBusqueda } from '../../utils/search'
 
 const ESTADOS = {
-  PENDIENTE: { texto: 'Pendiente', color: '#9a6700', fondo: '#fff3cd' },
-  PAGADA: { texto: 'Confirmada', color: '#166534', fondo: '#dcfce7' },
-  FALLIDA: { texto: 'Fallida', color: '#b42318', fondo: '#fee4e2' },
-  CANCELADA: { texto: 'Cancelada', color: '#555', fondo: '#eee' },
-  REEMBOLSADA: { texto: 'Reembolsada', color: '#6b21a8', fondo: '#f3e8ff' },
+  PENDIENTE: { texto: 'Pendiente', tone: 'warning' },
+  PAGADA: { texto: 'Confirmada', tone: 'success' },
+  FALLIDA: { texto: 'Fallida', tone: 'danger' },
+  CANCELADA: { texto: 'Cancelada', tone: 'neutral' },
+  REEMBOLSADA: { texto: 'Reembolsada', tone: 'purple' },
 }
 
 const formatearEuros = (centimos) => new Intl.NumberFormat('es-ES', {
@@ -166,13 +168,12 @@ export default function Donaciones() {
           <p style={styles.eyebrow}>Colabora con la Hermandad</p>
           <h1 style={styles.title}>Donaciones</h1>
           <div style={styles.headerMeta}>
-            <p style={styles.subtitle}>Apoya la vida diaria de la Hermandad o uno de sus proyectos.</p>
             <span style={styles.totalBadge}>{huchasActivas.length} hucha{huchasActivas.length !== 1 ? 's' : ''} activa{huchasActivas.length !== 1 ? 's' : ''}</span>
           </div>
         </div>
         {usuario?.is_staff && (
           <button style={styles.secondaryButton} onClick={() => setMostrarForm(value => !value)}>
-            {mostrarForm ? 'Cancelar' : '+ Crear proyecto'}
+            {mostrarForm ? 'Cancelar' : '+ Crear hucha de proyecto'}
           </button>
         )}
       </header>
@@ -284,17 +285,17 @@ export default function Donaciones() {
             <label htmlFor="filtro-hucha-donaciones" style={styles.filterLabel}>
               Selecciona una hucha 
             </label>
-            <select
+            <SelectField
               id="filtro-hucha-donaciones"
               value={filtroHucha}
-              onChange={event => setFiltroHucha(event.target.value)}
+              onChange={setFiltroHucha}
+              options={[
+                { value: '', label: 'Todas las huchas' },
+                ...huchasActivas.map(hucha => ({ value: hucha.id, label: hucha.nombre })),
+              ]}
+              ariaLabel="Selecciona una hucha"
               style={styles.filterSelect}
-            >
-              <option value="">Todas las huchas</option>
-              {huchasActivas.map(hucha => (
-                <option key={hucha.id} value={hucha.id}>{hucha.nombre}</option>
-              ))}
-            </select>
+            />
           </div>
           <DonacionesTable
             donaciones={donacionesGestionFiltradas}
@@ -500,7 +501,7 @@ function DonacionesTable({ donaciones, mostrarDonante, mensajeVacio = 'Aún no h
                 <td style={styles.td}>{donacion.hucha_nombre}</td>
                 <td style={{ ...styles.td, fontWeight: '700' }}>{formatearEuros(donacion.importe_centimos)}</td>
                 <td style={styles.td}>
-                  <span style={{ ...styles.status, color: estado.color, background: estado.fondo }}>{estado.texto}</span>
+                  <StatusBadge tone={estado.tone}>{estado.texto}</StatusBadge>
                 </td>
               </tr>
             )
@@ -577,7 +578,6 @@ const styles = {
   table: { width: '100%', borderCollapse: 'collapse', minWidth: '560px' },
   th: { color: '#f7ead5', background: '#3c2519', padding: '11px 14px', textAlign: 'left', fontSize: '12px', letterSpacing: '0.04em', textTransform: 'none' },
   td: { padding: '12px 14px', borderBottom: '1px solid rgba(117,82,52,0.1)', fontSize: '14px', color: '#513a2c' },
-  status: { borderRadius: '999px', padding: '4px 8px', fontSize: '12px', fontWeight: '700' },
   empty: { color: '#725d4b', background: 'rgba(255,253,250,0.55)', padding: '18px', borderRadius: '12px', margin: 0, fontSize: '14px' },
   info: { textAlign: 'center', color: '#705743', marginTop: '42px', fontSize: '14px' },
 }

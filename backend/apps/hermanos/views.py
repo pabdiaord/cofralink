@@ -125,8 +125,8 @@ class MiPerfilView(APIView):
         except:
             return Response({'detail': 'Sin perfil de hermano.'}, status=404)
 
-        # Solo puede editar su dirección y email
-        campos_permitidos = ['direccion']
+        # Solo puede editar sus datos personales y de contacto.
+        campos_permitidos = ['nombre', 'apellidos', 'direccion']
         data = {k: v for k, v in request.data.items() if k in campos_permitidos}
         serializer = HermanoSerializer(hermano, data=data, partial=True)
         if serializer.is_valid():

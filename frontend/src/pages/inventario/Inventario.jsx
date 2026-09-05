@@ -193,8 +193,7 @@ export default function Inventario() {
           <p style={styles.eyebrow}>Patrimonio de la Hermandad</p>
           <h2 style={styles.titulo}>Inventario</h2>
           <div style={styles.headerMeta}>
-            <p style={styles.intro}>Consulta y organiza los bienes y enseres de la Hermandad.</p>
-            <span style={styles.totalBadge}>{objetos.length} elemento{objetos.length !== 1 ? 's' : ''} de {TIPOS[tipoActivo].label.toLowerCase()}</span>
+          <span style={styles.totalBadge}>{objetos.length} elemento{objetos.length !== 1 ? 's' : ''} de {TIPOS[tipoActivo].label.toLowerCase()}</span>
           </div>
         </div>
         <button style={styles.btnPrimary} onClick={() => setMostrarForm(!mostrarForm)}>

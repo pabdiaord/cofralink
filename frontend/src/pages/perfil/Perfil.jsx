@@ -28,7 +28,7 @@ export default function Perfil() {
   const [exito, setExito]         = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [pendingAction, setPendingAction] = useState(null)
-  const [form, setForm] = useState({ direccion: '', email: '' })
+  const [form, setForm] = useState({ nombre: '', apellidos: '', direccion: '', email: '' })
 
   useEffect(() => {
     let activo = true
@@ -49,7 +49,12 @@ export default function Perfil() {
           if (!usuario?.is_staff) {
             const perfil = resultados[0].data
             setHermano(perfil)
-            setForm({ direccion: perfil.direccion || '', email: usuario?.email || '' })
+            setForm({
+              nombre: perfil.nombre || '',
+              apellidos: perfil.apellidos || '',
+              direccion: perfil.direccion || '',
+              email: perfil.usuario_email || usuario?.email || '',
+            })
           }
         }
       } catch {
@@ -76,8 +81,14 @@ export default function Perfil() {
       setGuardando(true)
       setError(''); setExito('')
       try {
-        await api.patch('/mi-perfil/', form)
-        setHermano(prev => ({ ...prev, direccion: form.direccion }))
+        const res = await api.patch('/mi-perfil/', form)
+        setHermano(res.data)
+        setForm({
+          nombre: res.data.nombre || '',
+          apellidos: res.data.apellidos || '',
+          direccion: res.data.direccion || '',
+          email: res.data.usuario_email || form.email,
+        })
         setEditando(false)
         setExito('Perfil actualizado correctamente.')
         setTimeout(() => setExito(''), 3000)
@@ -94,6 +105,16 @@ export default function Perfil() {
   const handleGuardar = async e => {
     e.preventDefault()
     openConfirm('save-perfil')
+  }
+
+  const cancelarEdicion = () => {
+    setForm({
+      nombre: hermano?.nombre || '',
+      apellidos: hermano?.apellidos || '',
+      direccion: hermano?.direccion || '',
+      email: hermano?.usuario_email || usuario?.email || '',
+    })
+    setEditando(false)
   }
 
   if (cargando) return <p style={styles.info}>Cargando perfil...</p>
@@ -115,8 +136,7 @@ export default function Perfil() {
     <div className="profile-page" style={styles.page}>
       <header style={styles.pageHeader}>
         <p style={styles.pageEyebrow}>Área personal</p>
-        <h2 style={styles.pageTitle}>Mi perfil</h2>
-        <p style={styles.pageIntro}>Consulta y actualiza la información vinculada a tu cuenta de hermano.</p>
+        <h2 style={styles.pageTitle}>Mi perfil de hermano</h2>
       </header>
 
       <header className="profile-hero" style={styles.credentialHero}>
@@ -158,7 +178,7 @@ export default function Perfil() {
             <div style={styles.panelHeader}>
               <div>
                 <p style={styles.panelEyebrow}>Información personal</p>
-                <h2 style={styles.panelTitle}>Datos de contacto</h2>
+                <h2 style={styles.panelTitle}>Datos personales</h2>
               </div>
               {!usuario?.is_staff && !editando && (
                 <button type="button" className="action-button action-button--edit" onClick={() => setEditando(true)}>
@@ -171,17 +191,41 @@ export default function Perfil() {
               <form onSubmit={handleGuardar} style={styles.form}>
                 <div style={styles.formFields}>
                   <div style={styles.campo}>
-                    <label style={styles.campoLabel}>Correo electrónico</label>
-                    <input style={styles.input} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} type="email" />
+                    <label htmlFor="perfil-nombre" style={styles.campoLabel}>Nombre</label>
+                    <input
+                      id="perfil-nombre"
+                      style={styles.input}
+                      value={form.nombre}
+                      onChange={e => setForm({ ...form, nombre: e.target.value })}
+                      autoComplete="given-name"
+                      maxLength={100}
+                      required
+                    />
                   </div>
                   <div style={styles.campo}>
-                    <label style={styles.campoLabel}>Dirección</label>
-                    <input style={styles.input} value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} placeholder="Tu dirección" />
+                    <label htmlFor="perfil-apellidos" style={styles.campoLabel}>Apellidos</label>
+                    <input
+                      id="perfil-apellidos"
+                      style={styles.input}
+                      value={form.apellidos}
+                      onChange={e => setForm({ ...form, apellidos: e.target.value })}
+                      autoComplete="family-name"
+                      maxLength={150}
+                      required
+                    />
+                  </div>
+                  <div style={styles.campo}>
+                    <label htmlFor="perfil-email" style={styles.campoLabel}>Correo electrónico</label>
+                    <input id="perfil-email" style={styles.input} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} type="email" autoComplete="email" required />
+                  </div>
+                  <div style={styles.campo}>
+                    <label htmlFor="perfil-direccion" style={styles.campoLabel}>Dirección</label>
+                    <input id="perfil-direccion" style={styles.input} value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} placeholder="Tu dirección" autoComplete="street-address" />
                   </div>
                 </div>
                 <div style={styles.formBtns}>
                   <button type="submit" disabled={guardando} style={styles.btnGuardar}>{guardando ? 'Guardando...' : 'Guardar cambios'}</button>
-                  <button type="button" style={styles.btnCancelar} onClick={() => setEditando(false)}>Cancelar</button>
+                  <button type="button" style={styles.btnCancelar} onClick={cancelarEdicion}>Cancelar</button>
                 </div>
               </form>
             ) : (
