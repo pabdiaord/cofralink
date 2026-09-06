@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import FormModal from '../../components/FormModal'
 import SearchField from '../../components/SearchField'
 import AppIcon from '../../components/AppIcon'
 import Pagination, { getPageData } from '../../components/Pagination'
@@ -134,6 +135,7 @@ export default function Publicaciones() {
   // ── Editar ────────────────────────────────────────────────────
   const abrirEdicion = (pub, e) => {
     e.stopPropagation() // evita abrir el detalle al pulsar Editar
+    setError('')
     setEditando(pub)
     setFormEdit({ titular: pub.titular, descripcion: pub.descripcion, imagen: null })
     setImagenEditPreview(pub.imagen ? imgUrl(pub.imagen) : '')
@@ -182,7 +184,7 @@ export default function Publicaciones() {
           <h2 style={ps.titulo}>Noticias y publicaciones</h2>
         </div>
         {usuario?.is_staff && (
-          <button style={ps.btnPrimary} onClick={() => setModalCrear(true)}>
+          <button style={ps.btnPrimary} onClick={() => { setError(''); setModalCrear(true) }}>
             + Nueva publicación
           </button>
         )}
@@ -371,14 +373,14 @@ export default function Publicaciones() {
 
       {/* ══ MODAL: Crear publicación ══ */}
       {modalCrear && (
-        <div style={ps.overlay} onClick={() => setModalCrear(false)}>
-          <div className="responsive-modal" style={ps.modal} onClick={e => e.stopPropagation()}>
-            <div style={ps.modalHeader}>
-              <h3 style={ps.modalTitulo}>Nueva publicación</h3>
-              <button style={ps.btnCerrar} onClick={() => setModalCrear(false)}>✕</button>
-            </div>
-
-            <form className="data-form" onSubmit={handleSubmit} style={ps.form}>
+        <FormModal
+          title="Nueva publicación"
+          onClose={() => setModalCrear(false)}
+          error={error}
+          closeDisabled={enviando || confirmOpen}
+          maxWidth="560px"
+        >
+          <form className="data-form" onSubmit={handleSubmit} style={ps.form}>
               <label style={ps.label}>Titular</label>
               <input
                 style={ps.input} value={form.titular} required
@@ -411,21 +413,20 @@ export default function Publicaciones() {
                   Cancelar
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </FormModal>
       )}
 
       {/* ══ MODAL: Editar publicación ══ */}
       {editando && (
-        <div style={ps.overlay} onClick={cerrarEdicion}>
-          <div className="responsive-modal" style={ps.modal} onClick={e => e.stopPropagation()}>
-            <div style={ps.modalHeader}>
-              <h3 style={ps.modalTitulo}>Editar publicación</h3>
-              <button style={ps.btnCerrar} onClick={cerrarEdicion}>✕</button>
-            </div>
-
-            <form className="data-form" onSubmit={handleGuardarEdicion} style={ps.form}>
+        <FormModal
+          title="Editar publicación"
+          onClose={cerrarEdicion}
+          error={error}
+          closeDisabled={guardando || confirmOpen}
+          maxWidth="560px"
+        >
+          <form className="data-form" onSubmit={handleGuardarEdicion} style={ps.form}>
               <label style={ps.label}>Titular</label>
               <input
                 style={ps.input} value={formEdit.titular} required
@@ -475,9 +476,8 @@ export default function Publicaciones() {
                   Cancelar
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </FormModal>
       )}
 
     </div>
@@ -580,7 +580,7 @@ const ps = {
   modalTitulo: { fontSize: '17px', fontWeight: '700', color: DARK, margin: 0 },
   form: {
     display: 'flex', flexDirection: 'column', gap: '12px',
-    padding: '16px 24px 24px',
+    padding: 0,
   },
   label: { fontSize: '12px', fontWeight: '700', color: '#9a8866', textTransform: 'uppercase', letterSpacing: '0.05em' },
   input: {

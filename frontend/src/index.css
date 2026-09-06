@@ -565,6 +565,11 @@ button:disabled {
     padding: 18px !important;
   }
 
+  .form-modal .data-form,
+  .form-modal .donation-project-form {
+    padding: 0 !important;
+  }
+
   .form-grid-2,
   .form-grid-3 {
     grid-template-columns: minmax(0, 1fr) !important;

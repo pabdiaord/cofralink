@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import FormModal from '../../components/FormModal'
 import CharacterIcon from '../../components/CharacterIcon'
 import StatusBadge from '../../components/StatusBadge'
 import SelectField from '../../components/SelectField'
@@ -138,6 +139,7 @@ const openConfirm = (action, payload = null) => {
 
   // Abrir edición
   const abrirEdicion = h => {
+    setError('')
     setEditando(h)
     setFormEdit({
       nombre:         h.nombre,
@@ -185,8 +187,8 @@ const openConfirm = (action, payload = null) => {
           <span style={styles.totalBadge}>{totalHermanos} hermano{totalHermanos !== 1 ? 's' : ''}</span>
           </div>
         </div>
-        <button style={styles.btnPrimary} onClick={() => setMostrarForm(!mostrarForm)}>
-          {mostrarForm ? 'Cancelar' : '+ Nuevo hermano'}
+        <button style={styles.btnPrimary} onClick={() => { setError(''); setMostrarForm(true) }}>
+          + Nuevo hermano
         </button>
       </div>
 
@@ -258,8 +260,14 @@ const openConfirm = (action, payload = null) => {
 
       {/* Formulario nuevo hermano */}
       {mostrarForm && (
-        <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
-          <h3 style={styles.formTitulo}>Nuevo hermano</h3>
+        <FormModal
+          title="Nuevo hermano"
+          onClose={() => setMostrarForm(false)}
+          error={error}
+          closeDisabled={enviando || confirmOpen}
+          maxWidth="680px"
+        >
+          <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
 
           <div className="form-grid-2" style={styles.grid2}>
             <div>
@@ -329,10 +337,16 @@ const openConfirm = (action, payload = null) => {
             No se crea ninguna contraseña temporal y el enlace caduca en 24 horas.
           </p>
 
-          <button type="submit" disabled={enviando} style={styles.btnPrimary}>
-            {enviando ? 'Creando...' : 'Crear hermano'}
-          </button>
-        </form>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+              <button type="submit" disabled={enviando} style={styles.btnPrimary}>
+                {enviando ? 'Creando...' : 'Crear hermano'}
+              </button>
+              <button type="button" style={styles.btnCancelar} onClick={() => setMostrarForm(false)}>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       <div style={styles.resultMeta}>
@@ -396,15 +410,17 @@ const openConfirm = (action, payload = null) => {
       />
 
       {editando && (
-        <div style={styles.overlay}>
-          <div className="responsive-modal" style={styles.modal}>
-            <h3 style={styles.formTitulo}>
-              Editar hermano #{editando.numero_hermano}
-            </h3>
-            <form
-              onSubmit={handleGuardarEdicion}
-              style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
-            >
+        <FormModal
+          title={`Editar hermano #${editando.numero_hermano}`}
+          onClose={() => setEditando(null)}
+          error={error}
+          closeDisabled={guardando || confirmOpen}
+          maxWidth="620px"
+        >
+          <form
+            onSubmit={handleGuardarEdicion}
+            style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+          >
               <div className="form-grid-2" style={styles.grid2}>
                 <div>
                   <label style={styles.label}>Nombre</label>
@@ -469,9 +485,8 @@ const openConfirm = (action, payload = null) => {
                   Cancelar
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </FormModal>
       )}
 
     </div>
@@ -542,8 +557,7 @@ const styles = {
   },
 
   form: {
-    background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '24px',
-    marginBottom: '24px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', border: '1px solid rgba(117, 82, 52, 0.14)',
+    padding: 0, margin: 0,
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
   formTitulo: { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },

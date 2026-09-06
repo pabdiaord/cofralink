@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import FormModal from '../../components/FormModal'
 import SearchField from '../../components/SearchField'
 import Pagination, { getPageData } from '../../components/Pagination'
 import { coincideBusqueda } from '../../utils/search'
@@ -151,6 +152,7 @@ export default function Inventario() {
 
   // Abrir edición
   const abrirEdicion = obj => {
+    setError('')
     setEditando(obj)
     setFormEdit({ ...obj })
   }
@@ -196,8 +198,8 @@ export default function Inventario() {
           <span style={styles.totalBadge}>{objetos.length} elemento{objetos.length !== 1 ? 's' : ''} de {TIPOS[tipoActivo].label.toLowerCase()}</span>
           </div>
         </div>
-        <button style={styles.btnPrimary} onClick={() => setMostrarForm(!mostrarForm)}>
-          {mostrarForm ? 'Cancelar' : `+ Nuevo ${TIPOS[tipoActivo].label.toLowerCase()}`}
+        <button style={styles.btnPrimary} onClick={() => { setError(''); setMostrarForm(true) }}>
+          + Nuevo {TIPOS[tipoActivo].label.toLowerCase()}
         </button>
       </div>
 
@@ -240,8 +242,14 @@ export default function Inventario() {
 
       {/* Formulario nuevo objeto */}
       {mostrarForm && (
-        <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
-          <h3 style={styles.formTitulo}>Nuevo {TIPOS[tipoActivo].label.toLowerCase()}</h3>
+        <FormModal
+          title={`Nuevo ${TIPOS[tipoActivo].label.toLowerCase()}`}
+          onClose={() => setMostrarForm(false)}
+          error={error}
+          closeDisabled={enviando || confirmOpen}
+          maxWidth="640px"
+        >
+          <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
 
           <label style={styles.label}>Nombre</label>
           <input
@@ -264,10 +272,16 @@ export default function Inventario() {
             ))}
           </div>
 
-          <button type="submit" disabled={enviando} style={styles.btnPrimary}>
-            {enviando ? 'Guardando...' : 'Añadir al inventario'}
-          </button>
-        </form>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+              <button type="submit" disabled={enviando} style={styles.btnPrimary}>
+                {enviando ? 'Guardando...' : 'Añadir al inventario'}
+              </button>
+              <button type="button" style={styles.btnCancelar} onClick={() => setMostrarForm(false)}>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       {/* Lista de objetos */}
@@ -321,15 +335,17 @@ export default function Inventario() {
       )}
 
       {editando && (
-        <div style={styles.overlay}>
-          <div className="responsive-modal" style={styles.modal}>
-            <h3 style={styles.formTitulo}>
-              Editar {TIPOS[tipoActivo].label.toLowerCase()}
-            </h3>
-            <form
-              onSubmit={handleGuardarEdicion}
-              style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
-            >
+        <FormModal
+          title={`Editar ${TIPOS[tipoActivo].label.toLowerCase()}`}
+          onClose={() => setEditando(null)}
+          error={error}
+          closeDisabled={guardando || confirmOpen}
+          maxWidth="640px"
+        >
+          <form
+            onSubmit={handleGuardarEdicion}
+            style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+          >
               <label style={styles.label}>Nombre</label>
               <input
                 style={styles.input} value={formEdit.nombre || ''} required
@@ -360,9 +376,8 @@ export default function Inventario() {
                   Cancelar
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </FormModal>
       )}
 
     </div>
@@ -394,8 +409,7 @@ const styles = {
 
   // Formulario
   form: {
-    background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '24px',
-    marginBottom: '24px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', border: '1px solid rgba(117, 82, 52, 0.15)',
+    padding: 0, margin: 0,
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
   formTitulo: { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },

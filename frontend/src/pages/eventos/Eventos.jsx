@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import FormModal from '../../components/FormModal'
 import SearchField from '../../components/SearchField'
 import SelectField from '../../components/SelectField'
 import AppIcon from '../../components/AppIcon'
@@ -161,6 +162,7 @@ export default function Eventos() {
 
   // ── Editar ────────────────────────────────────────────────────
   const abrirEdicion = ev => {
+    setError('')
     setEditando(ev)
     setFormEdit({
       nombre_evento: ev.nombre_evento,
@@ -200,8 +202,8 @@ export default function Eventos() {
           </div>
         </div>
         {usuario?.is_staff && (
-          <button style={s.btnPrimary} onClick={() => setMostrarForm(!mostrarForm)}>
-            {mostrarForm ? 'Cancelar' : '+ Nuevo evento'}
+          <button style={s.btnPrimary} onClick={() => { setError(''); setMostrarForm(true) }}>
+            + Nuevo evento
           </button>
         )}
       </div>
@@ -226,14 +228,27 @@ export default function Eventos() {
 
       {/* ── Formulario nuevo evento ── */}
       {mostrarForm && (
-        <FormEvento
-          form={form} setForm={setForm}
-          onSubmit={e => {
-            e.preventDefault()
-            openConfirm('create-evento')
-          }} enviando={enviando}
-          titulo="Nuevo evento" btnLabel="Crear evento"
-        />
+        <FormModal
+          title="Nuevo evento"
+          onClose={() => setMostrarForm(false)}
+          error={error}
+          closeDisabled={enviando || confirmOpen}
+          maxWidth="560px"
+        >
+          <FormEvento
+            form={form} setForm={setForm}
+            onSubmit={e => {
+              e.preventDefault()
+              openConfirm('create-evento')
+            }} enviando={enviando}
+            titulo="" btnLabel="Crear evento"
+            extra={
+              <button type="button" style={s.btnCancelar} onClick={() => setMostrarForm(false)}>
+                Cancelar
+              </button>
+            }
+          />
+        </FormModal>
       )}
 
       {/* ── Barra de filtros ── */}
@@ -350,21 +365,24 @@ export default function Eventos() {
 
       {/* ── Modal edición ── */}
       {editando && (
-        <div style={s.overlay}>
-          <div className="responsive-modal" style={s.modal}>
-            <h3 style={s.formTitulo}>Editar evento</h3>
-            <FormEvento
-              form={formEdit} setForm={setFormEdit}
-              onSubmit={handleGuardarEdicion} enviando={guardando}
-              titulo="" btnLabel="Guardar cambios"
-              extra={
-                <button type="button" style={s.btnCancelar} onClick={() => setEditando(null)}>
-                  Cancelar
-                </button>
-              }
-            />
-          </div>
-        </div>
+        <FormModal
+          title="Editar evento"
+          onClose={() => setEditando(null)}
+          error={error}
+          closeDisabled={guardando || confirmOpen}
+          maxWidth="560px"
+        >
+          <FormEvento
+            form={formEdit} setForm={setFormEdit}
+            onSubmit={handleGuardarEdicion} enviando={guardando}
+            titulo="" btnLabel="Guardar cambios"
+            extra={
+              <button type="button" style={s.btnCancelar} onClick={() => setEditando(null)}>
+                Cancelar
+              </button>
+            }
+          />
+        </FormModal>
       )}
 
     </div>
@@ -731,8 +749,7 @@ const s = {
 
   // Formulario
   form: {
-    background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '22px',
-    marginBottom: '20px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', border: '1px solid rgba(117, 82, 52, 0.14)',
+    padding: 0, margin: 0,
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
   formTitulo: { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },

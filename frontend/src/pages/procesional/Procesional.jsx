@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import FormModal from '../../components/FormModal'
 import AppIcon from '../../components/AppIcon'
 import StatusBadge from '../../components/StatusBadge'
 import SelectField from '../../components/SelectField'
@@ -116,6 +117,7 @@ export default function Procesional() {
 
   // ── Abrir edición (admin: aprobar/rechazar/asignar tramo) ─────────
   const abrirEdicion = p => {
+    setError('')
     setEditando(p)
     setFormEdit({
       paso:   p.paso,
@@ -173,9 +175,9 @@ export default function Procesional() {
         {!usuario?.is_staff && (
           <button
             style={styles.btnPrimary}
-            onClick={() => setMostrarForm(!mostrarForm)}
+            onClick={() => { setError(''); setMostrarForm(true) }}
           >
-            {mostrarForm ? 'Cancelar' : '+ Solicitar papeleta'}
+            + Solicitar papeleta
           </button>
         )}
       </div>
@@ -198,8 +200,14 @@ export default function Procesional() {
 
       {/* Formulario solicitud (solo hermano) */}
       {mostrarForm && !usuario?.is_staff && (
-        <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
-          <h3 style={styles.formTitulo}>Solicitud de papeleta de sitio</h3>
+        <FormModal
+          title="Solicitud de papeleta de sitio"
+          onClose={() => setMostrarForm(false)}
+          error={error}
+          closeDisabled={enviando || confirmOpen}
+          maxWidth="560px"
+        >
+          <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
 
           <label style={styles.label}>Paso</label>
           <input
@@ -217,19 +225,25 @@ export default function Procesional() {
               />
             </div>
             <div>
-              <label style={styles.label}>Tramo solicitado</label>
+              <label style={styles.label}>Insignia</label>
               <input
                 style={styles.input} value={form.tramo} required
                 onChange={e => setForm({ ...form, tramo: e.target.value })}
-                placeholder="Ej: Tramo 3 - Nazarenos"
+                placeholder="Ej: Cirio, Estandarte..."
               />
             </div>
           </div>
 
-          <button type="submit" disabled={enviando} style={styles.btnPrimary}>
-            {enviando ? 'Enviando...' : 'Enviar solicitud'}
-          </button>
-        </form>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+              <button type="submit" disabled={enviando} style={styles.btnPrimary}>
+                {enviando ? 'Enviando...' : 'Enviar solicitud'}
+              </button>
+              <button type="button" style={styles.btnCancelar} onClick={() => setMostrarForm(false)}>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       <div style={styles.filtros}>
@@ -329,18 +343,20 @@ export default function Procesional() {
       />
 
       {editando && (
-        <div style={styles.overlay}>
-          <div className="responsive-modal" style={styles.modal}>
-            <h3 style={styles.formTitulo}>
-              Gestionar papeleta — {editando.paso}
-            </h3>
-            <p style={styles.modalUser}>
-              <AppIcon name="people" size={15} />{editando.usuario_email}
-            </p>
-            <form
-              onSubmit={handleGuardarEdicion}
-              style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
-            >
+        <FormModal
+          title={`Gestionar papeleta — ${editando.paso}`}
+          onClose={() => setEditando(null)}
+          error={error}
+          closeDisabled={guardando || confirmOpen}
+          maxWidth="560px"
+        >
+          <p style={styles.modalUser}>
+            <AppIcon name="people" size={15} />{editando.usuario_email}
+          </p>
+          <form
+            onSubmit={handleGuardarEdicion}
+            style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+          >
               <label style={styles.label}>Paso</label>
               <input
                 style={styles.input} value={formEdit.paso || ''} required
@@ -389,9 +405,8 @@ export default function Procesional() {
                   Cancelar
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </FormModal>
       )}
 
     </div>
@@ -423,8 +438,7 @@ const styles = {
   search:  { marginBottom: 0 },
 
   form: {
-    background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '24px',
-    marginBottom: '24px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', border: '1px solid rgba(117, 82, 52, 0.15)',
+    padding: 0, margin: 0,
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
   formTitulo: { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },

@@ -6,6 +6,8 @@ import StatusBadge from '../../components/StatusBadge'
 import SelectField from '../../components/SelectField'
 import SearchField from '../../components/SearchField'
 import Pagination, { getPageData } from '../../components/Pagination'
+import FormModal from '../../components/FormModal'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import { coincideBusqueda } from '../../utils/search'
 
 const ESTADOS = {
@@ -44,6 +46,8 @@ export default function Donaciones() {
   const [error, setError] = useState('')
   const [mostrarForm, setMostrarForm] = useState(false)
   const [guardandoHucha, setGuardandoHucha] = useState(false)
+  const [cerrandoHuchaId, setCerrandoHuchaId] = useState(null)
+  const [huchaPendienteCerrar, setHuchaPendienteCerrar] = useState(null)
   const [formHucha, setFormHucha] = useState({ nombre: '', descripcion: '', objetivo: '' })
 
   const cargar = async () => {
@@ -125,8 +129,16 @@ export default function Donaciones() {
     }
   }
 
-  const cerrarHucha = async (hucha) => {
-    if (!window.confirm(`¿Cerrar la hucha “${hucha.nombre}”? Se conservará su histórico.`)) return
+  const solicitarCierreHucha = (hucha) => {
+    setHuchaPendienteCerrar(hucha)
+  }
+
+  const confirmarCierreHucha = async () => {
+    if (!huchaPendienteCerrar) return
+
+    const hucha = huchaPendienteCerrar
+    setHuchaPendienteCerrar(null)
+    setCerrandoHuchaId(hucha.id)
     setError('')
     try {
       await api.patch(`/donaciones/huchas/${hucha.id}/`, { activa: false })
@@ -134,6 +146,8 @@ export default function Donaciones() {
       await cargar()
     } catch (err) {
       setError(err.response?.data?.detail || 'No se pudo cerrar la hucha.')
+    } finally {
+      setCerrandoHuchaId(null)
     }
   }
 
@@ -172,8 +186,8 @@ export default function Donaciones() {
           </div>
         </div>
         {usuario?.is_staff && (
-          <button style={styles.secondaryButton} onClick={() => setMostrarForm(value => !value)}>
-            {mostrarForm ? 'Cancelar' : '+ Crear hucha de proyecto'}
+          <button style={styles.secondaryButton} onClick={() => { setError(''); setMostrarForm(true) }}>
+            + Crear hucha de proyecto
           </button>
         )}
       </header>
@@ -187,45 +201,69 @@ export default function Donaciones() {
 
       <ErrorMessage error={error} />
 
+      <ConfirmDialog
+        open={Boolean(huchaPendienteCerrar)}
+        title="Cerrar hucha"
+        message={huchaPendienteCerrar
+          ? `¿Quieres cerrar la hucha “${huchaPendienteCerrar.nombre}”? Se conservará todo su histórico.`
+          : ''}
+        confirmText="Cerrar hucha"
+        danger
+        onConfirm={confirmarCierreHucha}
+        onCancel={() => setHuchaPendienteCerrar(null)}
+      />
+
       {mostrarForm && (
-        <form className="donation-project-form" style={styles.projectForm} onSubmit={crearHucha}>
-          <h2 style={styles.sectionTitle}>Nueva hucha de proyecto</h2>
-          <div style={styles.formGrid}>
+        <FormModal
+          title="Nueva hucha de proyecto"
+          onClose={() => setMostrarForm(false)}
+          error={error}
+          closeDisabled={guardandoHucha}
+          maxWidth="620px"
+        >
+          <form className="donation-project-form" style={styles.projectForm} onSubmit={crearHucha}>
+            <div style={styles.formGrid}>
+              <label style={styles.label}>
+                Nombre del proyecto
+                <input
+                  required
+                  maxLength="150"
+                  style={styles.input}
+                  value={formHucha.nombre}
+                  onChange={event => setFormHucha({ ...formHucha, nombre: event.target.value })}
+                  placeholder="Ej. Restauración del paso"
+                />
+              </label>
+              <label style={styles.label}>
+                Objetivo en euros <small style={styles.optional}>(opcional)</small>
+                <input
+                  inputMode="decimal"
+                  style={styles.input}
+                  value={formHucha.objetivo}
+                  onChange={event => setFormHucha({ ...formHucha, objetivo: event.target.value })}
+                  placeholder="Ej. 2500,00"
+                />
+              </label>
+            </div>
             <label style={styles.label}>
-              Nombre del proyecto
-              <input
-                required
-                maxLength="150"
-                style={styles.input}
-                value={formHucha.nombre}
-                onChange={event => setFormHucha({ ...formHucha, nombre: event.target.value })}
-                placeholder="Ej. Restauración del paso"
+              Descripción
+              <textarea
+                style={{ ...styles.input, minHeight: '86px', resize: 'vertical' }}
+                value={formHucha.descripcion}
+                onChange={event => setFormHucha({ ...formHucha, descripcion: event.target.value })}
+                placeholder="Explica para qué se destinarán las donaciones."
               />
             </label>
-            <label style={styles.label}>
-              Objetivo en euros <small style={styles.optional}>(opcional)</small>
-              <input
-                inputMode="decimal"
-                style={styles.input}
-                value={formHucha.objetivo}
-                onChange={event => setFormHucha({ ...formHucha, objetivo: event.target.value })}
-                placeholder="Ej. 2500,00"
-              />
-            </label>
-          </div>
-          <label style={styles.label}>
-            Descripción
-            <textarea
-              style={{ ...styles.input, minHeight: '86px', resize: 'vertical' }}
-              value={formHucha.descripcion}
-              onChange={event => setFormHucha({ ...formHucha, descripcion: event.target.value })}
-              placeholder="Explica para qué se destinarán las donaciones."
-            />
-          </label>
-          <button type="submit" disabled={guardandoHucha} style={styles.primaryButton}>
-            {guardandoHucha ? 'Creando...' : 'Crear hucha de proyecto'}
-          </button>
-        </form>
+            <div style={styles.formActions}>
+              <button type="submit" disabled={guardandoHucha} style={{ ...styles.primaryButton, width: 'auto' }}>
+                {guardandoHucha ? 'Creando...' : 'Crear hucha de proyecto'}
+              </button>
+              <button type="button" style={styles.formCancelButton} onClick={() => setMostrarForm(false)}>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       <section>
@@ -255,7 +293,7 @@ export default function Donaciones() {
 
       {usuario?.is_staff && (
         <section style={styles.adminSection}>
-          <h2 style={styles.sectionTitle}>Gestión de Junta</h2>
+          <h2 style={styles.sectionTitle}>Gestión de Junta de Gobierno</h2>
           <SearchField
             value={busquedaGestion}
             onChange={setBusquedaGestion}
@@ -273,7 +311,13 @@ export default function Donaciones() {
                   </p>
                 </div>
                 {hucha.activa && (
-                  <button style={styles.closeButton} onClick={() => cerrarHucha(hucha)}>Cerrar hucha</button>
+                  <button
+                    style={styles.closeButton}
+                    onClick={() => solicitarCierreHucha(hucha)}
+                    disabled={cerrandoHuchaId === hucha.id}
+                  >
+                    {cerrandoHuchaId === hucha.id ? 'Cerrando...' : 'Cerrar hucha'}
+                  </button>
                 )}
               </div>
             ))}
@@ -557,7 +601,9 @@ const styles = {
   quickButton: { border: '1px solid rgba(117,82,52,0.24)', background: 'transparent', color: '#684a30', borderRadius: '8px', padding: '6px 8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' },
   primaryButton: { width: '100%', border: 'none', borderRadius: '10px', padding: '11px 15px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', fontSize: '14px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 8px 18px rgba(44,24,16,0.16)' },
   secondaryButton: { border: '1px solid #5b3927', borderRadius: '10px', padding: '10px 15px', color: '#fff9ef', background: '#5b3927', fontSize: '14px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap' },
-  projectForm: { background: 'rgba(255,253,250,0.82)', border: '1px solid rgba(117,82,52,0.18)', borderRadius: '16px', padding: '20px', boxShadow: '0 10px 22px rgba(44,24,16,0.05)', marginBottom: '28px' },
+  projectForm: { padding: 0, margin: 0 },
+  formActions: { display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '4px' },
+  formCancelButton: { border: '1px solid rgba(117,82,52,0.22)', borderRadius: '10px', padding: '11px 15px', background: '#f3ece5', color: '#2c1810', fontSize: '14px', fontWeight: '700', cursor: 'pointer' },
   formGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '14px' },
   label: { display: 'flex', flexDirection: 'column', gap: '6px', color: '#644a33', fontWeight: '700', fontSize: '13px', marginBottom: '13px' },
   optional: { fontWeight: '400', color: '#8d7966' },

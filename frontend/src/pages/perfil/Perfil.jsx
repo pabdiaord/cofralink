@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import FormModal from '../../components/FormModal'
 import CharacterIcon from '../../components/CharacterIcon'
 import AppIcon from '../../components/AppIcon'
 import { CHARACTER_INFO } from '../../constants/characterInfo'
@@ -181,53 +182,61 @@ export default function Perfil() {
                 <h2 style={styles.panelTitle}>Datos personales</h2>
               </div>
               {!usuario?.is_staff && !editando && (
-                <button type="button" className="action-button action-button--edit" onClick={() => setEditando(true)}>
+                <button type="button" className="action-button action-button--edit" onClick={() => { setError(''); setEditando(true) }}>
                   Editar datos
                 </button>
               )}
             </div>
 
             {editando ? (
-              <form onSubmit={handleGuardar} style={styles.form}>
-                <div style={styles.formFields}>
-                  <div style={styles.campo}>
-                    <label htmlFor="perfil-nombre" style={styles.campoLabel}>Nombre</label>
-                    <input
-                      id="perfil-nombre"
-                      style={styles.input}
-                      value={form.nombre}
-                      onChange={e => setForm({ ...form, nombre: e.target.value })}
-                      autoComplete="given-name"
-                      maxLength={100}
-                      required
-                    />
+              <FormModal
+                title="Editar datos personales"
+                onClose={cancelarEdicion}
+                error={error}
+                closeDisabled={guardando || confirmOpen}
+                maxWidth="640px"
+              >
+                <form onSubmit={handleGuardar} style={styles.form}>
+                  <div style={styles.formFields}>
+                    <div style={styles.campo}>
+                      <label htmlFor="perfil-nombre" style={styles.campoLabel}>Nombre</label>
+                      <input
+                        id="perfil-nombre"
+                        style={styles.input}
+                        value={form.nombre}
+                        onChange={e => setForm({ ...form, nombre: e.target.value })}
+                        autoComplete="given-name"
+                        maxLength={100}
+                        required
+                      />
+                    </div>
+                    <div style={styles.campo}>
+                      <label htmlFor="perfil-apellidos" style={styles.campoLabel}>Apellidos</label>
+                      <input
+                        id="perfil-apellidos"
+                        style={styles.input}
+                        value={form.apellidos}
+                        onChange={e => setForm({ ...form, apellidos: e.target.value })}
+                        autoComplete="family-name"
+                        maxLength={150}
+                        required
+                      />
+                    </div>
+                    <div style={styles.campo}>
+                      <label htmlFor="perfil-email" style={styles.campoLabel}>Correo electrónico</label>
+                      <input id="perfil-email" style={styles.input} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} type="email" autoComplete="email" required />
+                    </div>
+                    <div style={styles.campo}>
+                      <label htmlFor="perfil-direccion" style={styles.campoLabel}>Dirección</label>
+                      <input id="perfil-direccion" style={styles.input} value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} placeholder="Tu dirección" autoComplete="street-address" />
+                    </div>
                   </div>
-                  <div style={styles.campo}>
-                    <label htmlFor="perfil-apellidos" style={styles.campoLabel}>Apellidos</label>
-                    <input
-                      id="perfil-apellidos"
-                      style={styles.input}
-                      value={form.apellidos}
-                      onChange={e => setForm({ ...form, apellidos: e.target.value })}
-                      autoComplete="family-name"
-                      maxLength={150}
-                      required
-                    />
+                  <div style={styles.formBtns}>
+                    <button type="submit" disabled={guardando} style={styles.btnGuardar}>{guardando ? 'Guardando...' : 'Guardar cambios'}</button>
+                    <button type="button" style={styles.btnCancelar} onClick={cancelarEdicion}>Cancelar</button>
                   </div>
-                  <div style={styles.campo}>
-                    <label htmlFor="perfil-email" style={styles.campoLabel}>Correo electrónico</label>
-                    <input id="perfil-email" style={styles.input} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} type="email" autoComplete="email" required />
-                  </div>
-                  <div style={styles.campo}>
-                    <label htmlFor="perfil-direccion" style={styles.campoLabel}>Dirección</label>
-                    <input id="perfil-direccion" style={styles.input} value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} placeholder="Tu dirección" autoComplete="street-address" />
-                  </div>
-                </div>
-                <div style={styles.formBtns}>
-                  <button type="submit" disabled={guardando} style={styles.btnGuardar}>{guardando ? 'Guardando...' : 'Guardar cambios'}</button>
-                  <button type="button" style={styles.btnCancelar} onClick={cancelarEdicion}>Cancelar</button>
-                </div>
-              </form>
+                </form>
+              </FormModal>
             ) : (
               <div style={styles.detailGrid}>
                 <Fila label="Correo electrónico" value={form.email || usuario?.email} />
