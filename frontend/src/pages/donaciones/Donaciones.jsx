@@ -40,6 +40,7 @@ export default function Donaciones() {
   const [donacionesAdmin, setDonacionesAdmin] = useState([])
   const [busquedaGestion, setBusquedaGestion] = useState('')
   const [filtroHucha, setFiltroHucha] = useState('')
+  const [vistaHuchasGestion, setVistaHuchasGestion] = useState('ACTIVAS')
   const [importes, setImportes] = useState({})
   const [cargando, setCargando] = useState(true)
   const [enviandoId, setEnviandoId] = useState(null)
@@ -155,7 +156,12 @@ export default function Donaciones() {
 
   const huchasActivas = huchas.filter(hucha => hucha.activa)
   const proyectosGestion = huchas.filter(hucha => hucha.tipo === 'PROYECTO')
-  const proyectosGestionFiltrados = proyectosGestion.filter(hucha => (
+  const proyectosActivos = proyectosGestion.filter(hucha => hucha.activa)
+  const proyectosHistoricos = proyectosGestion.filter(hucha => !hucha.activa)
+  const proyectosVisibles = vistaHuchasGestion === 'ACTIVAS'
+    ? proyectosActivos
+    : proyectosHistoricos
+  const proyectosGestionFiltrados = proyectosVisibles.filter(hucha => (
     coincideBusqueda(
       busquedaGestion,
       hucha.nombre,
@@ -294,6 +300,39 @@ export default function Donaciones() {
       {usuario?.is_staff && (
         <section style={styles.adminSection}>
           <h2 style={styles.sectionTitle}>Gestión de Junta de Gobierno</h2>
+          <div
+            className="tabs-row"
+            style={styles.adminTabs}
+            role="tablist"
+            aria-label="Estado de las huchas de proyecto"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={vistaHuchasGestion === 'ACTIVAS'}
+              aria-controls="panel-huchas-gestion"
+              style={{
+                ...styles.adminTab,
+                ...(vistaHuchasGestion === 'ACTIVAS' ? styles.adminTabActive : {}),
+              }}
+              onClick={() => setVistaHuchasGestion('ACTIVAS')}
+            >
+              Huchas activas ({proyectosActivos.length})
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={vistaHuchasGestion === 'HISTORICO'}
+              aria-controls="panel-huchas-gestion"
+              style={{
+                ...styles.adminTab,
+                ...(vistaHuchasGestion === 'HISTORICO' ? styles.adminTabActive : {}),
+              }}
+              onClick={() => setVistaHuchasGestion('HISTORICO')}
+            >
+              Histórico ({proyectosHistoricos.length})
+            </button>
+          </div>
           <SearchField
             value={busquedaGestion}
             onChange={setBusquedaGestion}
@@ -301,30 +340,43 @@ export default function Donaciones() {
             ariaLabel="Buscar en la gestión de donaciones"
             style={styles.adminSearch}
           />
-          <div style={styles.adminHuchas}>
-            {proyectosGestionFiltrados.map(hucha => (
-              <div style={styles.adminHucha} key={hucha.id}>
-                <div>
-                  <strong>{hucha.nombre}</strong>
-                  <p style={styles.adminText}>
-                    {hucha.activa ? 'Activa' : 'Cerrada'} · {formatearEuros(hucha.recaudado_centimos)} recaudados
-                  </p>
-                </div>
-                {hucha.activa && (
-                  <button
-                    style={styles.closeButton}
-                    onClick={() => solicitarCierreHucha(hucha)}
-                    disabled={cerrandoHuchaId === hucha.id}
-                  >
-                    {cerrandoHuchaId === hucha.id ? 'Cerrando...' : 'Cerrar hucha'}
-                  </button>
-                )}
+          <div
+            id="panel-huchas-gestion"
+            role="tabpanel"
+            style={styles.adminHuchasPanel}
+          >
+            {proyectosGestionFiltrados.length > 0 ? (
+              <div style={styles.adminHuchas}>
+                {proyectosGestionFiltrados.map(hucha => (
+                  <div style={styles.adminHucha} key={hucha.id}>
+                    <div>
+                      <strong>{hucha.nombre}</strong>
+                      <p style={styles.adminText}>
+                        {hucha.activa ? 'Activa' : 'Cerrada'} · {formatearEuros(hucha.recaudado_centimos)} recaudados
+                      </p>
+                    </div>
+                    {hucha.activa && (
+                      <button
+                        style={styles.closeButton}
+                        onClick={() => solicitarCierreHucha(hucha)}
+                        disabled={cerrandoHuchaId === hucha.id}
+                      >
+                        {cerrandoHuchaId === hucha.id ? 'Cerrando...' : 'Cerrar hucha'}
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <p style={styles.adminEmpty}>
+                {busquedaGestion
+                  ? 'No se han encontrado huchas con esa búsqueda.'
+                  : vistaHuchasGestion === 'ACTIVAS'
+                    ? 'No hay huchas de proyecto activas.'
+                    : 'El histórico todavía no contiene huchas cerradas.'}
+              </p>
+            )}
           </div>
-          {proyectosGestion.length > 0 && proyectosGestionFiltrados.length === 0 && (
-            <p style={styles.adminEmpty}>No se han encontrado proyectos con esa búsqueda.</p>
-          )}
           <div style={styles.tableFilters}>
             <label htmlFor="filtro-hucha-donaciones" style={styles.filterLabel}>
               Selecciona una hucha 
@@ -610,8 +662,12 @@ const styles = {
   input: { boxSizing: 'border-box', width: '100%', borderRadius: '9px', border: '1px solid rgba(117,82,52,0.25)', padding: '10px 11px', font: 'inherit', background: '#fffdfa', color: '#2c1810' },
   historySection: { marginTop: '36px' },
   adminSection: { marginTop: '38px', borderTop: '2px solid rgba(201,168,76,0.35)', paddingTop: '27px' },
+  adminTabs: { display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '15px' },
+  adminTab: { border: '1px solid rgba(117,82,52,0.24)', borderRadius: '10px', padding: '9px 14px', background: 'rgba(255,253,250,0.7)', color: '#684a30', fontSize: '13px', fontWeight: '700', cursor: 'pointer' },
+  adminTabActive: { borderColor: '#5b3927', background: '#5b3927', color: '#fff9ef', boxShadow: '0 7px 15px rgba(44,24,16,0.14)' },
   adminSearch: { marginBottom: '15px' },
-  adminHuchas: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', marginBottom: '24px' },
+  adminHuchasPanel: { marginBottom: '24px' },
+  adminHuchas: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' },
   adminHucha: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', background: 'rgba(255,253,250,0.85)', padding: '14px', border: '1px solid rgba(117,82,52,0.15)', borderRadius: '12px' },
   adminText: { margin: '4px 0 0', color: '#765f4e', fontSize: '12px' },
   adminEmpty: { color: '#725d4b', margin: '0 0 24px', fontSize: '14px' },
