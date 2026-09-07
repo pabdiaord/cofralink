@@ -33,18 +33,18 @@ export default function SearchField({ value, onChange, placeholder = 'Buscar', a
 
 const styles = {
   container: {
-    width: '100%', minWidth: '220px', minHeight: '58px', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px',
-    padding: '0 26px', border: '2px solid rgba(117,82,52,0.22)', borderRadius: '18px', background: 'rgba(255,253,250,0.86)',
-    boxShadow: '0 5px 14px rgba(44,24,16,0.04)', color: '#775420', transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
+    width: '100%', minWidth: '220px', minHeight: '46px', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px',
+    padding: '0 14px', border: '1px solid #ded9d5', borderRadius: '10px', background: '#ffffff',
+    boxShadow: '0 1px 2px rgba(36,24,19,0.025)', color: '#766a63', transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
   },
-  containerFocused: { borderColor: '#c9a84c', boxShadow: '0 0 0 4px rgba(201,168,76,0.28)' },
+  containerFocused: { borderColor: '#a88947', boxShadow: '0 0 0 3px rgba(184,155,82,0.16)' },
   icon: { flexShrink: 0 },
   input: {
-    minWidth: 0, width: '100%', border: 'none', outline: 'none', padding: '10px 0', color: '#2c1810', background: 'transparent',
-    font: 'inherit', fontSize: '16px', boxShadow: 'none',
+    minWidth: 0, width: '100%', border: 'none', outline: 'none', padding: '9px 0', color: '#241813', background: 'transparent',
+    font: 'inherit', fontSize: '14px', boxShadow: 'none',
   },
   clearButton: {
-    width: '24px', height: '24px', flexShrink: 0, border: 'none', borderRadius: '50%', background: 'rgba(117,82,52,0.1)',
-    color: '#654832', cursor: 'pointer', fontSize: '18px', lineHeight: 1, display: 'grid', placeItems: 'center', padding: 0,
+    width: '24px', height: '24px', flexShrink: 0, border: 'none', borderRadius: '7px', background: '#f0edeb',
+    color: '#655b55', cursor: 'pointer', fontSize: '18px', lineHeight: 1, display: 'grid', placeItems: 'center', padding: 0,
   },
 }

@@ -83,13 +83,13 @@ export default function DonacionResultado() {
 }
 
 const styles = {
-  page: { minHeight: '100vh', padding: '64px 24px', display: 'grid', placeItems: 'start center', color: '#2c1810' },
-  card: { maxWidth: '580px', width: '100%', textAlign: 'center', background: 'rgba(255,253,250,0.95)', border: '1px solid rgba(117,82,52,0.18)', borderRadius: '20px', padding: '38px', boxShadow: '0 16px 38px rgba(44,24,16,0.1)' },
+  page: { minHeight: '100vh', padding: '64px 24px', display: 'grid', placeItems: 'start center', color: '#241813', background: 'var(--app-background)' },
+  card: { maxWidth: '580px', width: '100%', textAlign: 'center', background: '#ffffff', border: '1px solid #e3dedb', borderRadius: '14px', padding: '38px', boxShadow: '0 8px 24px rgba(36,24,19,0.055)' },
   icon: { display: 'inline-grid', placeItems: 'center', width: '52px', height: '52px', border: '2px solid currentColor', borderRadius: '50%', fontSize: '28px', fontWeight: '800' },
   eyebrow: { margin: '18px 0 4px', color: '#8a6b3f', fontSize: '11px', letterSpacing: '0.12em', fontWeight: '800' },
   title: { fontSize: '27px', margin: '8px 0 11px' },
   description: { color: '#684f3d', lineHeight: 1.55, margin: '0 auto 24px', maxWidth: '460px' },
   summary: { display: 'grid', gridTemplateColumns: '1fr 1fr', textAlign: 'left', gap: '10px 20px', borderTop: '1px solid rgba(117,82,52,0.16)', borderBottom: '1px solid rgba(117,82,52,0.16)', padding: '17px 0', marginBottom: '24px', color: '#735c48', fontSize: '14px' },
-  button: { display: 'inline-block', textDecoration: 'none', background: '#4c2e20', color: '#fff9ef', padding: '11px 16px', borderRadius: '10px', fontWeight: '800' },
+  button: { display: 'inline-block', textDecoration: 'none', background: '#241813', color: '#fffaf5', padding: '11px 16px', borderRadius: '9px', fontWeight: '700' },
   loading: { textAlign: 'center', color: '#705743', paddingTop: '52px' },
 }

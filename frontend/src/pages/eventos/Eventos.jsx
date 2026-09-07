@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import FormModal from '../../components/FormModal'
 import SearchField from '../../components/SearchField'
+import SelectField from '../../components/SelectField'
 import AppIcon from '../../components/AppIcon'
 import Pagination, { getPageData } from '../../components/Pagination'
 
@@ -160,6 +162,7 @@ export default function Eventos() {
 
   // ── Editar ────────────────────────────────────────────────────
   const abrirEdicion = ev => {
+    setError('')
     setEditando(ev)
     setFormEdit({
       nombre_evento: ev.nombre_evento,
@@ -196,12 +199,11 @@ export default function Eventos() {
           <p style={s.eyebrow}>Calendario de la Hermandad</p>
           <h2 style={s.titulo}>Eventos y convocatorias</h2>
           <div style={s.headerMeta}>
-            <p style={s.intro}>Consulta cultos, ensayos, reuniones y actividades programadas.</p>
           </div>
         </div>
         {usuario?.is_staff && (
-          <button style={s.btnPrimary} onClick={() => setMostrarForm(!mostrarForm)}>
-            {mostrarForm ? 'Cancelar' : '+ Nuevo evento'}
+          <button style={s.btnPrimary} onClick={() => { setError(''); setMostrarForm(true) }}>
+            + Nuevo evento
           </button>
         )}
       </div>
@@ -226,14 +228,27 @@ export default function Eventos() {
 
       {/* ── Formulario nuevo evento ── */}
       {mostrarForm && (
-        <FormEvento
-          form={form} setForm={setForm}
-          onSubmit={e => {
-            e.preventDefault()
-            openConfirm('create-evento')
-          }} enviando={enviando}
-          titulo="Nuevo evento" btnLabel="Crear evento"
-        />
+        <FormModal
+          title="Nuevo evento"
+          onClose={() => setMostrarForm(false)}
+          error={error}
+          closeDisabled={enviando || confirmOpen}
+          maxWidth="560px"
+        >
+          <FormEvento
+            form={form} setForm={setForm}
+            onSubmit={e => {
+              e.preventDefault()
+              openConfirm('create-evento')
+            }} enviando={enviando}
+            titulo="" btnLabel="Crear evento"
+            extra={
+              <button type="button" style={s.btnCancelar} onClick={() => setMostrarForm(false)}>
+                Cancelar
+              </button>
+            }
+          />
+        </FormModal>
       )}
 
       {/* ── Barra de filtros ── */}
@@ -253,6 +268,8 @@ export default function Eventos() {
           {Object.entries(TIPOS).map(([key, val]) => (
             <button
               key={key}
+              type="button"
+              aria-pressed={filtroTipo === key}
               style={{
                 ...s.tipoBtn,
                 ...(filtroTipo === key ? s.tipoBtnActivo : {}),
@@ -280,6 +297,8 @@ export default function Eventos() {
           ].map(v => (
             <button
               key={v.key}
+              type="button"
+              aria-pressed={vista === v.key}
               style={{ ...s.vistaBtn, ...(vista === v.key ? s.vistaBtnActivo : {}) }}
               onClick={() => { setVista(v.key); setPaginaActual(1) }}
               title={v.label}
@@ -289,25 +308,23 @@ export default function Eventos() {
           ))}
         </div>
       </div>
-
-      {/* ── Contador de resultados ── */}
-      <p style={s.contador}>
-        {eventosDeLista.length === 0
-          ? 'No hay eventos con estos filtros.'
-          : `${eventosDeLista.length} evento${eventosDeLista.length !== 1 ? 's' : ''} encontrado${eventosDeLista.length !== 1 ? 's' : ''}`}
-      </p>
-
       {/* ── Contenido según vista ── */}
       {vista === 'lista' && (
         <>
-          <div style={s.listaSecciones}>
+          <div className="tabs-row" style={s.listaSecciones} role="tablist" aria-label="Periodo de eventos">
             <button
+              type="button"
+              role="tab"
+              aria-selected={seccionLista === 'proximos'}
               style={{ ...s.listaSeccionBtn, ...(seccionLista === 'proximos' ? s.listaSeccionBtnActivo : {}) }}
               onClick={() => { setSeccionLista('proximos'); setPaginaActual(1) }}
             >
               Próximos eventos ({eventosFuturos.length})
             </button>
             <button
+              type="button"
+              role="tab"
+              aria-selected={seccionLista === 'pasados'}
               style={{ ...s.listaSeccionBtn, ...(seccionLista === 'pasados' ? s.listaSeccionBtnActivo : {}) }}
               onClick={() => { setSeccionLista('pasados'); setPaginaActual(1) }}
             >
@@ -358,21 +375,24 @@ export default function Eventos() {
 
       {/* ── Modal edición ── */}
       {editando && (
-        <div style={s.overlay}>
-          <div className="responsive-modal" style={s.modal}>
-            <h3 style={s.formTitulo}>Editar evento</h3>
-            <FormEvento
-              form={formEdit} setForm={setFormEdit}
-              onSubmit={handleGuardarEdicion} enviando={guardando}
-              titulo="" btnLabel="Guardar cambios"
-              extra={
-                <button type="button" style={s.btnCancelar} onClick={() => setEditando(null)}>
-                  Cancelar
-                </button>
-              }
-            />
-          </div>
-        </div>
+        <FormModal
+          title="Editar evento"
+          onClose={() => setEditando(null)}
+          error={error}
+          closeDisabled={guardando || confirmOpen}
+          maxWidth="560px"
+        >
+          <FormEvento
+            form={formEdit} setForm={setFormEdit}
+            onSubmit={handleGuardarEdicion} enviando={guardando}
+            titulo="" btnLabel="Guardar cambios"
+            extra={
+              <button type="button" style={s.btnCancelar} onClick={() => setEditando(null)}>
+                Cancelar
+              </button>
+            }
+          />
+        </FormModal>
       )}
 
     </div>
@@ -393,13 +413,15 @@ function FormEvento({ form, setForm, onSubmit, enviando, titulo, btnLabel, extra
         placeholder="Ej: Ensayo general de costaleros" />
 
       <label style={s.label}>Tipo</label>
-      <select style={s.input} value={form.tipo_evento}
-        onChange={e => setForm({ ...form, tipo_evento: e.target.value })}>
-        <option value="CULTO">Culto</option>
-        <option value="ENSAYO">Ensayo</option>
-        <option value="REUNION">Reunión</option>
-        <option value="PRIOSTIA">Priostía</option>
-      </select>
+      <SelectField
+        value={form.tipo_evento}
+        onChange={value => setForm({ ...form, tipo_evento: value })}
+        options={Object.entries(TIPOS)
+          .filter(([value]) => value !== 'TODOS')
+          .map(([value, tipo]) => ({ value, label: tipo.label }))}
+        ariaLabel="Tipo de evento"
+        style={s.input}
+      />
 
       <label style={s.label}>Fecha y hora</label>
       <input type="datetime-local" style={s.input} value={form.fecha} required
@@ -466,7 +488,6 @@ function TarjetaEvento({ ev, usuario, esPasado, onEditar, onEliminar, onInscribi
 
         <h3 style={s.cardTitulo}>{ev.nombre_evento}</h3>
         <div style={s.meta}>
-          <span style={s.metaItem}><AppIcon name="calendar" size={15} />{fecha.toLocaleDateString('es-ES', { weekday:'long', year:'numeric' })}</span>
           <span style={s.metaItem}><AppIcon name="clock" size={15} />{fecha.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' })}</span>
           <span style={s.metaItem}><AppIcon name="pin" size={15} />{ev.lugar}</span>
         </div>
@@ -712,9 +733,9 @@ const s = {
   filtrosBar: {
     display: 'flex', flexWrap: 'wrap', gap: '12px',
     alignItems: 'center', marginBottom: '12px',
-    padding: '16px 18px', background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))',
-    borderRadius: '18px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)',
-    border: '1px solid rgba(117, 82, 52, 0.16)',
+    padding: '14px', background: '#ffffff',
+    borderRadius: '14px', boxShadow: '0 5px 18px rgba(36,24,19,0.045)',
+    border: '1px solid #e3dedb',
   },
   searchWrap: {
     flex: '1 1 320px', minWidth: '200px',
@@ -726,20 +747,19 @@ const s = {
   },
   tipoBtnActivo: {
     fontWeight: '700', transform: 'translateY(-1px)',
-    background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
-    borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
+    background: '#241813', color: '#fffaf5',
+    borderColor: '#241813', boxShadow: 'none',
   },
   vistaToggle: { display: 'flex', gap: '4px', marginLeft: 'auto' },
   vistaBtn: {
     padding: '7px 12px', borderRadius: '10px', border: '1px solid rgba(117, 82, 52, 0.22)',
     background: 'rgba(255,255,255,0.48)', cursor: 'pointer', fontSize: '12px', color: '#3d2a20', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '5px',
   },
-  vistaBtnActivo: { background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)' },
+  vistaBtnActivo: { background: '#241813', color: '#fffaf5', borderColor: '#241813', boxShadow: 'none' },
 
   // Formulario
   form: {
-    background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '22px',
-    marginBottom: '20px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', border: '1px solid rgba(117, 82, 52, 0.14)',
+    padding: 0, margin: 0,
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
   formTitulo: { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },
@@ -756,17 +776,17 @@ const s = {
     padding: '8px 14px', borderRadius: '10px', border: '1px solid rgba(117, 82, 52, 0.22)',
     background: 'rgba(255,255,255,0.55)', cursor: 'pointer', fontSize: '13px', color: '#5d4a3d', fontWeight: '600',
   },
-  listaSeccionBtnActivo: { background: '#5b3927', color: '#fff8ee', borderColor: '#5b3927' },
+  listaSeccionBtnActivo: { background: '#241813', color: '#fffaf5', borderColor: '#241813' },
   card: {
     display: 'grid', gridTemplateColumns: '76px minmax(0, 1fr)', gap: '18px',
-    background: 'rgba(255,253,250,0.94)', borderRadius: '18px', padding: '14px',
-    boxShadow: '0 10px 22px rgba(44,24,16,0.055)', border: '1px solid rgba(117, 82, 52, 0.13)',
+    background: '#ffffff', borderRadius: '14px', padding: '14px',
+    boxShadow: '0 4px 16px rgba(36,24,19,0.04)', border: '1px solid #e3dedb',
   },
   fechaCard: {
     minHeight: '118px', padding: '12px 8px', borderRadius: '13px',
-    background: 'linear-gradient(155deg, #3c2519, #68432c)', color: '#fff8ee',
+    background: '#2d201b', color: '#fffaf5',
     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-    boxShadow: '0 7px 15px rgba(44, 24, 16, 0.16)',
+    boxShadow: 'none',
   },
   fechaDia: { fontSize: '28px', fontWeight: '800', lineHeight: 1, letterSpacing: '-0.04em' },
   fechaMes: { marginTop: '7px', fontSize: '11px', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase' },
@@ -786,11 +806,11 @@ const s = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
+    padding: '10px 20px', background: '#241813', color: '#fffaf5',
     border: 'none', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', fontWeight: '600',
   },
   btnInscribirse: {
-    padding: '7px 16px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
+    padding: '7px 16px', background: '#241813', color: '#fffaf5',
     border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: '600',
   },
   btnInscrito: { background: '#d8d2cc', color: '#655d57', cursor: 'default' },
@@ -832,14 +852,14 @@ const s = {
     gap: '2px', background: '#e5e7eb', borderRadius: '10px', overflow: 'hidden',
   },
   calDiaNombre: {
-    background: '#3c2519', color: '#f7ead5', textAlign: 'center',
+    background: '#f8f6f4', color: '#625853', textAlign: 'center',
     padding: '8px 4px', fontSize: '12px', fontWeight: '700',
   },
   calCelda: { background: 'white', minHeight: '100px', padding: '6px', cursor: 'pointer', transition: 'background 0.15s' },
   calCeldaActiva: { background: 'white' },
   calCeldaVacia:  { background: '#f9fafb', cursor: 'default' },
   calCeldaHoy:    { background: '#563522' },
-  calCeldaSeleccionada: { background: '#f6ead5', outline: '2px solid #5b3927' },
+  calCeldaSeleccionada: { background: '#f0ebe5', outline: '2px solid #8f7135' },
   calNumDia: { fontSize: '13px', fontWeight: '700', color: '#2c1810', display: 'block', marginBottom: '4px' },
   calEventsWrap: { display: 'flex', flexDirection: 'column', gap: '2px' },
   calEventoPill: {
@@ -850,8 +870,8 @@ const s = {
 
   // Detalle día
   detalleDia: {
-    marginTop: '20px', padding: '16px', background: '#f8faff',
-    borderRadius: '10px', border: '1px solid #dde',
+    marginTop: '20px', padding: '16px', background: '#f8f6f4',
+    borderRadius: '10px', border: '1px solid #e3dedb',
   },
   detalleDiaTitulo: { fontSize: '15px', fontWeight: '700', color: '#2c1810', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' },
   detalleDiaIcon: { color: '#775420', flexShrink: 0 },

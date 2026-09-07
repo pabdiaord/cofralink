@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import FormModal from '../../components/FormModal'
 import CharacterIcon from '../../components/CharacterIcon'
 import AppIcon from '../../components/AppIcon'
 import { CHARACTER_INFO } from '../../constants/characterInfo'
+import perfilUsuario from '../../assets/perfil_usuario.jpg'
+import datosUsuario from '../../assets/datos_usuario.jpg'
 
 const ESTADO_CUOTA_INFO = {
   PAGADO:    { label: 'Al corriente',  color: '#2d7a45', bg: '#eaf7ee', icon: 'check' },
@@ -28,7 +31,7 @@ export default function Perfil() {
   const [exito, setExito]         = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [pendingAction, setPendingAction] = useState(null)
-  const [form, setForm] = useState({ direccion: '', email: '' })
+  const [form, setForm] = useState({ nombre: '', apellidos: '', direccion: '', email: '' })
 
   useEffect(() => {
     let activo = true
@@ -49,7 +52,12 @@ export default function Perfil() {
           if (!usuario?.is_staff) {
             const perfil = resultados[0].data
             setHermano(perfil)
-            setForm({ direccion: perfil.direccion || '', email: usuario?.email || '' })
+            setForm({
+              nombre: perfil.nombre || '',
+              apellidos: perfil.apellidos || '',
+              direccion: perfil.direccion || '',
+              email: perfil.usuario_email || usuario?.email || '',
+            })
           }
         }
       } catch {
@@ -76,8 +84,14 @@ export default function Perfil() {
       setGuardando(true)
       setError(''); setExito('')
       try {
-        await api.patch('/mi-perfil/', form)
-        setHermano(prev => ({ ...prev, direccion: form.direccion }))
+        const res = await api.patch('/mi-perfil/', form)
+        setHermano(res.data)
+        setForm({
+          nombre: res.data.nombre || '',
+          apellidos: res.data.apellidos || '',
+          direccion: res.data.direccion || '',
+          email: res.data.usuario_email || form.email,
+        })
         setEditando(false)
         setExito('Perfil actualizado correctamente.')
         setTimeout(() => setExito(''), 3000)
@@ -94,6 +108,16 @@ export default function Perfil() {
   const handleGuardar = async e => {
     e.preventDefault()
     openConfirm('save-perfil')
+  }
+
+  const cancelarEdicion = () => {
+    setForm({
+      nombre: hermano?.nombre || '',
+      apellidos: hermano?.apellidos || '',
+      direccion: hermano?.direccion || '',
+      email: hermano?.usuario_email || usuario?.email || '',
+    })
+    setEditando(false)
   }
 
   if (cargando) return <p style={styles.info}>Cargando perfil...</p>
@@ -115,8 +139,7 @@ export default function Perfil() {
     <div className="profile-page" style={styles.page}>
       <header style={styles.pageHeader}>
         <p style={styles.pageEyebrow}>Área personal</p>
-        <h2 style={styles.pageTitle}>Mi perfil</h2>
-        <p style={styles.pageIntro}>Consulta y actualiza la información vinculada a tu cuenta de hermano.</p>
+        <h2 style={styles.pageTitle}>Mi perfil de hermano</h2>
       </header>
 
       <header className="profile-hero" style={styles.credentialHero}>
@@ -136,11 +159,6 @@ export default function Perfil() {
             </div>
           </div>
         </div>
-        {!usuario?.is_staff && (
-          <button type="button" className="action-button action-button--edit action-button--on-dark" onClick={() => setEditando(true)}>
-            Editar mi ficha
-          </button>
-        )}
       </header>
 
       <main style={styles.profileContent}>
@@ -163,78 +181,103 @@ export default function Perfil() {
             <div style={styles.panelHeader}>
               <div>
                 <p style={styles.panelEyebrow}>Información personal</p>
-                <h2 style={styles.panelTitle}>Mi ficha</h2>
+                <h2 style={styles.panelTitle}>Datos personales</h2>
               </div>
               {!usuario?.is_staff && !editando && (
-                <button type="button" className="action-button action-button--edit" onClick={() => setEditando(true)}>Editar</button>
+                <button type="button" className="action-button action-button--edit" onClick={() => { setError(''); setEditando(true) }}>
+                  Editar datos
+                </button>
               )}
             </div>
 
             {editando ? (
-              <form onSubmit={handleGuardar} style={styles.form}>
-                <div style={styles.formReadOnly}>
-                  <Fila label="Nombre" value={`${hermano.nombre} ${hermano.apellidos}`} readonly />
-                  <Fila label="Número de hermano" value={`#${hermano.numero_hermano}`} readonly />
-                </div>
-                <div style={styles.formFields}>
-                  <div style={styles.campo}>
-                    <label style={styles.campoLabel}>Correo electrónico</label>
-                    <input style={styles.input} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} type="email" />
+              <FormModal
+                title="Editar datos personales"
+                onClose={cancelarEdicion}
+                error={error}
+                closeDisabled={guardando || confirmOpen}
+                maxWidth="640px"
+              >
+                <form onSubmit={handleGuardar} style={styles.form}>
+                  <div style={styles.formFields}>
+                    <div style={styles.campo}>
+                      <label htmlFor="perfil-nombre" style={styles.campoLabel}>Nombre</label>
+                      <input
+                        id="perfil-nombre"
+                        style={styles.input}
+                        value={form.nombre}
+                        onChange={e => setForm({ ...form, nombre: e.target.value })}
+                        autoComplete="given-name"
+                        maxLength={100}
+                        required
+                      />
+                    </div>
+                    <div style={styles.campo}>
+                      <label htmlFor="perfil-apellidos" style={styles.campoLabel}>Apellidos</label>
+                      <input
+                        id="perfil-apellidos"
+                        style={styles.input}
+                        value={form.apellidos}
+                        onChange={e => setForm({ ...form, apellidos: e.target.value })}
+                        autoComplete="family-name"
+                        maxLength={150}
+                        required
+                      />
+                    </div>
+                    <div style={styles.campo}>
+                      <label htmlFor="perfil-email" style={styles.campoLabel}>Correo electrónico</label>
+                      <input id="perfil-email" style={styles.input} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} type="email" autoComplete="email" required />
+                    </div>
+                    <div style={styles.campo}>
+                      <label htmlFor="perfil-direccion" style={styles.campoLabel}>Dirección</label>
+                      <input id="perfil-direccion" style={styles.input} value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} placeholder="Tu dirección" autoComplete="street-address" />
+                    </div>
                   </div>
-                  <div style={styles.campo}>
-                    <label style={styles.campoLabel}>Dirección</label>
-                    <input style={styles.input} value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} placeholder="Tu dirección" />
+                  <div style={styles.formBtns}>
+                    <button type="submit" disabled={guardando} style={styles.btnGuardar}>{guardando ? 'Guardando...' : 'Guardar cambios'}</button>
+                    <button type="button" style={styles.btnCancelar} onClick={cancelarEdicion}>Cancelar</button>
                   </div>
-                </div>
-                <div style={styles.formBtns}>
-                  <button type="submit" disabled={guardando} style={styles.btnGuardar}>{guardando ? 'Guardando...' : 'Guardar cambios'}</button>
-                  <button type="button" style={styles.btnCancelar} onClick={() => setEditando(false)}>Cancelar</button>
-                </div>
-              </form>
+                </form>
+              </FormModal>
             ) : (
               <div style={styles.detailGrid}>
-                {hermano && <Fila label="Nombre completo" value={nombreVisible} />}
-                <Fila label="Correo electrónico" value={usuario?.email} />
+                <Fila label="Correo electrónico" value={form.email || usuario?.email} />
                 {hermano && <Fila label="Dirección" value={hermano.direccion || 'No indicada'} />}
-                {hermano?.fecha_ingreso && <Fila label="Fecha de ingreso" value={new Date(hermano.fecha_ingreso).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })} />}
               </div>
             )}
-
-            <div style={styles.accountBand}>
-              <div>
-                <p style={styles.panelEyebrow}>Acceso a CofraLink</p>
-                <h3 style={styles.accountTitle}>{usuario?.username || 'Cuenta de Hermandad'}</h3>
-              </div>
-              <span style={styles.accountStatus}>{estadoCuenta}</span>
-            </div>
           </section>
 
-          <aside className="profile-side-stack" style={styles.sideStack}>
-            <section style={styles.membershipPanel}>
-              <div style={styles.membershipIcon}>
-                {caracter ? <CharacterIcon caracter={caracterCodigo} alt="" style={styles.membershipImage} /> : '✦'}
-              </div>
+          <section
+            className="profile-panel profile-quick-card"
+            style={{ ...styles.quickAccessPanel, '--profile-data-image': `url(${datosUsuario})` }}
+          >
+            <div style={styles.panelHeader}>
               <div>
-                <p style={styles.panelEyebrow}>En mi último Martes Santo fui</p>
-                <h2 style={styles.membershipTitle}>{caracterVisible}</h2>
-                <p style={styles.membershipDescription}>{caracter?.description || 'Gestionas la actividad y la comunicación de la Hermandad desde CofraLink.'}</p>
+                <p style={{ ...styles.panelEyebrow, ...styles.panelEyebrowOnDark }}>Gestiones habituales</p>
+                <h2 style={{ ...styles.panelTitle, ...styles.panelTitleOnDark }}>Accesos rápidos</h2>
               </div>
-            </section>
-
-            <section style={styles.quickAccessPanel}>
-              <div style={styles.panelHeader}>
-                <div>
-                  <p style={styles.panelEyebrow}>Continúa desde aquí</p>
-                  <h2 style={styles.panelTitle}>Mi actividad</h2>
-                </div>
-              </div>
-              <div style={styles.quickLinks}>
-                <AccesoPerfil icon={<AppIcon name="calendar" size={17} />} label="Próximos eventos" onClick={() => navigate('/eventos')} />
-                <AccesoPerfil icon={<AppIcon name="document" size={17} />} label="Papeleta de sitio" onClick={() => navigate('/procesional')} />
-                <AccesoPerfil icon={<AppIcon name="coin" size={17} />} label="Donaciones" onClick={() => navigate('/donaciones')} />
-              </div>
-            </section>
-          </aside>
+            </div>
+            <div style={styles.quickLinks}>
+              <AccesoPerfil
+                icon={<AppIcon name="calendar" size={19} />}
+                label="Próximos eventos"
+                description="Consulta nuestro calendario"
+                onClick={() => navigate('/eventos')}
+              />
+              <AccesoPerfil
+                icon={<AppIcon name="document" size={19} />}
+                label="Papeleta de sitio"
+                description="Gestiona tus solicitudes"
+                onClick={() => navigate('/procesional')}
+              />
+              <AccesoPerfil
+                icon={<AppIcon name="coin" size={19} />}
+                label="Donaciones"
+                description="Revisa o realiza tus aportaciones"
+                onClick={() => navigate('/donaciones')}
+              />
+            </div>
+          </section>
         </div>
       </main>
 
@@ -263,23 +306,24 @@ function Hito({ icon, label, value, color }) {
   )
 }
 
-function AccesoPerfil({ icon, label, onClick }) {
+function AccesoPerfil({ icon, label, description, onClick }) {
   return (
-    <button type="button" style={styles.quickLink} onClick={onClick}>
+    <button type="button" className="profile-quick-link" style={styles.quickLink} onClick={onClick}>
       <span style={styles.quickLinkIcon}>{icon}</span>
-      <span>{label}</span>
+      <span style={styles.quickLinkText}>
+        <span style={styles.quickLinkLabel}>{label}</span>
+        <span style={styles.quickLinkDescription}>{description}</span>
+      </span>
       <span aria-hidden="true" style={styles.quickLinkArrow}>→</span>
     </button>
   )
 }
 
-function Fila({ label, value, readonly }) {
+function Fila({ label, value }) {
   return (
     <div style={styles.detailRow}>
       <span style={styles.detailLabel}>{label}</span>
-      <span style={{ ...styles.detailValue, ...(readonly ? styles.detailReadOnly : {}) }}>
-        {value || '—'}
-      </span>
+      <span style={styles.detailValue}>{value || '—'}</span>
     </div>
   )
 }
@@ -291,7 +335,7 @@ const CREAM  = '#faf7f2'
 const BORDER = '#e8e0d0'
 
 const styles = {
-  page: { padding: 'clamp(16px, 3vw, 32px)', background: 'linear-gradient(180deg, #f5efe7 0%, #efe3d7 100%)', minHeight: 'calc(100vh - 56px)', color: '#2c1810' },
+  page: { padding: 'clamp(16px, 3vw, 32px)', background: 'var(--app-background)', minHeight: 'calc(100vh - 56px)', color: '#241813' },
   info: { textAlign: 'center', padding: '60px', color: '#666' },
   pageHeader: { maxWidth: '1240px', margin: '0 auto 28px' },
   pageEyebrow: { margin: '0 0 3px', color: '#95713a', fontSize: '11px', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase' },
@@ -300,7 +344,7 @@ const styles = {
 
   // Hero
   hero: {
-    background: 'linear-gradient(135deg, #2c1810, #563522)',
+    background: '#241813',
     padding: '40px 32px',
     display: 'flex', alignItems: 'center', gap: '28px',
     borderBottom: `3px solid ${GOLD}`,
@@ -353,7 +397,7 @@ const styles = {
   },
   formBtns: { display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '2px' },
   btnGuardar: {
-    padding: '12px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
+    padding: '12px 20px', background: '#241813', color: '#fffaf5',
     border: 'none', borderRadius: '10px', fontSize: '15px',
     cursor: 'pointer', fontWeight: '600',
   },
@@ -381,7 +425,7 @@ const styles = {
 
   // Tarjeta de hermano
   tarjeta: {
-    background: 'linear-gradient(135deg, #2c1810, #563522)',
+    background: '#241813',
     borderRadius: '12px', padding: '20px',
     border: `1px solid ${GOLD}`, boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
   },
@@ -401,10 +445,12 @@ const styles = {
   errorBox: { margin: '16px 0', padding: '12px 16px', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: '10px', fontSize: '15px' },
 
   credentialHero: {
-    maxWidth: '1240px', margin: '0 auto', minHeight: '202px', padding: 'clamp(22px, 4vw, 36px)', borderRadius: '26px',
+    maxWidth: '1240px', margin: '0 auto', minHeight: '302px', padding: 'clamp(22px, 4vw, 36px)', borderRadius: '26px',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap',
-    background: 'radial-gradient(circle at 88% 8%, rgba(231,199,119,0.28), transparent 28%), linear-gradient(135deg, #2c1810, #563522)',
-    border: '1px solid rgba(201,168,76,0.45)', boxShadow: '0 20px 40px rgba(44,24,16,0.18)',
+    backgroundColor: '#241813',
+    backgroundImage: `linear-gradient(90deg, rgba(25,16,13,0.94) 0%, rgba(31,21,17,0.8) 48%, rgba(24,17,15,0.38) 100%), url(${perfilUsuario})`,
+    backgroundPosition: 'center 42%', backgroundSize: 'cover', backgroundRepeat: 'no-repeat',
+    border: '1px solid rgba(184,155,82,0.35)', boxShadow: '0 8px 24px rgba(36,24,19,0.12)',
   },
   heroIdentity: { display: 'flex', alignItems: 'center', gap: '22px', minWidth: 0 },
   profileSeal: {
@@ -418,35 +464,30 @@ const styles = {
   heroTag: { border: '1px solid rgba(255,255,255,0.18)', borderRadius: '999px', padding: '5px 10px', color: 'rgba(255,250,244,0.9)', background: 'rgba(255,255,255,0.07)', fontSize: '13px' },
   profileContent: { maxWidth: '1240px', margin: '0 auto' },
   milestoneGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', margin: '-18px clamp(0px, 2vw, 24px) 24px', position: 'relative', zIndex: 1 },
-  milestone: { minHeight: '78px', display: 'flex', alignItems: 'center', gap: '11px', padding: '13px 15px', border: `1px solid ${BORDER}`, borderRadius: '14px', background: 'rgba(255,253,250,0.98)', boxShadow: '0 10px 22px rgba(44,24,16,0.08)' },
+  milestone: { minHeight: '78px', display: 'flex', alignItems: 'center', gap: '11px', padding: '13px 15px', border: `1px solid ${BORDER}`, borderRadius: '14px', background: '#ffffff', boxShadow: '0 5px 18px rgba(36,24,19,0.045)' },
   milestoneIcon: { width: '38px', height: '38px', flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '11px', color: '#765a3f', background: '#f2e6cf', fontSize: '20px', overflow: 'hidden' },
   milestoneImage: { width: '100%', height: '100%', objectFit: 'contain', padding: '3px' },
   milestoneLabel: { margin: 0, color: '#826b57', fontSize: '12px', fontWeight: '700', letterSpacing: '0.04em', textTransform: 'uppercase' },
   milestoneValue: { margin: '2px 0 0', color: '#2c1810', fontSize: '16px', fontWeight: '700', lineHeight: 1.25 },
-  profileGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '20px', alignItems: 'start' },
-  profilePanel: { padding: '26px', borderRadius: '20px', border: `1px solid ${BORDER}`, background: 'rgba(255,253,250,0.94)', boxShadow: '0 12px 28px rgba(44,24,16,0.06)' },
-  panelHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '22px' },
+  profileGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '20px', alignItems: 'stretch' },
+  profilePanel: { padding: '26px', borderRadius: '14px', border: `1px solid ${BORDER}`, background: '#ffffff', boxShadow: '0 5px 18px rgba(36,24,19,0.045)' },
+  panelHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '8px' },
   panelEyebrow: { margin: 0, color: '#95713a', fontSize: '12px', fontWeight: '700', letterSpacing: '0.06em', textTransform: 'uppercase' },
   panelTitle: { margin: '3px 0 0', color: '#2c1810', fontSize: '22px' },
-  detailGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0 22px' },
-  detailRow: { padding: '15px 0', borderBottom: '1px solid rgba(117,82,52,0.14)', display: 'flex', flexDirection: 'column', gap: '4px' },
+  panelEyebrowOnDark: { color: '#e7c777', textShadow: '0 2px 10px rgba(0,0,0,0.45)' },
+  panelTitleOnDark: { color: '#fffaf4', textShadow: '0 3px 14px rgba(0,0,0,0.55)' },
+  panelDescription: { margin: '0 0 20px', maxWidth: '520px', color: '#765f4d', fontSize: '14px', lineHeight: 1.55 },
+  detailGrid: { display: 'grid', gridTemplateColumns: '1fr', gap: '10px' },
+  detailRow: { padding: '14px 16px', border: '1px solid rgba(117,82,52,0.12)', borderRadius: '12px', background: '#fbf8f3', display: 'flex', flexDirection: 'column', gap: '4px' },
   detailLabel: { color: '#826b57', fontSize: '13px', fontWeight: '700', letterSpacing: '0.02em' },
-  detailValue: { color: '#2c1810', fontSize: '16px', fontWeight: '600', lineHeight: 1.4 },
-  detailReadOnly: { color: '#867767', fontWeight: '500' },
-  formReadOnly: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0 18px', padding: '0 14px', borderRadius: '12px', background: '#f7f0e6' },
+  detailValue: { color: '#2c1810', fontSize: '16px', fontWeight: '600', lineHeight: 1.4, overflowWrap: 'anywhere' },
   formFields: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' },
-  accountBand: { marginTop: '25px', padding: '17px 18px', borderRadius: '13px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: '#f2e6cf' },
-  accountTitle: { margin: '3px 0 0', color: '#2c1810', fontSize: '17px' },
-  accountStatus: { padding: '6px 10px', borderRadius: '999px', color: '#27633a', background: '#dcf3e1', fontSize: '13px', fontWeight: '700', whiteSpace: 'nowrap' },
-  sideStack: { display: 'flex', flexDirection: 'column', gap: '16px' },
-  membershipPanel: { display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '19px', borderRadius: '17px', border: '1px solid rgba(201,168,76,0.45)', background: 'linear-gradient(135deg, #fff8eb, #f2e3c6)' },
-  membershipIcon: { width: '48px', height: '48px', flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '14px', color: '#775420', background: 'rgba(201,168,76,0.22)', fontSize: '23px', overflow: 'hidden' },
-  membershipImage: { width: '100%', height: '100%', objectFit: 'contain', padding: '4px' },
-  membershipTitle: { margin: '3px 0 5px', color: '#2c1810', fontSize: '18px' },
-  membershipDescription: { margin: 0, color: '#654f3b', fontSize: '15px', lineHeight: 1.5 },
-  quickAccessPanel: { padding: '22px', borderRadius: '18px', border: `1px solid ${BORDER}`, background: 'rgba(255,253,250,0.94)' },
-  quickLinks: { display: 'flex', flexDirection: 'column', gap: '8px' },
-  quickLink: { width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', color: '#4f3829', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(117,82,52,0.12)', cursor: 'pointer', fontSize: '15px', fontWeight: '600', textAlign: 'left' },
-  quickLinkIcon: { width: '25px', height: '25px', display: 'grid', placeItems: 'center', borderRadius: '8px', color: '#775420', background: '#f2e6cf', fontSize: '15px' },
-  quickLinkArrow: { marginLeft: 'auto', color: '#9b7b4d', fontSize: '19px' },
+  quickAccessPanel: { padding: '26px', borderRadius: '14px', border: `1px solid ${BORDER}`, background: '#ffffff', boxShadow: '0 5px 18px rgba(36,24,19,0.045)' },
+  quickLinks: { display: 'flex', flexDirection: 'column', gap: '0' },
+  quickLink: { width: '100%', minHeight: '66px', display: 'flex', alignItems: 'center', gap: '13px', padding: '10px 0', color: '#fffaf4', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.16)', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' },
+  quickLinkIcon: { width: '40px', height: '40px', flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '12px', color: '#e7c777', background: 'rgba(255,255,255,0.1)' },
+  quickLinkText: { minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' },
+  quickLinkLabel: { color: '#fffaf4', fontSize: '15px', fontWeight: '700', lineHeight: 1.35, textShadow: '0 2px 10px rgba(0,0,0,0.5)' },
+  quickLinkDescription: { color: 'rgba(255,250,244,0.76)', fontSize: '13px', fontWeight: '400', lineHeight: 1.4 },
+  quickLinkArrow: { marginLeft: 'auto', color: '#e7c777', fontSize: '19px' },
 }

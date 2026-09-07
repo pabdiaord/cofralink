@@ -2,15 +2,18 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import FormModal from '../../components/FormModal'
 import AppIcon from '../../components/AppIcon'
+import StatusBadge from '../../components/StatusBadge'
+import SelectField from '../../components/SelectField'
 import SearchField from '../../components/SearchField'
 import Pagination, { getPageData } from '../../components/Pagination'
 import { coincideBusqueda } from '../../utils/search'
 
 const ESTADOS = {
-  pendiente:  { label: 'Pendiente',  color: '#d69e2e', bg: '#fffff0' },
-  aprobada:   { label: 'Aprobada',   color: '#38a169', bg: '#f0fff4' },
-  rechazada:  { label: 'Rechazada',  color: '#e53e3e', bg: '#fff5f5' },
+  pendiente: { label: 'Pendiente', tone: 'warning' },
+  aprobada:  { label: 'Aprobada', tone: 'success' },
+  rechazada: { label: 'Rechazada', tone: 'danger' },
 }
 
 export default function Procesional() {
@@ -114,6 +117,7 @@ export default function Procesional() {
 
   // ── Abrir edición (admin: aprobar/rechazar/asignar tramo) ─────────
   const abrirEdicion = p => {
+    setError('')
     setEditando(p)
     setFormEdit({
       paso:   p.paso,
@@ -165,16 +169,15 @@ export default function Procesional() {
           <p style={styles.eyebrow}>Organización del cortejo</p>
           <h2 style={styles.titulo}>Procesional</h2>
           <div style={styles.headerMeta}>
-            <p style={styles.intro}>Consulta y gestiona las solicitudes de participación en cultos externos.</p>
             <span style={styles.totalBadge}>{papeletasFiltradas.length} mostrada{papeletasFiltradas.length !== 1 ? 's' : ''} · {papeletas.length} en total</span>
           </div>
         </div>
         {!usuario?.is_staff && (
           <button
             style={styles.btnPrimary}
-            onClick={() => setMostrarForm(!mostrarForm)}
+            onClick={() => { setError(''); setMostrarForm(true) }}
           >
-            {mostrarForm ? 'Cancelar' : '+ Solicitar papeleta'}
+            + Solicitar papeleta
           </button>
         )}
       </div>
@@ -197,8 +200,14 @@ export default function Procesional() {
 
       {/* Formulario solicitud (solo hermano) */}
       {mostrarForm && !usuario?.is_staff && (
-        <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
-          <h3 style={styles.formTitulo}>Solicitud de papeleta de sitio</h3>
+        <FormModal
+          title="Solicitud de papeleta de sitio"
+          onClose={() => setMostrarForm(false)}
+          error={error}
+          closeDisabled={enviando || confirmOpen}
+          maxWidth="560px"
+        >
+          <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
 
           <label style={styles.label}>Paso</label>
           <input
@@ -216,40 +225,46 @@ export default function Procesional() {
               />
             </div>
             <div>
-              <label style={styles.label}>Tramo solicitado</label>
+              <label style={styles.label}>Insignia</label>
               <input
                 style={styles.input} value={form.tramo} required
                 onChange={e => setForm({ ...form, tramo: e.target.value })}
-                placeholder="Ej: Tramo 3 - Nazarenos"
+                placeholder="Ej: Cirio, Estandarte..."
               />
             </div>
           </div>
 
-          <button type="submit" disabled={enviando} style={styles.btnPrimary}>
-            {enviando ? 'Enviando...' : 'Enviar solicitud'}
-          </button>
-        </form>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+              <button type="submit" disabled={enviando} style={styles.btnPrimary}>
+                {enviando ? 'Enviando...' : 'Enviar solicitud'}
+              </button>
+              <button type="button" style={styles.btnCancelar} onClick={() => setMostrarForm(false)}>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       <div style={styles.filtros}>
         <div style={styles.filtroAnio}>
           <label htmlFor="filtro-anio-papeletas" style={styles.filterLabel}>Año de la procesión</label>
-          <select
+          <SelectField
             id="filtro-anio-papeletas"
             value={filtroAnio}
-            onChange={e => { setFiltroAnio(e.target.value); setPaginaActual(1) }}
+            onChange={value => { setFiltroAnio(value); setPaginaActual(1) }}
+            options={[
+              { value: String(anioActual), label: `Año actual (${anioActual})` },
+              { value: String(anioAnterior), label: `Año anterior (${anioAnterior})` },
+              ...aniosHistoricos.map(anio => ({
+                value: String(anio),
+                label: String(anio),
+                group: 'Años anteriores',
+              })),
+            ]}
+            ariaLabel="Año de la procesión"
             style={styles.selectAnio}
-          >
-            <option value={String(anioActual)}>Año actual ({anioActual})</option>
-            <option value={String(anioAnterior)}>Año anterior ({anioAnterior})</option>
-            {aniosHistoricos.length > 0 && (
-              <optgroup label="Años anteriores">
-                {aniosHistoricos.map(anio => (
-                  <option key={anio} value={String(anio)}>{anio}</option>
-                ))}
-              </optgroup>
-            )}
-          </select>
+          />
         </div>
 
         <div style={styles.filtroBusqueda}>
@@ -278,34 +293,27 @@ export default function Procesional() {
           {papeletasPaginadas.map(p => {
             const estado = ESTADOS[p.estado] || ESTADOS.pendiente
             return (
-              <div key={p.id} style={styles.card}>
+              <div key={p.id} className="procession-card" style={styles.card}>
 
                 {/* Header card */}
                 <div style={styles.cardTop}>
                   <div>
-                    <h3 style={styles.cardTitulo}><AppIcon name="document" size={18} style={styles.cardTitleIcon} />{p.paso}</h3>
+                    <h3 style={styles.cardTitulo}><AppIcon name="document" size={18} style={styles.cardTitleIcon} />{p.tramo}</h3>
                     {usuario?.is_staff && (
                       <p style={styles.cardSub}>
                         <AppIcon name="people" size={15} />{p.usuario_email}
                       </p>
                     )}
                   </div>
-                  <span style={{
-                    ...styles.badge,
-                    color: estado.color,
-                    backgroundColor: estado.bg,
-                    border: `1px solid ${estado.color}`,
-                  }}>
-                    {estado.label}
-                  </span>
+                  <StatusBadge tone={estado.tone}>{estado.label}</StatusBadge>
                 </div>
 
                 {/* Detalles */}
                 <div style={styles.meta}>
                   <span style={styles.metaItem}><AppIcon name="calendar" size={15} />{new Date(p.fecha).toLocaleDateString('es-ES', {
-                    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+                    day: '2-digit', month: 'long', year: 'numeric'
                   })}</span>
-                  <span style={styles.metaItem}><AppIcon name="pin" size={15} />{p.tramo}</span>
+                  <span style={styles.metaItem}><AppIcon name="pin" size={15} />{p.paso}</span>
                 </div>
 
                 {/* Acciones */}
@@ -335,18 +343,20 @@ export default function Procesional() {
       />
 
       {editando && (
-        <div style={styles.overlay}>
-          <div className="responsive-modal" style={styles.modal}>
-            <h3 style={styles.formTitulo}>
-              Gestionar papeleta — {editando.paso}
-            </h3>
-            <p style={styles.modalUser}>
-              <AppIcon name="people" size={15} />{editando.usuario_email}
-            </p>
-            <form
-              onSubmit={handleGuardarEdicion}
-              style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
-            >
+        <FormModal
+          title={`Gestionar papeleta — ${editando.paso}`}
+          onClose={() => setEditando(null)}
+          error={error}
+          closeDisabled={guardando || confirmOpen}
+          maxWidth="560px"
+        >
+          <p style={styles.modalUser}>
+            <AppIcon name="people" size={15} />{editando.usuario_email}
+          </p>
+          <form
+            onSubmit={handleGuardarEdicion}
+            style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+          >
               <label style={styles.label}>Paso</label>
               <input
                 style={styles.input} value={formEdit.paso || ''} required
@@ -372,14 +382,17 @@ export default function Procesional() {
               </div>
 
               <label style={styles.label}>Estado</label>
-              <select
-                style={styles.input} value={formEdit.estado || 'pendiente'}
-                onChange={e => setFormEdit({ ...formEdit, estado: e.target.value })}
-              >
-                <option value="pendiente">Pendiente</option>
-                <option value="aprobada">Aprobada</option>
-                <option value="rechazada">Rechazada</option>
-              </select>
+              <SelectField
+                value={formEdit.estado || 'pendiente'}
+                onChange={value => setFormEdit({ ...formEdit, estado: value })}
+                options={[
+                  { value: 'pendiente', label: 'Pendiente' },
+                  { value: 'aprobada', label: 'Aprobada' },
+                  { value: 'rechazada', label: 'Rechazada' },
+                ]}
+                ariaLabel="Estado de la papeleta"
+                style={styles.input}
+              />
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
                 <button type="submit" disabled={guardando} style={styles.btnPrimary}>
@@ -392,9 +405,8 @@ export default function Procesional() {
                   Cancelar
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </FormModal>
       )}
 
     </div>
@@ -419,15 +431,14 @@ const styles = {
   filtroBusqueda: { display: 'flex', flex: '1 1 280px', flexDirection: 'column', gap: '5px', minWidth: '220px' },
   filterLabel: { fontSize: '12px', fontWeight: '700', color: '#7d5f42' },
   selectAnio: {
-    minHeight: '58px', boxSizing: 'border-box', padding: '0 20px', borderRadius: '18px',
-    border: '2px solid rgba(117,82,52,0.22)', fontSize: '16px', fontFamily: 'inherit', color: '#2c1810',
-    background: 'rgba(255,253,250,0.86)', boxShadow: '0 5px 14px rgba(44,24,16,0.04)',
+    minHeight: '46px', boxSizing: 'border-box', padding: '0 14px', borderRadius: '10px',
+    border: '1px solid #ded9d5', fontSize: '14px', fontFamily: 'inherit', color: '#241813',
+    background: '#ffffff', boxShadow: '0 1px 2px rgba(36,24,19,0.025)',
   },
   search:  { marginBottom: 0 },
 
   form: {
-    background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '24px',
-    marginBottom: '24px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', border: '1px solid rgba(117, 82, 52, 0.15)',
+    padding: 0, margin: 0,
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
   formTitulo: { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },
@@ -442,17 +453,13 @@ const styles = {
   // Cards
   lista:    { display: 'flex', flexDirection: 'column', gap: '14px' },
   card: {
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px', padding: '20px',
-    boxShadow: '0 10px 20px rgba(44,24,16,0.06)', border: '1px solid rgba(117, 82, 52, 0.12)',
+    background: '#ffffff', borderRadius: '14px', padding: '20px',
+    boxShadow: '0 5px 18px rgba(36,24,19,0.045)', border: '1px solid #e3dedb',
   },
   cardTop:   { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' },
   cardTitulo:{ fontSize: '17px', fontWeight: '700', color: '#2c1810', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '7px' },
   cardTitleIcon: { color: '#775420', flexShrink: 0 },
   cardSub:   { fontSize: '13px', color: '#666', display: 'flex', alignItems: 'center', gap: '6px' },
-  badge: {
-    display: 'inline-block', padding: '4px 12px', borderRadius: '20px',
-    fontSize: '12px', fontWeight: '600', whiteSpace: 'nowrap',
-  },
   meta: {
     display: 'flex', flexWrap: 'wrap', gap: '16px',
     fontSize: '13px', color: '#555', marginBottom: '12px',
@@ -463,7 +470,7 @@ const styles = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
+    padding: '10px 20px', background: '#241813', color: '#fffaf5',
     border: 'none', borderRadius: '8px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
   },

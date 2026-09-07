@@ -14,12 +14,16 @@ export default function Comunicaciones() {
       {/* Tabs */}
       <div className="chat-tabs" style={styles.tabs}>
         <button
+          type="button"
+          aria-selected={tab === 'privado'}
           style={{ ...styles.tab, ...(tab === 'privado' ? styles.tabActivo : {}) }}
           onClick={() => setTab('privado')}
         >
           <AppIcon name="chat" size={17} />{usuario?.is_staff ? 'Mensajes privados' : 'Chat con la Junta'}
         </button>
         <button
+          type="button"
+          aria-selected={tab === 'general'}
           style={{ ...styles.tab, ...(tab === 'general' ? styles.tabActivo : {}) }}
           onClick={() => setTab('general')}
         >
@@ -518,22 +522,22 @@ const styles = {
     background: 'rgba(255,255,255,0.6)', color: '#3d2a20', cursor: 'pointer', fontSize: '14px', fontWeight: '700',
     boxShadow: '0 8px 16px rgba(44, 24, 16, 0.04)', display: 'inline-flex', alignItems: 'center', gap: '7px',
   },
-  tabActivo: { background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)' },
+  tabActivo: { background: '#241813', color: '#fffaf5', borderColor: '#241813', boxShadow: 'none' },
 
   chatWrap: {
     flex: 1, display: 'flex', flexDirection: 'column',
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(244,233,220,0.96))', borderRadius: '18px',
-    boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', overflow: 'hidden', border: '1px solid rgba(117, 82, 52, 0.12)',
+    background: '#ffffff', borderRadius: '14px',
+    boxShadow: '0 5px 18px rgba(36,24,19,0.045)', overflow: 'hidden', border: '1px solid #e3dedb',
   },
   chatHeader: {
-    padding: '16px 20px',     background: 'linear-gradient(135deg, #2c1810, #563522)',
+    padding: '16px 20px', background: '#241813',
     display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0,
   },
   chatHeaderTitle: { color: '#f5e6c8', fontWeight: '700', fontSize: '15px', display: 'inline-flex', alignItems: 'center', gap: '7px' },
   chatHeaderSub:   { color: 'rgba(255,255,255,0.7)', fontSize: '12px' },
   chatBody: {
     flex: 1, overflowY: 'auto', padding: '16px',
-    background: 'linear-gradient(180deg, rgba(247,240,232,0.9), rgba(239,227,215,0.88))', display: 'flex', flexDirection: 'column',
+    background: '#f8f6f4', display: 'flex', flexDirection: 'column',
   },
   chatVacio: { textAlign: 'center', color: '#888', marginTop: '40px', fontSize: '14px' },
   chatInput: {
@@ -546,13 +550,13 @@ const styles = {
   },
   btnEnviar: {
     width: '44px', height: '44px', borderRadius: '50%',
-        background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', border: 'none',
+    background: '#241813', color: '#fffaf5', border: 'none',
     cursor: 'pointer', fontSize: '16px', display: 'flex',
     alignItems: 'center', justifyContent: 'center',
   },
 
   burbuja: { padding: '8px 14px', borderRadius: '16px', maxWidth: '100%', wordBreak: 'break-word' },
-  burbujaPropia: {     background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', borderBottomRightRadius: '4px' },
+  burbujaPropia: { background: '#241813', color: '#fffaf5', borderBottomRightRadius: '4px' },
   burbujaAjena:  { backgroundColor: 'white', color: '#111', borderBottomLeftRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
   burbujaAutor:  { fontSize: '11px', color: '#555', marginBottom: '2px', paddingLeft: '4px', fontWeight: '600' },
   burbujaTexto:  { margin: 0, fontSize: '14px', lineHeight: '1.4' },
@@ -560,8 +564,8 @@ const styles = {
   burbujaHora:   { fontSize: '10px', opacity: 0.6 },
 
   adminWrap: {
-    flex: 1, display: 'flex', borderRadius: '12px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.08)', overflow: 'hidden', minHeight: 0,
+    flex: 1, display: 'flex', borderRadius: '14px', border: '1px solid #e3dedb',
+    boxShadow: '0 5px 18px rgba(36,24,19,0.045)', overflow: 'hidden', minHeight: 0,
   },
   listaConv: {
     width: '280px', flexShrink: 0, backgroundColor: 'white',

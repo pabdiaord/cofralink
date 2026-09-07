@@ -1,15 +1,29 @@
 import { useState, useEffect } from 'react'
 import api from '../../api/axios'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import FormModal from '../../components/FormModal'
 import CharacterIcon from '../../components/CharacterIcon'
+import StatusBadge from '../../components/StatusBadge'
+import SelectField from '../../components/SelectField'
 import SearchField from '../../components/SearchField'
 import Pagination, { getPageData } from '../../components/Pagination'
 import { CHARACTER_INFO } from '../../constants/characterInfo'
 
 const ESTADOS_CUOTA = {
-  PAGADO:    { label: 'Pagado',     color: '#38a169' },
-  NO_PAGADO: { label: 'No pagado',  color: '#e53e3e' },
+  PAGADO:    { label: 'Pagado', tone: 'success' },
+  NO_PAGADO: { label: 'No pagado', tone: 'danger' },
 }
+
+const OPCIONES_ESTADO_CUOTA = [
+  { value: 'PAGADO', label: 'Pagado' },
+  { value: 'NO_PAGADO', label: 'No pagado' },
+]
+
+const OPCIONES_CARACTER = [
+  { value: 'NAZARENO', label: 'Nazareno' },
+  { value: 'COSTALERO', label: 'Costalero' },
+  { value: 'MIEMBRO_JUNTA', label: 'Miembro de Junta' },
+]
 
 export default function Hermanos() {
   const [hermanos, setHermanos]       = useState([])
@@ -125,6 +139,7 @@ const openConfirm = (action, payload = null) => {
 
   // Abrir edición
   const abrirEdicion = h => {
+    setError('')
     setEditando(h)
     setFormEdit({
       nombre:         h.nombre,
@@ -169,12 +184,11 @@ const openConfirm = (action, payload = null) => {
           <p style={styles.eyebrow}>Gestión de la Hermandad</p>
           <h2 style={styles.titulo}>Hermanos</h2>
           <div style={styles.headerMeta}>
-            <p style={styles.intro}>Consulta y gestiona el censo de la Hermandad.</p>
-            <span style={styles.totalBadge}>{totalHermanos} hermano{totalHermanos !== 1 ? 's' : ''}</span>
+          <span style={styles.totalBadge}>{totalHermanos} hermano{totalHermanos !== 1 ? 's' : ''}</span>
           </div>
         </div>
-        <button style={styles.btnPrimary} onClick={() => setMostrarForm(!mostrarForm)}>
-          {mostrarForm ? 'Cancelar' : '+ Nuevo hermano'}
+        <button style={styles.btnPrimary} onClick={() => { setError(''); setMostrarForm(true) }}>
+          + Nuevo hermano
         </button>
       </div>
 
@@ -202,6 +216,7 @@ const openConfirm = (action, payload = null) => {
               <button
                 key={opcion}
                 type="button"
+                aria-pressed={filtroEstado === opcion}
                 onClick={() => { setFiltroEstado(opcion); setPaginaActual(1) }}
                 style={{
                   ...styles.filterChip,
@@ -221,6 +236,7 @@ const openConfirm = (action, payload = null) => {
               <button
                 key={opcion}
                 type="button"
+                aria-pressed={filtroCaracter === opcion}
                 onClick={() => { setFiltroCaracter(opcion); setPaginaActual(1) }}
                 style={{
                   ...styles.filterChip,
@@ -246,8 +262,14 @@ const openConfirm = (action, payload = null) => {
 
       {/* Formulario nuevo hermano */}
       {mostrarForm && (
-        <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
-          <h3 style={styles.formTitulo}>Nuevo hermano</h3>
+        <FormModal
+          title="Nuevo hermano"
+          onClose={() => setMostrarForm(false)}
+          error={error}
+          closeDisabled={enviando || confirmOpen}
+          maxWidth="680px"
+        >
+          <form className="data-form" onSubmit={handleSubmit} style={styles.form}>
 
           <div className="form-grid-2" style={styles.grid2}>
             <div>
@@ -292,24 +314,23 @@ const openConfirm = (action, payload = null) => {
             </div>
             <div>
               <label style={styles.label}>Estado cuota</label>
-              <select
-                style={styles.input} value={form.estado_cuota}
-                onChange={e => setForm({ ...form, estado_cuota: e.target.value })}
-              >
-                <option value="PAGADO">Pagado</option>
-                <option value="NO_PAGADO">No pagado</option>
-              </select>
+              <SelectField
+                value={form.estado_cuota}
+                onChange={value => setForm({ ...form, estado_cuota: value })}
+                options={OPCIONES_ESTADO_CUOTA}
+                ariaLabel="Estado de la cuota"
+                style={styles.input}
+              />
             </div>
             <div>
               <label style={styles.label}>Carácter</label>
-              <select
-                style={styles.input} value={form.caracter}
-                onChange={e => setForm({ ...form, caracter: e.target.value })}
-              >
-                <option value="NAZARENO">Nazareno</option>
-                <option value="COSTALERO">Costalero</option>
-                <option value="MIEMBRO_JUNTA">Miembro de Junta</option>
-              </select>
+              <SelectField
+                value={form.caracter}
+                onChange={value => setForm({ ...form, caracter: value })}
+                options={OPCIONES_CARACTER}
+                ariaLabel="Carácter del hermano"
+                style={styles.input}
+              />
             </div>
           </div>
 
@@ -318,10 +339,16 @@ const openConfirm = (action, payload = null) => {
             No se crea ninguna contraseña temporal y el enlace caduca en 24 horas.
           </p>
 
-          <button type="submit" disabled={enviando} style={styles.btnPrimary}>
-            {enviando ? 'Creando...' : 'Crear hermano'}
-          </button>
-        </form>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+              <button type="submit" disabled={enviando} style={styles.btnPrimary}>
+                {enviando ? 'Creando...' : 'Crear hermano'}
+              </button>
+              <button type="button" style={styles.btnCancelar} onClick={() => setMostrarForm(false)}>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       <div style={styles.resultMeta}>
@@ -359,12 +386,9 @@ const openConfirm = (action, payload = null) => {
                 {CHARACTER_INFO[h.caracter]?.label || h.caracter}
               </span>
               <span style={{ width: '110px' }}>
-                <span style={{
-                  ...styles.badge,
-                  backgroundColor: ESTADOS_CUOTA[h.estado_cuota]?.color || '#888',
-                }}>
+                <StatusBadge tone={ESTADOS_CUOTA[h.estado_cuota]?.tone}>
                   {ESTADOS_CUOTA[h.estado_cuota]?.label || h.estado_cuota}
-                </span>
+                </StatusBadge>
               </span>
               <div style={{ width: '140px', display: 'flex', gap: '6px' }}>
                 <button className="action-button action-button--edit" onClick={() => abrirEdicion(h)}>
@@ -388,15 +412,17 @@ const openConfirm = (action, payload = null) => {
       />
 
       {editando && (
-        <div style={styles.overlay}>
-          <div className="responsive-modal" style={styles.modal}>
-            <h3 style={styles.formTitulo}>
-              Editar hermano #{editando.numero_hermano}
-            </h3>
-            <form
-              onSubmit={handleGuardarEdicion}
-              style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
-            >
+        <FormModal
+          title={`Editar hermano #${editando.numero_hermano}`}
+          onClose={() => setEditando(null)}
+          error={error}
+          closeDisabled={guardando || confirmOpen}
+          maxWidth="620px"
+        >
+          <form
+            onSubmit={handleGuardarEdicion}
+            style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+          >
               <div className="form-grid-2" style={styles.grid2}>
                 <div>
                   <label style={styles.label}>Nombre</label>
@@ -430,24 +456,23 @@ const openConfirm = (action, payload = null) => {
                 </div>
                 <div>
                   <label style={styles.label}>Estado cuota</label>
-                  <select
-                    style={styles.input} value={formEdit.estado_cuota}
-                    onChange={e => setFormEdit({ ...formEdit, estado_cuota: e.target.value })}
-                  >
-                    <option value="PAGADO">Pagado</option>
-                    <option value="NO_PAGADO">No pagado</option>
-                  </select>
+                  <SelectField
+                    value={formEdit.estado_cuota}
+                    onChange={value => setFormEdit({ ...formEdit, estado_cuota: value })}
+                    options={OPCIONES_ESTADO_CUOTA}
+                    ariaLabel="Estado de la cuota"
+                    style={styles.input}
+                  />
                 </div>
                 <div>
                   <label style={styles.label}>Carácter</label>
-                  <select
-                    style={styles.input} value={formEdit.caracter}
-                    onChange={e => setFormEdit({ ...formEdit, caracter: e.target.value })}
-                  >
-                    <option value="NAZARENO">Nazareno</option>
-                    <option value="COSTALERO">Costalero</option>
-                    <option value="MIEMBRO_JUNTA">Miembro de Junta</option>
-                  </select>
+                  <SelectField
+                    value={formEdit.caracter}
+                    onChange={value => setFormEdit({ ...formEdit, caracter: value })}
+                    options={OPCIONES_CARACTER}
+                    ariaLabel="Carácter del hermano"
+                    style={styles.input}
+                  />
                 </div>
               </div>
 
@@ -462,9 +487,8 @@ const openConfirm = (action, payload = null) => {
                   Cancelar
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </FormModal>
       )}
 
     </div>
@@ -483,11 +507,11 @@ const styles = {
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
   nota:    { fontSize: '12px', color: '#888', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '6px' },
   filtersPanel: {
-    background: 'linear-gradient(135deg, rgba(255,250,245,0.96), rgba(244,234,222,0.9))',
-    border: '1px solid rgba(117, 82, 52, 0.15)',
-    borderRadius: '18px',
-    padding: '18px 18px 12px',
-    boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)',
+    background: '#ffffff',
+    border: '1px solid #e3dedb',
+    borderRadius: '14px',
+    padding: '16px 16px 12px',
+    boxShadow: '0 5px 18px rgba(36,24,19,0.045)',
     marginBottom: '18px',
     display: 'flex',
     flexDirection: 'column',
@@ -514,11 +538,11 @@ const styles = {
     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
   },
   filterChipActive: {
-    background: 'linear-gradient(135deg, #2c1810, #563522)',
-    borderColor: '#2c1810',
-    color: '#f5e6c8',
-    boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
-    transform: 'translateY(-1px)',
+    background: '#241813',
+    borderColor: '#241813',
+    color: '#fffaf5',
+    boxShadow: 'none',
+    transform: 'none',
   },
   searchWrap: {
     marginBottom: '18px',
@@ -535,8 +559,7 @@ const styles = {
   },
 
   form: {
-    background: 'linear-gradient(135deg, rgba(255,250,245,0.98), rgba(239,227,215,0.96))', borderRadius: '18px', padding: '24px',
-    marginBottom: '24px', boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)', border: '1px solid rgba(117, 82, 52, 0.14)',
+    padding: 0, margin: 0,
     display: 'flex', flexDirection: 'column', gap: '10px',
   },
   formTitulo: { fontSize: '16px', fontWeight: '700', color: '#2c1810', marginBottom: '4px' },
@@ -551,32 +574,27 @@ const styles = {
 
   // Tabla
   tabla: {
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px',
-    boxShadow: '0 12px 24px rgba(44,24,16,0.06)', overflow: 'hidden', border: '1px solid rgba(117, 82, 52, 0.12)',
+    background: '#ffffff', borderRadius: '14px',
+    boxShadow: '0 5px 18px rgba(36,24,19,0.045)', overflow: 'hidden', border: '1px solid #e3dedb',
   },
   tablaHeader: {
     display: 'flex', alignItems: 'center', gap: '12px',
-    padding: '12px 20px', background: '#3c2519',
-    color: '#f5e6c8', fontSize: '13px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase',
+    padding: '12px 20px', background: '#f8f6f4',
+    color: '#625853', fontSize: '12px', fontWeight: '700', letterSpacing: '0.06em', textTransform: 'uppercase',
   },
   fila: {
     display: 'flex', alignItems: 'center', gap: '12px',
     padding: '14px 20px', borderBottom: '1px solid rgba(117, 82, 52, 0.08)',
     fontSize: '14px',
   },
-  badge: {
-    display: 'inline-block', padding: '3px 10px',
-    borderRadius: '20px', fontSize: '12px',
-    fontWeight: '700', color: 'white',
-  },
   characterCell: { display: 'flex', alignItems: 'center', gap: '7px' },
   characterIcon: { width: '24px', height: '24px', objectFit: 'contain', flexShrink: 0 },
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
+    padding: '10px 20px', background: '#241813', color: '#fffaf5',
     border: 'none', borderRadius: '10px', fontSize: '14px',
-    cursor: 'pointer', fontWeight: '700', alignSelf: 'flex-start', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
+    cursor: 'pointer', fontWeight: '700', alignSelf: 'flex-start', boxShadow: 'none',
   },
   btnCancelar: {
     padding: '10px 20px', backgroundColor: '#efe4d9', color: '#2c1810',

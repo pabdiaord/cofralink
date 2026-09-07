@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import api from '../../api/axios'
 import logo   from '../../assets/logo.png'
 import escudo from '../../assets/escudo.png'
+import sidebarPhoto from '../../assets/sidebar.jpg'
 
-const DARK = '#2c1810'
-const GOLD = '#c9a84c'
-const CREAM = '#f5f0e8'
+const DARK = '#241813'
+const GOLD = '#b89b52'
 
 function validarPasswordLocal(password) {
   const errores = []
@@ -99,34 +99,35 @@ export default function CambiarPassword() {
       </div>
 
       <div className="auth-panel auth-panel--form" style={cs.right}>
-        <div style={cs.rightInner}>
+        <div className="auth-login-panel" style={cs.rightInner}>
 
           <div style={cs.logoWrap}>
             <div style={cs.logoBox}>
               <img src={logo} alt="CofraLink" style={cs.logoImg} />
             </div>
-            <h1 style={cs.appName}>CofraLink</h1>
-            <p style={cs.appSub}>CAMBIO DE CONTRASEÑA</p>
+            <p style={cs.appSub}>PLATAFORMA DE GESTIÓN COFRADE</p>
           </div>
 
-          <div style={cs.accesoRow}>
-            <div style={cs.lineaGris} />
-            <span style={cs.accesoLabel}>NUEVA CONTRASEÑA</span>
-            <div style={cs.lineaGris} />
+          <div style={cs.welcomeBlock}>
+            <h1 style={cs.welcomeTitle}>Nueva contraseña</h1>
+            <p style={cs.welcomeText}>Elige una contraseña segura para volver a acceder a tu espacio de hermano.</p>
           </div>
 
           {exito ? (
             <div style={cs.exitoBox}>
-              <p style={cs.exitoTexto}>✅ {exito}</p>
+              <span aria-hidden="true" style={cs.exitoIcon}>✓</span>
+              <p style={cs.exitoTexto}>{exito}</p>
               <p style={cs.exitoSub}>Redirigiendo al inicio de sesión...</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={cs.form}>
               <div style={cs.campo}>
-                <label style={cs.label}>NUEVA CONTRASEÑA</label>
+                <label htmlFor="new-password" style={cs.label}>Nueva contraseña</label>
                 <input
+                  id="new-password"
+                  className="auth-login-input"
                   type="password" value={form.password1} required
-                  style={cs.input} placeholder="Mínimo 12 caracteres"
+                  style={{ ...cs.input, ...cs.loginInput }} placeholder="Mínimo 12 caracteres"
                   autoComplete="new-password"
                   aria-describedby="password-requisitos"
                   onBlur={() => {
@@ -148,10 +149,12 @@ export default function CambiarPassword() {
               </div>
 
               <div style={cs.campo}>
-                <label style={cs.label}>CONFIRMAR CONTRASEÑA</label>
+                <label htmlFor="confirm-password" style={cs.label}>Confirmar contraseña</label>
                 <input
+                  id="confirm-password"
+                  className="auth-login-input"
                   type="password" value={form.password2} required
-                  style={cs.input} placeholder="Repite la contraseña"
+                  style={{ ...cs.input, ...cs.loginInput }} placeholder="Repite la contraseña"
                   autoComplete="new-password"
                   onChange={e => setForm({ ...form, password2: e.target.value })}
                 />
@@ -160,10 +163,14 @@ export default function CambiarPassword() {
               {error && <p style={cs.error}>{error}</p>}
 
               <button type="submit" disabled={cargando} style={cs.btnSubmit}>
-                {cargando ? 'GUARDANDO...' : 'ESTABLECER NUEVA CONTRASEÑA'}
+                {cargando ? 'Guardando…' : 'Guardar nueva contraseña  →'}
               </button>
             </form>
           )}
+
+          <p style={cs.backNotice}>
+            <Link to="/login" style={cs.backLink}>Volver al inicio de sesión</Link>
+          </p>
 
         </div>
       </div>
@@ -172,45 +179,48 @@ export default function CambiarPassword() {
 }
 
 const cs = {
-  page: { display: 'flex', minHeight: '100vh', fontFamily: "'Segoe UI', sans-serif" },
+  page: { display: 'flex', minHeight: '100vh' },
   left: {
     width: '50%', flexShrink: 0,
-    background: 'radial-gradient(ellipse at 30% 40%, #4a2c1a 0%, #2c1810 40%, #150c08 100%)',
+    background: `linear-gradient(180deg, rgba(30,20,17,0.6), rgba(30,20,17,0.9)), url(${sidebarPhoto}) center 30%/cover no-repeat`,
     display: 'flex', flexDirection: 'column',
     justifyContent: 'space-between', alignItems: 'center',
-    padding: '48px 40px 28px',
+    padding: '40px 36px 28px', position: 'relative',
   },
-  leftInner: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '28px', flex: 1, justifyContent: 'center' },
+  leftInner: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '22px', flex: 1, justifyContent: 'center' },
   fundacion: { display: 'flex', alignItems: 'center', gap: '14px', width: '100%', justifyContent: 'center' },
   lineaOro: { flex: 1, height: '1px', backgroundColor: 'rgba(201,168,76,0.4)', maxWidth: '80px' },
   fundText: { fontSize: '11px', fontWeight: '700', color: GOLD, letterSpacing: '0.18em' },
-  escudo: { width: '180px', height: '180px', objectFit: 'contain', filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.4))' },
+  escudo: { width: '148px', height: '148px', objectFit: 'contain', filter: 'drop-shadow(0 8px 22px rgba(0,0,0,0.32))' },
   hermandadInfo: { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' },
   hermandadLabel: { fontSize: '10px', color: 'rgba(201,168,76,0.7)', letterSpacing: '0.2em', margin: 0 },
-  hermandadNombre: { color: 'white', fontSize: '32px', fontWeight: '700', margin: 0, lineHeight: '1.2', textAlign: 'center', fontFamily: 'Georgia, serif' },
+  hermandadNombre: { color: 'white', fontSize: '30px', fontWeight: '700', margin: 0, lineHeight: '1.2', textAlign: 'center' },
   separador: { display: 'flex', alignItems: 'center', gap: '10px', width: '120px' },
   lineaOroFina: { flex: 1, height: '1px', backgroundColor: 'rgba(201,168,76,0.5)' },
   cruz: { color: GOLD, fontSize: '14px', fontWeight: '300' },
   lema: { fontSize: '13px', fontWeight: '700', color: GOLD, letterSpacing: '0.25em', margin: 0 },
-  right: { flex: 1, backgroundColor: CREAM, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' },
-  rightInner: { width: '100%', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '20px' },
-  logoWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' },
-  logoBox: { width: '64px', height: '64px', borderRadius: '16px', backgroundColor: DARK, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(44,24,16,0.25)' },
-  logoImg: { width: '44px', height: '44px', objectFit: 'contain' },
-  appName: { fontSize: '24px', fontWeight: '700', color: DARK, margin: 0, fontFamily: 'Georgia, serif' },
-  appSub: { fontSize: '10px', fontWeight: '700', color: GOLD, letterSpacing: '0.15em', margin: 0 },
-  accesoRow: { display: 'flex', alignItems: 'center', gap: '12px' },
-  lineaGris: { flex: 1, height: '1px', backgroundColor: '#d8cfc4' },
-  accesoLabel: { fontSize: '10px', fontWeight: '700', color: '#9a8866', letterSpacing: '0.15em', whiteSpace: 'nowrap' },
-  form: { display: 'flex', flexDirection: 'column', gap: '14px' },
-  campo: { display: 'flex', flexDirection: 'column', gap: '6px' },
-  label: { fontSize: '10px', fontWeight: '700', color: '#9a8866', letterSpacing: '0.12em' },
-  input: { padding: '12px 14px', borderRadius: '8px', border: '1px solid #d8cfc4', fontSize: '14px', outline: 'none', backgroundColor: 'white', color: DARK, fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' },
-  requisitos: { fontSize: '11px', color: '#746653', margin: '2px 0 0', lineHeight: '1.4' },
-  listaErrores: { fontSize: '12px', color: '#c0392b', margin: '0', paddingLeft: '18px', lineHeight: '1.45' },
-  error: { fontSize: '12px', color: '#c0392b', textAlign: 'center', margin: 0 },
-  btnSubmit: { padding: '14px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: '700', letterSpacing: '0.1em', marginTop: '4px' },
-  exitoBox: { textAlign: 'center', padding: '24px', backgroundColor: '#f0fff4', borderRadius: '12px', border: '1px solid #c6f6d5' },
-  exitoTexto: { color: '#2d7a45', fontWeight: '700', fontSize: '15px', margin: '0 0 8px' },
-  exitoSub: { color: '#9a8866', fontSize: '13px', margin: 0 },
+  right: { flex: 1, background: 'linear-gradient(180deg, #241813 0%, #1e1411 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '36px' },
+  rightInner: { width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'column', padding: '24px 22px', border: 'none', background: 'transparent', boxShadow: 'none' },
+  logoWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', marginBottom: '34px', textAlign: 'center' },
+  logoBox: { width: '170px', height: '92px', backgroundColor: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'none', border: 'none' },
+  logoImg: { width: '164px', height: '88px', objectFit: 'contain', objectPosition: 'center' },
+  appSub: { fontSize: '10px', fontWeight: '700', color: '#bda966', letterSpacing: '0.13em', margin: 0 },
+  welcomeBlock: { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '28px', textAlign: 'center' },
+  welcomeTitle: { margin: '0 0 8px', color: '#fffaf5', fontSize: '34px', fontWeight: '700', lineHeight: 1.15, letterSpacing: '-0.025em' },
+  welcomeText: { maxWidth: '390px', margin: 0, color: '#aa9d95', fontSize: '14px', lineHeight: 1.55 },
+  form: { display: 'flex', flexDirection: 'column', gap: '16px' },
+  campo: { display: 'flex', flexDirection: 'column', gap: '7px' },
+  label: { fontSize: '13px', fontWeight: '600', color: '#e4dad4', letterSpacing: '0.01em' },
+  input: { minHeight: '48px', padding: '11px 14px', borderRadius: '10px', border: '1px solid #d8cfc4', fontSize: '15px', outline: 'none', backgroundColor: '#f8f6f4', color: DARK, fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' },
+  loginInput: { border: '1px solid rgba(255,255,255,0.11)', background: 'rgba(255,255,255,0.055)', color: '#fffaf5', caretColor: GOLD },
+  requisitos: { fontSize: '11px', color: '#91847c', margin: '2px 0 0', lineHeight: '1.45' },
+  listaErrores: { fontSize: '12px', color: '#ffc7c1', margin: 0, padding: '10px 12px 10px 28px', border: '1px solid rgba(255,140,130,0.18)', borderRadius: '9px', background: 'rgba(166,61,50,0.14)', lineHeight: '1.45' },
+  error: { fontSize: '13px', color: '#ffc7c1', textAlign: 'left', margin: 0, padding: '10px 12px', border: '1px solid rgba(255,140,130,0.18)', borderRadius: '9px', background: 'rgba(166,61,50,0.14)' },
+  btnSubmit: { minHeight: '50px', padding: '13px 16px', background: GOLD, color: '#1e1411', border: 'none', borderRadius: '11px', fontSize: '15px', cursor: 'pointer', fontWeight: '700', letterSpacing: '0.01em', marginTop: '2px' },
+  exitoBox: { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '24px', background: 'rgba(72,137,88,0.1)', borderRadius: '12px', border: '1px solid rgba(119,188,135,0.22)' },
+  exitoIcon: { display: 'grid', placeItems: 'center', width: '36px', height: '36px', marginBottom: '12px', borderRadius: '50%', color: '#c8ebd0', background: 'rgba(119,188,135,0.14)', fontSize: '20px', fontWeight: '800' },
+  exitoTexto: { color: '#d9f0de', fontWeight: '700', fontSize: '15px', margin: '0 0 8px' },
+  exitoSub: { color: '#9aaea0', fontSize: '13px', margin: 0 },
+  backNotice: { margin: '26px 0 0', paddingTop: '18px', borderTop: '1px solid rgba(255,255,255,0.08)', textAlign: 'center', fontSize: '12px' },
+  backLink: { color: '#b9aaa1', fontWeight: '600', textDecorationColor: 'rgba(185,170,161,0.42)', textUnderlineOffset: '3px' },
 }
