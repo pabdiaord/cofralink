@@ -224,6 +224,8 @@ export default function Inventario() {
         {Object.entries(TIPOS).map(([key, val]) => (
           <button
             key={key}
+            type="button"
+            aria-pressed={tipoActivo === key}
             style={{ ...styles.tab, ...(tipoActivo === key ? styles.tabActivo : {}) }}
             onClick={() => cambiarTipo(key)}
           >
@@ -404,7 +406,7 @@ const styles = {
     fontSize: '14px', fontWeight: '700', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.04)',
   },
   tabActivo: {
-    background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', borderColor: '#2c1810', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
+    background: '#241813', color: '#fffaf5', borderColor: '#241813', boxShadow: 'none',
   },
 
   // Formulario
@@ -423,13 +425,13 @@ const styles = {
 
   // Tabla
   tabla: {
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px',
-    boxShadow: '0 12px 24px rgba(44,24,16,0.06)', overflow: 'hidden', border: '1px solid rgba(117, 82, 52, 0.12)',
+    background: '#ffffff', borderRadius: '14px',
+    boxShadow: '0 5px 18px rgba(36,24,19,0.045)', overflow: 'hidden', border: '1px solid #e3dedb',
   },
   tablaHeader: {
     display: 'flex', alignItems: 'center', gap: '12px',
-    padding: '12px 20px', background: '#3c2519',
-    color: '#f5e6c8', fontSize: '13px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase',
+    padding: '12px 20px', background: '#f8f6f4',
+    color: '#625853', fontSize: '12px', fontWeight: '700', letterSpacing: '0.06em', textTransform: 'uppercase',
   },
   fila: {
     display: 'flex', alignItems: 'center', gap: '12px',
@@ -438,7 +440,7 @@ const styles = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
+    padding: '10px 20px', background: '#241813', color: '#fffaf5',
     border: 'none', borderRadius: '8px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
   },

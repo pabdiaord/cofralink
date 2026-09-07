@@ -216,6 +216,7 @@ const openConfirm = (action, payload = null) => {
               <button
                 key={opcion}
                 type="button"
+                aria-pressed={filtroEstado === opcion}
                 onClick={() => { setFiltroEstado(opcion); setPaginaActual(1) }}
                 style={{
                   ...styles.filterChip,
@@ -235,6 +236,7 @@ const openConfirm = (action, payload = null) => {
               <button
                 key={opcion}
                 type="button"
+                aria-pressed={filtroCaracter === opcion}
                 onClick={() => { setFiltroCaracter(opcion); setPaginaActual(1) }}
                 style={{
                   ...styles.filterChip,
@@ -505,11 +507,11 @@ const styles = {
   error:   { color: '#e53e3e', marginBottom: '16px', fontSize: '14px' },
   nota:    { fontSize: '12px', color: '#888', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '6px' },
   filtersPanel: {
-    background: 'linear-gradient(135deg, rgba(255,250,245,0.96), rgba(244,234,222,0.9))',
-    border: '1px solid rgba(117, 82, 52, 0.15)',
-    borderRadius: '18px',
-    padding: '18px 18px 12px',
-    boxShadow: '0 12px 26px rgba(44, 24, 16, 0.06)',
+    background: '#ffffff',
+    border: '1px solid #e3dedb',
+    borderRadius: '14px',
+    padding: '16px 16px 12px',
+    boxShadow: '0 5px 18px rgba(36,24,19,0.045)',
     marginBottom: '18px',
     display: 'flex',
     flexDirection: 'column',
@@ -536,11 +538,11 @@ const styles = {
     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35)',
   },
   filterChipActive: {
-    background: 'linear-gradient(135deg, #2c1810, #563522)',
-    borderColor: '#2c1810',
-    color: '#f5e6c8',
-    boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
-    transform: 'translateY(-1px)',
+    background: '#241813',
+    borderColor: '#241813',
+    color: '#fffaf5',
+    boxShadow: 'none',
+    transform: 'none',
   },
   searchWrap: {
     marginBottom: '18px',
@@ -572,13 +574,13 @@ const styles = {
 
   // Tabla
   tabla: {
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px',
-    boxShadow: '0 12px 24px rgba(44,24,16,0.06)', overflow: 'hidden', border: '1px solid rgba(117, 82, 52, 0.12)',
+    background: '#ffffff', borderRadius: '14px',
+    boxShadow: '0 5px 18px rgba(36,24,19,0.045)', overflow: 'hidden', border: '1px solid #e3dedb',
   },
   tablaHeader: {
     display: 'flex', alignItems: 'center', gap: '12px',
-    padding: '12px 20px', background: '#3c2519',
-    color: '#f5e6c8', fontSize: '13px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase',
+    padding: '12px 20px', background: '#f8f6f4',
+    color: '#625853', fontSize: '12px', fontWeight: '700', letterSpacing: '0.06em', textTransform: 'uppercase',
   },
   fila: {
     display: 'flex', alignItems: 'center', gap: '12px',
@@ -590,9 +592,9 @@ const styles = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
+    padding: '10px 20px', background: '#241813', color: '#fffaf5',
     border: 'none', borderRadius: '10px', fontSize: '14px',
-    cursor: 'pointer', fontWeight: '700', alignSelf: 'flex-start', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
+    cursor: 'pointer', fontWeight: '700', alignSelf: 'flex-start', boxShadow: 'none',
   },
   btnCancelar: {
     padding: '10px 20px', backgroundColor: '#efe4d9', color: '#2c1810',

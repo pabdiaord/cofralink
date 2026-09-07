@@ -348,7 +348,7 @@ export default function Donaciones() {
             {proyectosGestionFiltrados.length > 0 ? (
               <div style={styles.adminHuchas}>
                 {proyectosGestionFiltrados.map(hucha => (
-                  <div style={styles.adminHucha} key={hucha.id}>
+                  <div className="donation-admin-card" style={styles.adminHucha} key={hucha.id}>
                     <div>
                       <strong>{hucha.nombre}</strong>
                       <p style={styles.adminText}>
@@ -628,12 +628,12 @@ const styles = {
   sectionTitle: { fontSize: '20px', margin: '0 0 14px', color: '#2c1810' },
   carouselHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', marginBottom: '14px' },
   carouselControls: { display: 'flex', gap: '8px', flexShrink: 0 },
-  carouselArrow: { width: '35px', height: '35px', border: '1px solid rgba(117,82,52,0.3)', borderRadius: '50%', background: '#fffdfa', color: '#4b2d1f', fontSize: '27px', lineHeight: 1, cursor: 'pointer', display: 'grid', placeItems: 'center', padding: '0 0 3px', boxShadow: '0 4px 10px rgba(44,24,16,0.08)' },
+  carouselArrow: { width: '35px', height: '35px', border: '1px solid #ded9d5', borderRadius: '9px', background: '#ffffff', color: '#4b2d1f', fontSize: '24px', lineHeight: 1, cursor: 'pointer', display: 'grid', placeItems: 'center', padding: '0 0 3px', boxShadow: 'none' },
   carouselArrowDisabled: { color: '#b9ab9c', borderColor: 'rgba(117,82,52,0.12)', background: 'rgba(255,253,250,0.55)', cursor: 'not-allowed', boxShadow: 'none' },
   cardsViewport: { overflowX: 'auto', overflowY: 'hidden', scrollBehavior: 'smooth', scrollSnapType: 'x proximity', scrollbarWidth: 'none', msOverflowStyle: 'none', padding: '0 1px 8px', outlineOffset: '4px' },
   cards: { display: 'flex', gap: '18px', width: '100%' },
-  card: { flex: '0 0 calc((100% - 36px) / 3)', minWidth: '290px', scrollSnapAlign: 'start', background: 'rgba(255,253,250,0.92)', border: '1px solid rgba(117,82,52,0.16)', borderRadius: '20px', padding: '22px', boxShadow: '0 12px 28px rgba(44,24,16,0.07)', display: 'flex', flexDirection: 'column' },
-  generalCard: { border: '1px solid rgba(201,168,76,0.65)', background: 'linear-gradient(155deg, #fffaf0, #f4e7c9)' },
+  card: { flex: '0 0 calc((100% - 36px) / 3)', minWidth: '290px', scrollSnapAlign: 'start', background: '#ffffff', border: '1px solid #e3dedb', borderRadius: '14px', padding: '22px', boxShadow: '0 5px 18px rgba(36,24,19,0.045)', display: 'flex', flexDirection: 'column' },
+  generalCard: { border: '1px solid rgba(184,155,82,0.5)', background: '#fffdf8' },
   cardTopLine: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   typeBadge: { color: '#775420', background: 'rgba(201,168,76,0.18)', borderRadius: '999px', padding: '5px 8px', fontSize: '11px', letterSpacing: '0.05em', fontWeight: '700' },
   cardIcon: { display: 'grid', placeItems: 'center', color: '#8d6824' },
@@ -651,8 +651,8 @@ const styles = {
   euroSymbol: { position: 'absolute', right: '12px', top: '10px', color: '#765a3f', fontWeight: '700' },
   quickAmounts: { display: 'flex', gap: '7px', margin: '10px 0 12px' },
   quickButton: { border: '1px solid rgba(117,82,52,0.24)', background: 'transparent', color: '#684a30', borderRadius: '8px', padding: '6px 8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' },
-  primaryButton: { width: '100%', border: 'none', borderRadius: '10px', padding: '11px 15px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee', fontSize: '14px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 8px 18px rgba(44,24,16,0.16)' },
-  secondaryButton: { border: '1px solid #5b3927', borderRadius: '10px', padding: '10px 15px', color: '#fff9ef', background: '#5b3927', fontSize: '14px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap' },
+  primaryButton: { width: '100%', border: 'none', borderRadius: '9px', padding: '11px 15px', background: '#241813', color: '#fffaf5', fontSize: '14px', fontWeight: '700', cursor: 'pointer', boxShadow: 'none' },
+  secondaryButton: { border: '1px solid #241813', borderRadius: '9px', padding: '10px 15px', color: '#fffaf5', background: '#241813', fontSize: '14px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap' },
   projectForm: { padding: 0, margin: 0 },
   formActions: { display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '4px' },
   formCancelButton: { border: '1px solid rgba(117,82,52,0.22)', borderRadius: '10px', padding: '11px 15px', background: '#f3ece5', color: '#2c1810', fontSize: '14px', fontWeight: '700', cursor: 'pointer' },
@@ -664,11 +664,11 @@ const styles = {
   adminSection: { marginTop: '38px', borderTop: '2px solid rgba(201,168,76,0.35)', paddingTop: '27px' },
   adminTabs: { display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '15px' },
   adminTab: { border: '1px solid rgba(117,82,52,0.24)', borderRadius: '10px', padding: '9px 14px', background: 'rgba(255,253,250,0.7)', color: '#684a30', fontSize: '13px', fontWeight: '700', cursor: 'pointer' },
-  adminTabActive: { borderColor: '#5b3927', background: '#5b3927', color: '#fff9ef', boxShadow: '0 7px 15px rgba(44,24,16,0.14)' },
+  adminTabActive: { borderColor: '#241813', background: '#241813', color: '#fffaf5', boxShadow: 'none' },
   adminSearch: { marginBottom: '15px' },
   adminHuchasPanel: { marginBottom: '24px' },
   adminHuchas: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' },
-  adminHucha: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', background: 'rgba(255,253,250,0.85)', padding: '14px', border: '1px solid rgba(117,82,52,0.15)', borderRadius: '12px' },
+  adminHucha: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', background: '#ffffff', padding: '14px', border: '1px solid #e3dedb', borderRadius: '12px' },
   adminText: { margin: '4px 0 0', color: '#765f4e', fontSize: '12px' },
   adminEmpty: { color: '#725d4b', margin: '0 0 24px', fontSize: '14px' },
   closeButton: { border: '1px solid #a34a37', color: '#982d1f', background: '#fff7f5', borderRadius: '8px', padding: '7px 9px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' },
@@ -676,9 +676,9 @@ const styles = {
   tableFilters: { display: 'flex', flexDirection: 'column', gap: '5px', maxWidth: '360px', marginBottom: '12px' },
   filterLabel: { fontSize: '12px', color: '#725d4b', fontWeight: '700' },
   filterSelect: { border: '1px solid rgba(117,82,52,0.25)', borderRadius: '9px', background: '#fffdfa', color: '#2c1810', padding: '9px 11px', font: 'inherit' },
-  tableWrap: { overflowX: 'auto', background: 'rgba(255,253,250,0.9)', border: '1px solid rgba(117,82,52,0.14)', borderRadius: '13px' },
+  tableWrap: { overflowX: 'auto', background: '#ffffff', border: '1px solid #e3dedb', borderRadius: '13px' },
   table: { width: '100%', borderCollapse: 'collapse', minWidth: '560px' },
-  th: { color: '#f7ead5', background: '#3c2519', padding: '11px 14px', textAlign: 'left', fontSize: '12px', letterSpacing: '0.04em', textTransform: 'none' },
+  th: { color: '#625853', background: '#f8f6f4', padding: '11px 14px', textAlign: 'left', fontSize: '11px', letterSpacing: '0.06em', textTransform: 'uppercase' },
   td: { padding: '12px 14px', borderBottom: '1px solid rgba(117,82,52,0.1)', fontSize: '14px', color: '#513a2c' },
   empty: { color: '#725d4b', background: 'rgba(255,253,250,0.55)', padding: '18px', borderRadius: '12px', margin: 0, fontSize: '14px' },
   info: { textAlign: 'center', color: '#705743', marginTop: '42px', fontSize: '14px' },

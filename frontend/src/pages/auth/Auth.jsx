@@ -4,17 +4,15 @@ import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
 import logo   from '../../assets/logo.png'
 import escudo from '../../assets/escudo.png'
+import sidebarPhoto from '../../assets/sidebar.jpg'
 
-const DARK = '#2c1810'
-const GOLD = '#c9a84c'
-const CREAM = '#f5f0e8'
+const DARK = '#241813'
+const GOLD = '#b89b52'
 
 // ══════════════════════════════════════════════
 // COMPONENTE PRINCIPAL
 // ══════════════════════════════════════════════
-export default function Auth({ initialTab = 'login' }) {
-  const [tab, setTab] = useState(initialTab)
-
+export default function Auth() {
   return (
     <div className="auth-page" style={as.page}>
 
@@ -45,16 +43,13 @@ export default function Auth({ initialTab = 'login' }) {
 
         </div>
 
-        {/* Indicador de slide */}
-        <div style={as.indicator}>
-        </div>
       </div>
 
       {/* ── Panel derecho ── */}
       <div className="auth-panel auth-panel--form" style={as.right}>
-        <div style={as.rightInner}>
+        <div className="auth-login-panel" style={as.rightInner}>
 
-          {/* Logo */}
+          {/* Identidad de producto */}
           <div style={as.logoWrap}>
             <div style={as.logoBox}>
               <img src={logo} alt="CofraLink" style={as.logoImg} />
@@ -62,19 +57,12 @@ export default function Auth({ initialTab = 'login' }) {
             <p style={as.appSub}>PLATAFORMA DE GESTIÓN COFRADE</p>
           </div>
 
-          {/* Separador ACCESO */}
-          <div style={as.accesoRow}>
-            <div style={as.lineaGris} />
-            <span style={as.accesoLabel}>ACCESO</span>
-            <div style={as.lineaGris} />
+          <div style={as.welcomeBlock}>
+            <h1 style={as.welcomeTitle}>¡Hola Hermano!</h1>
+            <p style={as.welcomeText}>Accede a tu espacio de hermano y mantente conectado con la Hermandad.</p>
           </div>
 
-
-          {/* Formulario activo */}
-          {tab === 'login'
-            ? <FormLogin />
-            : <FormRegistro onExito={() => setTab('login')} />
-          }
+          <FormLogin />
 
           <p style={as.legalNotice}>
             <Link to="/politica-de-privacidad" style={as.legalLink}>Política de privacidad</Link>
@@ -137,43 +125,54 @@ function FormLogin() {
     <>
       <form onSubmit={handleSubmit} style={as.form}>
         <div style={as.campo}>
-          <label style={as.label}>CORREO ELECTRÓNICO</label>
+          <label htmlFor="login-email" style={as.label}>Correo electrónico</label>
           <input
+            id="login-email"
+            className="auth-login-input"
             type="email" value={form.email} required
-            style={as.input} placeholder="tu@hermandad.es"
+            style={{ ...as.input, ...as.loginInput }} placeholder="tu@hermandad.es"
+            autoComplete="email"
             onChange={e => setForm({ ...form, email: e.target.value })}
           />
         </div>
 
         <div style={as.campo}>
-          <label style={as.label}>CONTRASEÑA</label>
+          <label htmlFor="login-password" style={as.label}>Contraseña</label>
           <div style={as.passWrap}>
             <input
+              id="login-password"
+              className="auth-login-input"
               type={verPass ? 'text' : 'password'}
               value={form.password} required
-              style={{ ...as.input, paddingRight: '42px' }}
+              style={{ ...as.input, ...as.loginInput, paddingRight: '76px' }}
               placeholder="••••••••"
+              autoComplete="current-password"
               onChange={e => setForm({ ...form, password: e.target.value })}
             />
-            <button type="button" style={as.eyeBtn} onClick={() => setVerPass(!verPass)}>
-              {verPass ? '🙈' : '👁'}
+            <button
+              type="button"
+              className="auth-password-toggle"
+              style={as.eyeBtn}
+              aria-label={verPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              onClick={() => setVerPass(!verPass)}
+            >
+              {verPass ? 'Ocultar' : 'Mostrar'}
             </button>
           </div>
         </div>
 
         {error && <p style={as.error}>{error}</p>}
 
-        <button type="submit" disabled={cargando} style={as.btnSubmit}>
-          {cargando ? 'ENTRANDO...' : 'INICIAR SESIÓN  ›'}
-        </button>
-
-        {/* Enlace cambio de contraseña */}
         <button
           type="button"
           style={as.linkPass}
           onClick={() => { setModalPass(true); setMensajeReset('') }}
         >
-          ¿Primera vez o has olvidado tu contraseña?
+          ¿Has olvidado tu contraseña?
+        </button>
+
+        <button type="submit" disabled={cargando} style={as.btnSubmit}>
+          {cargando ? 'Accediendo…' : 'Iniciar sesión  →'}
         </button>
       </form>
 
@@ -194,7 +193,7 @@ function FormLogin() {
             ) : (
               <form onSubmit={handleSolicitarReset} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={as.campo}>
-                  <label style={as.label}>CORREO ELECTRÓNICO</label>
+                  <label style={{ ...as.label, ...as.modalLabel }}>CORREO ELECTRÓNICO</label>
                   <input
                     type="email" value={emailReset} required
                     style={as.input} placeholder="tu@hermandad.es"
@@ -225,121 +224,108 @@ const as = {
   // ── Panel izquierdo ──
   left: {
     width: '50%', flexShrink: 0,
-    background: `radial-gradient(ellipse at 30% 40%, #4a2c1a 0%, #2c1810 40%, #150c08 100%)`,
+    background: `linear-gradient(180deg, rgba(30,20,17,0.6), rgba(30,20,17,0.9)), url(${sidebarPhoto}) center 30%/cover no-repeat`,
     display: 'flex', flexDirection: 'column',
     justifyContent: 'space-between', alignItems: 'center',
-    padding: '48px 40px 28px',
+    padding: '40px 36px 28px',
     position: 'relative',
   },
   leftInner: {
     display: 'flex', flexDirection: 'column',
-    alignItems: 'center', gap: '28px', flex: 1, justifyContent: 'center',
+    alignItems: 'center', gap: '22px', flex: 1, justifyContent: 'center',
   },
   fundacion: {
     display: 'flex', alignItems: 'center', gap: '14px', width: '100%', justifyContent: 'center',
   },
   lineaOro: { flex: 1, height: '1px', backgroundColor: 'rgba(201,168,76,0.4)', maxWidth: '80px' },
   fundText: { fontSize: '11px', fontWeight: '700', color: GOLD, letterSpacing: '0.18em' },
-  escudo: { width: '180px', height: '180px', objectFit: 'contain', filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.4))' },
+  escudo: { width: '148px', height: '148px', objectFit: 'contain', filter: 'drop-shadow(0 8px 22px rgba(0,0,0,0.32))' },
   hermandadInfo: { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' },
   hermandadLabel: { fontSize: '10px', color: 'rgba(201,168,76,0.7)', letterSpacing: '0.2em', margin: 0 },
   hermandadNombre: {
-    color: 'white', fontSize: '32px', fontWeight: '700',
+    color: 'white', fontSize: '30px', fontWeight: '700',
     margin: 0, lineHeight: '1.2', textAlign: 'center',
   },
   separador: { display: 'flex', alignItems: 'center', gap: '10px', width: '120px' },
   lineaOroFina: { flex: 1, height: '1px', backgroundColor: 'rgba(201,168,76,0.5)' },
   cruz: { color: GOLD, fontSize: '14px', fontWeight: '300' },
   lema: { fontSize: '13px', fontWeight: '700', color: GOLD, letterSpacing: '0.25em', margin: 0 },
-  indicator: { display: 'flex', gap: '6px', justifyContent: 'center' },
-  dot: { width: '8px', height: '8px', borderRadius: '50%', backgroundColor: GOLD, opacity: 0.7 },
 
   // ── Panel derecho ──
   right: {
-    flex: 1, backgroundColor: CREAM,
+    flex: 1, background: 'linear-gradient(180deg, #241813 0%, #1e1411 100%)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    padding: '40px',
+    padding: '36px',
   },
-  rightInner: { width: '100%', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '20px' },
+  rightInner: {
+    width: '100%', maxWidth: '440px', display: 'flex', flexDirection: 'column',
+    padding: '24px 22px', border: 'none', background: 'transparent',
+    boxShadow: 'none',
+  },
 
   // Logo
-  logoWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' },
+  logoWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', marginBottom: '34px', textAlign: 'center' },
   logoBox: {
-    width: '94px', height: '94px', borderRadius: '16px',
-    backgroundColor: DARK, display: 'flex', alignItems: 'center', justifyContent: 'center',
-    boxShadow: '0 4px 16px rgba(44,24,16,0.25)',
+    width: '170px', height: '92px',
+    backgroundColor: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: 'none', border: 'none',
   },
-  logoImg:  { width: '84px', height: '84px', objectFit: 'contain' },
-  appName:  { fontSize: '24px', fontWeight: '700', color: DARK, margin: 0 },
-  appSub:   { fontSize: '10px', fontWeight: '700', color: GOLD, letterSpacing: '0.15em', margin: 0 },
+  logoImg:  { width: '164px', height: '88px', objectFit: 'contain', objectPosition: 'center' },
+  appSub:   { fontSize: '10px', fontWeight: '700', color: '#bda966', letterSpacing: '0.13em', margin: 0 },
 
-  // Separador ACCESO
-  accesoRow: { display: 'flex', alignItems: 'center', gap: '12px' },
-  lineaGris: { flex: 1, height: '1px', backgroundColor: '#d8cfc4' },
-  accesoLabel: { fontSize: '10px', fontWeight: '700', color: '#9a8866', letterSpacing: '0.15em', whiteSpace: 'nowrap' },
-
-  // Tabs
-  tabs: {
-    display: 'grid', gridTemplateColumns: '1fr 1fr',
-    border: '1px solid #ddd4c4', borderRadius: '10px', overflow: 'hidden',
-    backgroundColor: '#ece6da',
-  },
-  tabBtn: {
-    padding: '11px', border: 'none', background: 'transparent',
-    cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#7a6a58',
-    transition: 'all 0.2s',
-  },
-  tabActivo: {
-    backgroundColor: 'white', color: DARK, fontWeight: '700',
-    boxShadow: '0 2px 8px rgba(44,24,16,0.1)',
-    borderRadius: '8px',
-  },
+  // Bienvenida
+  welcomeBlock: { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '28px', textAlign: 'center' },
+  welcomeTitle: { margin: '0 0 8px', color: '#fffaf5', fontSize: '34px', fontWeight: '700', lineHeight: 1.15, letterSpacing: '-0.025em' },
+  welcomeText: { maxWidth: '390px', margin: 0, color: '#aa9d95', fontSize: '14px', lineHeight: 1.55 },
 
   // Formulario
-  form:  { display: 'flex', flexDirection: 'column', gap: '14px' },
-  campo: { display: 'flex', flexDirection: 'column', gap: '6px' },
-  label: { fontSize: '10px', fontWeight: '700', color: '#9a8866', letterSpacing: '0.12em' },
+  form:  { display: 'flex', flexDirection: 'column', gap: '16px' },
+  campo: { display: 'flex', flexDirection: 'column', gap: '7px' },
+  label: { fontSize: '13px', fontWeight: '600', color: '#e4dad4', letterSpacing: '0.01em' },
   input: {
-    padding: '12px 14px', borderRadius: '8px',
-    border: '1px solid #d8cfc4', fontSize: '14px',
-    outline: 'none', backgroundColor: 'white', color: DARK,
+    minHeight: '48px', padding: '11px 14px', borderRadius: '10px',
+    border: '1px solid #d8cfc4', fontSize: '15px',
+    outline: 'none', backgroundColor: '#f8f6f4', color: DARK,
     fontFamily: 'inherit', width: '100%', boxSizing: 'border-box',
+  },
+  loginInput: {
+    border: '1px solid rgba(255,255,255,0.11)',
+    background: 'rgba(255,255,255,0.055)',
+    color: '#fffaf5',
+    caretColor: GOLD,
   },
   passWrap: { position: 'relative' },
   eyeBtn: {
-    position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-    background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '2px',
+    position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+    minWidth: '58px', minHeight: '32px', background: 'transparent', border: 'none', borderRadius: '7px',
+    color: '#cdbb7c', cursor: 'pointer', fontSize: '11px', fontWeight: '700', padding: '5px 8px',
   },
-  error: { fontSize: '12px', color: '#c0392b', textAlign: 'center', margin: 0 },
+  error: { fontSize: '13px', color: '#ffc7c1', textAlign: 'left', margin: 0, padding: '10px 12px', border: '1px solid rgba(255,140,130,0.18)', borderRadius: '9px', background: 'rgba(166,61,50,0.14)' },
   btnSubmit: {
-    padding: '14px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
-    border: 'none', borderRadius: '8px', fontSize: '13px',
-    cursor: 'pointer', fontWeight: '700', letterSpacing: '0.1em',
-    marginTop: '4px', transition: 'opacity 0.2s',
-  },
-  nota: {
-    fontSize: '12px', color: '#9a8866', textAlign: 'center',
-    lineHeight: '1.5', margin: 0,
+    minHeight: '50px', padding: '13px 16px', background: GOLD, color: '#1e1411',
+    border: 'none', borderRadius: '11px', fontSize: '15px',
+    cursor: 'pointer', fontWeight: '700', letterSpacing: '0.01em',
+    marginTop: '2px',
   },
   legalNotice: {
-    fontSize: '12px', color: '#9a8866', textAlign: 'center',
-    lineHeight: '1.5', margin: '2px 0 0',
+    fontSize: '11px', color: '#81746d', textAlign: 'center',
+    lineHeight: '1.5', margin: '26px 0 0', paddingTop: '18px', borderTop: '1px solid rgba(255,255,255,0.08)',
   },
-  legalLink: { color: '#765a3f', fontWeight: '600' },
+  legalLink: { color: '#b9aaa1', fontWeight: '600', textDecorationColor: 'rgba(185,170,161,0.42)', textUnderlineOffset: '3px' },
   linkPass: {
-  background: 'none', border: 'none', cursor: 'pointer',
-  fontSize: '12px', color: '#9a8866', textAlign: 'center',
-  textDecoration: 'underline', padding: '4px 0', fontFamily: 'inherit',
-},
+    alignSelf: 'flex-end', background: 'none', border: 'none', cursor: 'pointer',
+    fontSize: '12px', color: '#cdbb7c', textAlign: 'right',
+    textDecoration: 'none', padding: '0', marginTop: '-6px', fontFamily: 'inherit',
+  },
 overlay: {
   position: 'fixed', inset: 0, backgroundColor: 'rgba(44,24,16,0.5)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   zIndex: 1000, padding: '20px',
 },
 modalPass: {
-  backgroundColor: CREAM, borderRadius: '14px', padding: '28px',
+  backgroundColor: '#ffffff', borderRadius: '14px', padding: '28px',
   width: '100%', maxWidth: '360px', position: 'relative',
-  boxShadow: '0 12px 40px rgba(44,24,16,0.25)',
+  boxShadow: '0 20px 48px rgba(36,24,19,0.16)', border: '1px solid #e3dedb',
 },
 modalCerrar: {
   position: 'absolute', top: '12px', right: '14px',
@@ -348,6 +334,7 @@ modalCerrar: {
 },
 modalTitulo: { fontSize: '18px', fontWeight: '700', color: DARK, margin: '0 0 8px' },
 modalDesc:   { fontSize: '13px', color: '#7a6a58', margin: '0 0 16px', lineHeight: '1.5' },
+modalLabel:  { color: '#6f625b' },
 mensajeReset: {
   padding: '14px', backgroundColor: '#f0fff4', borderRadius: '8px',
   border: '1px solid #c6f6d5', fontSize: '13px', color: '#2d7a45', textAlign: 'center',

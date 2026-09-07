@@ -504,9 +504,9 @@ const ps = {
 
   // Columna lateral
   sidebar: {
-    gridArea: 'sidebar', position: 'sticky', top: '24px', padding: '22px', borderRadius: '18px',
-    background: 'linear-gradient(145deg, rgba(255,253,250,0.96), rgba(244,234,222,0.9))',
-    border: '1px solid rgba(117,82,52,0.14)', boxShadow: '0 12px 26px rgba(44,24,16,0.06)',
+    gridArea: 'sidebar', position: 'sticky', top: '24px', padding: '22px', borderRadius: '14px',
+    background: '#ffffff',
+    border: '1px solid #e3dedb', boxShadow: '0 5px 18px rgba(36,24,19,0.045)',
   },
   sidebarEyebrow: { margin: 0, color: '#95713a', fontSize: '10px', fontWeight: '800', letterSpacing: '0.13em', textTransform: 'uppercase' },
   sidebarTitle: { margin: '4px 0 7px', color: DARK, fontSize: '19px', lineHeight: '1.35' },
@@ -521,10 +521,10 @@ const ps = {
   lista: { display: 'flex', flexDirection: 'column', gap: '18px' },
   card: {
     display: 'flex', flexDirection: 'column',
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px',
-    boxShadow: '0 12px 24px rgba(44,24,16,0.06)',
+    background: '#ffffff', borderRadius: '14px',
+    boxShadow: '0 5px 18px rgba(36,24,19,0.045)',
     overflow: 'hidden', cursor: 'pointer',
-    border: '1px solid rgba(117, 82, 52, 0.12)',
+    border: '1px solid #e3dedb',
     transition: 'box-shadow 0.2s, transform 0.2s',
   },
   cardDestacada: { display: 'grid', gridTemplateColumns: 'minmax(0, 1.03fr) minmax(0, 1fr)' },
@@ -544,9 +544,9 @@ const ps = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
+    padding: '10px 20px', background: '#241813', color: '#fffaf5',
     border: 'none', borderRadius: '10px', fontSize: '14px',
-    cursor: 'pointer', fontWeight: '700', boxShadow: '0 8px 16px rgba(44, 24, 16, 0.17)',
+    cursor: 'pointer', fontWeight: '700', boxShadow: 'none',
   },
   btnCancelar: {
     padding: '10px 20px', backgroundColor: '#ece6da', color: DARK,

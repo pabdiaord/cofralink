@@ -293,7 +293,7 @@ export default function Procesional() {
           {papeletasPaginadas.map(p => {
             const estado = ESTADOS[p.estado] || ESTADOS.pendiente
             return (
-              <div key={p.id} style={styles.card}>
+              <div key={p.id} className="procession-card" style={styles.card}>
 
                 {/* Header card */}
                 <div style={styles.cardTop}>
@@ -431,9 +431,9 @@ const styles = {
   filtroBusqueda: { display: 'flex', flex: '1 1 280px', flexDirection: 'column', gap: '5px', minWidth: '220px' },
   filterLabel: { fontSize: '12px', fontWeight: '700', color: '#7d5f42' },
   selectAnio: {
-    minHeight: '58px', boxSizing: 'border-box', padding: '0 20px', borderRadius: '18px',
-    border: '2px solid rgba(117,82,52,0.22)', fontSize: '16px', fontFamily: 'inherit', color: '#2c1810',
-    background: 'rgba(255,253,250,0.86)', boxShadow: '0 5px 14px rgba(44,24,16,0.04)',
+    minHeight: '46px', boxSizing: 'border-box', padding: '0 14px', borderRadius: '10px',
+    border: '1px solid #ded9d5', fontSize: '14px', fontFamily: 'inherit', color: '#241813',
+    background: '#ffffff', boxShadow: '0 1px 2px rgba(36,24,19,0.025)',
   },
   search:  { marginBottom: 0 },
 
@@ -453,8 +453,8 @@ const styles = {
   // Cards
   lista:    { display: 'flex', flexDirection: 'column', gap: '14px' },
   card: {
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,245,241,0.98))', borderRadius: '16px', padding: '20px',
-    boxShadow: '0 10px 20px rgba(44,24,16,0.06)', border: '1px solid rgba(117, 82, 52, 0.12)',
+    background: '#ffffff', borderRadius: '14px', padding: '20px',
+    boxShadow: '0 5px 18px rgba(36,24,19,0.045)', border: '1px solid #e3dedb',
   },
   cardTop:   { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' },
   cardTitulo:{ fontSize: '17px', fontWeight: '700', color: '#2c1810', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '7px' },
@@ -470,7 +470,7 @@ const styles = {
 
   // Botones
   btnPrimary: {
-    padding: '10px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
+    padding: '10px 20px', background: '#241813', color: '#fffaf5',
     border: 'none', borderRadius: '8px', fontSize: '14px',
     cursor: 'pointer', fontWeight: '600', alignSelf: 'flex-start',
   },

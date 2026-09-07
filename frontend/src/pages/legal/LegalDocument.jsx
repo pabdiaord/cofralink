@@ -42,7 +42,7 @@ function renderMarkdown(markdown) {
     elementosLista = []
   }
 
-  markdown.split('\n').forEach((linea) => {
+  markdown.split(/\r?\n/).forEach((linea) => {
     const encabezado = linea.match(/^(#{1,3})\s+(.+)$/)
     const elementoLista = linea.match(/^-\s+(.+)$/)
 

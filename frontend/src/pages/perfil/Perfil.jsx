@@ -330,7 +330,7 @@ const CREAM  = '#faf7f2'
 const BORDER = '#e8e0d0'
 
 const styles = {
-  page: { padding: 'clamp(16px, 3vw, 32px)', background: 'linear-gradient(180deg, #f5efe7 0%, #efe3d7 100%)', minHeight: 'calc(100vh - 56px)', color: '#2c1810' },
+  page: { padding: 'clamp(16px, 3vw, 32px)', background: 'var(--app-background)', minHeight: 'calc(100vh - 56px)', color: '#241813' },
   info: { textAlign: 'center', padding: '60px', color: '#666' },
   pageHeader: { maxWidth: '1240px', margin: '0 auto 28px' },
   pageEyebrow: { margin: '0 0 3px', color: '#95713a', fontSize: '11px', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase' },
@@ -339,7 +339,7 @@ const styles = {
 
   // Hero
   hero: {
-    background: 'linear-gradient(135deg, #2c1810, #563522)',
+    background: '#241813',
     padding: '40px 32px',
     display: 'flex', alignItems: 'center', gap: '28px',
     borderBottom: `3px solid ${GOLD}`,
@@ -392,7 +392,7 @@ const styles = {
   },
   formBtns: { display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '2px' },
   btnGuardar: {
-    padding: '12px 20px', background: 'linear-gradient(135deg, #2c1810, #563522)', color: '#fff8ee',
+    padding: '12px 20px', background: '#241813', color: '#fffaf5',
     border: 'none', borderRadius: '10px', fontSize: '15px',
     cursor: 'pointer', fontWeight: '600',
   },
@@ -420,7 +420,7 @@ const styles = {
 
   // Tarjeta de hermano
   tarjeta: {
-    background: 'linear-gradient(135deg, #2c1810, #563522)',
+    background: '#241813',
     borderRadius: '12px', padding: '20px',
     border: `1px solid ${GOLD}`, boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
   },
@@ -442,8 +442,8 @@ const styles = {
   credentialHero: {
     maxWidth: '1240px', margin: '0 auto', minHeight: '202px', padding: 'clamp(22px, 4vw, 36px)', borderRadius: '26px',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap',
-    background: 'radial-gradient(circle at 88% 8%, rgba(231,199,119,0.28), transparent 28%), linear-gradient(135deg, #2c1810, #563522)',
-    border: '1px solid rgba(201,168,76,0.45)', boxShadow: '0 20px 40px rgba(44,24,16,0.18)',
+    background: '#241813',
+    border: '1px solid rgba(184,155,82,0.35)', boxShadow: '0 8px 24px rgba(36,24,19,0.12)',
   },
   heroIdentity: { display: 'flex', alignItems: 'center', gap: '22px', minWidth: 0 },
   profileSeal: {
@@ -457,13 +457,13 @@ const styles = {
   heroTag: { border: '1px solid rgba(255,255,255,0.18)', borderRadius: '999px', padding: '5px 10px', color: 'rgba(255,250,244,0.9)', background: 'rgba(255,255,255,0.07)', fontSize: '13px' },
   profileContent: { maxWidth: '1240px', margin: '0 auto' },
   milestoneGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', margin: '-18px clamp(0px, 2vw, 24px) 24px', position: 'relative', zIndex: 1 },
-  milestone: { minHeight: '78px', display: 'flex', alignItems: 'center', gap: '11px', padding: '13px 15px', border: `1px solid ${BORDER}`, borderRadius: '14px', background: 'rgba(255,253,250,0.98)', boxShadow: '0 10px 22px rgba(44,24,16,0.08)' },
+  milestone: { minHeight: '78px', display: 'flex', alignItems: 'center', gap: '11px', padding: '13px 15px', border: `1px solid ${BORDER}`, borderRadius: '14px', background: '#ffffff', boxShadow: '0 5px 18px rgba(36,24,19,0.045)' },
   milestoneIcon: { width: '38px', height: '38px', flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '11px', color: '#765a3f', background: '#f2e6cf', fontSize: '20px', overflow: 'hidden' },
   milestoneImage: { width: '100%', height: '100%', objectFit: 'contain', padding: '3px' },
   milestoneLabel: { margin: 0, color: '#826b57', fontSize: '12px', fontWeight: '700', letterSpacing: '0.04em', textTransform: 'uppercase' },
   milestoneValue: { margin: '2px 0 0', color: '#2c1810', fontSize: '16px', fontWeight: '700', lineHeight: 1.25 },
   profileGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '20px', alignItems: 'stretch' },
-  profilePanel: { padding: '26px', borderRadius: '20px', border: `1px solid ${BORDER}`, background: 'rgba(255,253,250,0.94)', boxShadow: '0 12px 28px rgba(44,24,16,0.06)' },
+  profilePanel: { padding: '26px', borderRadius: '14px', border: `1px solid ${BORDER}`, background: '#ffffff', boxShadow: '0 5px 18px rgba(36,24,19,0.045)' },
   panelHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '8px' },
   panelEyebrow: { margin: 0, color: '#95713a', fontSize: '12px', fontWeight: '700', letterSpacing: '0.06em', textTransform: 'uppercase' },
   panelTitle: { margin: '3px 0 0', color: '#2c1810', fontSize: '22px' },
@@ -473,7 +473,7 @@ const styles = {
   detailLabel: { color: '#826b57', fontSize: '13px', fontWeight: '700', letterSpacing: '0.02em' },
   detailValue: { color: '#2c1810', fontSize: '16px', fontWeight: '600', lineHeight: 1.4, overflowWrap: 'anywhere' },
   formFields: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' },
-  quickAccessPanel: { padding: '26px', borderRadius: '20px', border: `1px solid ${BORDER}`, background: 'rgba(255,253,250,0.94)', boxShadow: '0 12px 28px rgba(44,24,16,0.06)' },
+  quickAccessPanel: { padding: '26px', borderRadius: '14px', border: `1px solid ${BORDER}`, background: '#ffffff', boxShadow: '0 5px 18px rgba(36,24,19,0.045)' },
   quickLinks: { display: 'flex', flexDirection: 'column', gap: '0' },
   quickLink: { width: '100%', minHeight: '66px', display: 'flex', alignItems: 'center', gap: '13px', padding: '10px 0', color: '#4f3829', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(117,82,52,0.12)', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' },
   quickLinkIcon: { width: '40px', height: '40px', flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '12px', color: '#775420', background: '#f2e6cf' },

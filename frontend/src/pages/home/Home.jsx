@@ -7,11 +7,12 @@ import AppIcon from '../../components/AppIcon'
 import { CHARACTER_INFO } from '../../constants/characterInfo'
 import api from '../../api/axios'
 import bienvenida from '../../assets/bienvenida.jpg'
+import cristoVirgen from '../../assets/cristoVirgen.jpg'
 import footer from '../../assets/footer.jpg'
 
-const GOLD  = '#c9a84c'
-const DARK  = '#2c1810'
-const CREAM = '#efe3d7'
+const GOLD  = '#b89b52'
+const DARK  = '#241813'
+const CREAM = '#ece8e4'
 const TIPO_EVENTO = { CULTO: 'Culto', ENSAYO: 'Ensayo', REUNION: 'Reunión', PRIOSTIA: 'Priostía' }
 
 const FECHA_MARTES_SANTO_2027 = new Date(2027, 2, 23, 0, 0, 0)
@@ -117,7 +118,7 @@ export default function Home() {
         </section>
 
         <section style={hs.activityGrid} aria-label="Actividad de la Hermandad">
-          <article style={hs.nextEventCard}>
+          <article className="home-feature-card home-feature-card--photo" style={hs.nextEventCard}>
             <div style={hs.cardHeader}>
               <div>
                 <p style={hs.darkEyebrow}>Próximo en la Hermandad</p>
@@ -136,7 +137,7 @@ export default function Home() {
             ) : <EmptyState dark icon={<AppIcon name="calendar" size={19} />} title="Aún no hay próximos eventos" text="Las nuevas convocatorias aparecerán aquí." action="Ir al calendario" onClick={() => navigate('/eventos')} />}
           </article>
 
-          <article style={hs.newsCard}>
+          <article className="home-feature-card" style={hs.newsCard}>
             <div style={hs.cardHeader}>
               <div>
                 <p style={hs.panelEyebrow}>Actualidad</p>
@@ -227,8 +228,8 @@ function MetricCard({ icon, label, value, color, onClick }) {
   )
 
   return onClick
-    ? <button type="button" style={{ ...hs.overviewCard, ...hs.overviewButton }} onClick={onClick}>{contenido}</button>
-    : <div style={hs.overviewCard}>{contenido}</div>
+    ? <button className="home-metric-card" type="button" style={{ ...hs.overviewCard, ...hs.overviewButton }} onClick={onClick}>{contenido}</button>
+    : <div className="home-metric-card" style={hs.overviewCard}>{contenido}</div>
 }
 
 function CountdownCard() {
@@ -248,6 +249,7 @@ function CountdownCard() {
 
   return (
     <div
+      className="home-metric-card"
       style={{ ...hs.overviewCard, ...hs.countdownCard }}
       role="timer"
       aria-label={`Faltan ${cuentaAtras.dias} días, ${cuentaAtras.horas} horas, ${cuentaAtras.minutos} minutos y ${cuentaAtras.segundos} segundos para el Martes Santo de 2027`}
@@ -270,7 +272,7 @@ function CountdownCard() {
 
 function QuickAccess({ icon, title, description, onClick }) {
   return (
-    <button type="button" style={hs.quickAccess} onClick={onClick}>
+    <button className="home-quick-access" type="button" style={hs.quickAccess} onClick={onClick}>
       <span aria-hidden="true" style={hs.quickIcon}>{icon}</span>
       <span style={hs.quickText}>
         <strong style={hs.quickTitle}>{title}</strong>
@@ -307,7 +309,7 @@ const hs = {
   // Banner
   banner: {
     background: `linear-gradient(135deg, rgba(25,17,15,0.88), rgba(65,42,26,0.72)), url(${bienvenida}) center/cover no-repeat`,
-    borderRadius: '22px',
+    borderRadius: '18px',
     padding: '30px 34px',
     marginBottom: '18px',
     display: 'flex',
@@ -316,7 +318,7 @@ const hs = {
     gap: '28px',
     position: 'relative',
     overflow: 'hidden',
-    boxShadow: '0 18px 32px rgba(44, 24, 16, 0.16)',
+    boxShadow: '0 8px 24px rgba(36, 24, 19, 0.12)',
   },
   bannerContent: {
     flex: 1,
@@ -337,26 +339,26 @@ const hs = {
   },
   bannerTitulo: {
     color: '#fffaf5',
-    fontSize: '54px',
+    fontSize: '48px',
     fontWeight: '700',
     margin: 0,
     lineHeight: '1.05',
     letterSpacing: '-0.04em',
   },
   bannerEscudo: {
-    width: '260px',
-    height: '260px',
+    width: '210px',
+    height: '210px',
     borderRadius: '50%',
     border: '2px solid rgba(201,168,76,0.5)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
-    background: 'radial-gradient(circle at 30% 30%, rgba(255,245,216,0.12), rgba(201,168,76,0.05))',
+    background: 'rgba(255,255,255,0.04)',
   },
   escudoImg: {
-    width: '260px',
-    height: '260px',
+    width: '210px',
+    height: '210px',
     objectFit: 'contain',
     opacity: 0.95,
     filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.25))',
@@ -463,7 +465,7 @@ const hs = {
     overflow: 'hidden',
     background: `linear-gradient(135deg, rgba(25,17,15,0.88), rgba(65,42,26,0.78)), url(${footer}) center/cover no-repeat`,
     minHeight: '240px',
-    boxShadow: '0 18px 35px rgba(44, 24, 16, 0.12)',
+    boxShadow: '0 8px 24px rgba(36, 24, 19, 0.1)',
   },
   footerOverlay: {
     position: 'absolute',
@@ -606,8 +608,8 @@ const hs = {
   countdownLabel: { marginTop: '2px', color: '#836c57', fontSize: '9px', fontWeight: '700', lineHeight: 1.1 },
   cardArrow: { marginLeft: 'auto', color: '#9b7b4d', fontSize: '20px', lineHeight: 1 },
   activityGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 330px), 1fr))', gap: '18px', marginTop: '30px' },
-  nextEventCard: { minHeight: '300px', padding: '26px', borderRadius: '20px', color: '#fffaf4', background: 'linear-gradient(135deg, #251813, #593a28 65%, #242830)', boxShadow: '0 16px 30px rgba(44,24,16,0.16)', border: '1px solid rgba(201,168,76,0.45)' },
-  newsCard: { minHeight: '300px', padding: '26px', borderRadius: '20px', background: '#fffdfa', border: '1px solid rgba(117,82,52,0.15)', boxShadow: '0 12px 28px rgba(44,24,16,0.06)' },
+  nextEventCard: { minHeight: '300px', padding: '26px', borderRadius: '16px', color: '#fffaf4', background: `linear-gradient(90deg, rgba(30,20,17,0.94), rgba(30,20,17,0.7)), url(${cristoVirgen}) center 35%/cover no-repeat`, boxShadow: '0 8px 24px rgba(36,24,19,0.11)', border: '1px solid rgba(184,155,82,0.35)' },
+  newsCard: { minHeight: '300px', padding: '26px', borderRadius: '16px', background: '#ffffff', border: '1px solid #e3dedb', boxShadow: '0 5px 18px rgba(36,24,19,0.045)' },
   cardHeader: { display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '21px' },
   darkEyebrow: { margin: 0, color: '#e7c777', fontSize: '12px', fontWeight: '700', letterSpacing: '0.07em', textTransform: 'uppercase' },
   darkTitle: { margin: '3px 0 0', color: '#fffaf4', fontSize: '22px' },

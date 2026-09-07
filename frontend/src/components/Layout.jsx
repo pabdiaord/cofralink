@@ -13,7 +13,7 @@ export default function Layout({ children }) {
   }, [])
 
   return (
-    <div className="app-shell" style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#efe3d7' }}>
+    <div className="app-shell" style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--app-background)' }}>
       <button
         type="button"
         className="menu-toggle"
@@ -38,7 +38,7 @@ export default function Layout({ children }) {
         flex: 1,
         minWidth: 0,
         minHeight: '100vh',
-        backgroundColor: '#efe3d7',
+        backgroundColor: 'var(--app-background)',
         overflowY: 'auto',
       }}>
         {children}
