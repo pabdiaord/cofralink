@@ -95,27 +95,33 @@ export default function Home() {
 
       {/* ── Banner de bienvenida ── */}
       <div className="home-banner" style={hs.banner}>
-        <div style={hs.bannerContent}>
+        <div className="home-banner-copy" style={hs.bannerContent}>
+          <div style={hs.bannerKicker}>
+            Tu casa, tu hermandad
+          </div>
+          <h1 style={hs.bannerTitulo}>
+            Bienvenido,<br />
+            <span style={hs.bannerNombre}>{nombre}</span>
+          </h1>
           <p style={hs.bannerLema}>Hermandad Franciscana del Santísimo Sacramento, Inmaculada Concepción
             y Cofradía de Nazarenos del Santísimo Cristo del Perdón, Nuestra Señora de las Angustias, Santa Clara de Asís y San Juan Evangelista</p>
-          <h1 style={hs.bannerTitulo}>Bienvenido {nombre}</h1>
         </div>
-        <div style={hs.bannerEscudo}>
-            <img src={escudo} alt="Escudo de la hermandad" style={hs.escudoImg} />
+        <div className="home-banner-seal" style={hs.bannerEscudo}>
+          <img src={escudo} alt="Escudo de la hermandad" style={hs.escudoImg} />
         </div>
       </div>
 
-      <main style={hs.dashboard}>
-        {error && <p style={hs.error}>{error}</p>}
-
-        <section style={hs.dashboardSection}>
-          <div style={hs.overviewGrid}>
+      <main className="home-dashboard" style={hs.dashboard}>
+        <section className="home-overview" style={hs.overviewSection} aria-label="Resumen personal">
+          <div className="home-overview-grid" style={hs.overviewGrid}>
             <MetricCard icon={estadoCuota.icono} label="Estado de cuota" value={estadoCuota.texto} color={estadoCuota.color} />
             <MetricCard icon={iconoRol} label="Tu carácter" value={rolVisible} />
             <CountdownCard />
             <MetricCard icon={<AppIcon name="calendar" />} label="Próxima cita" value={proximoEvento ? formatearFecha(proximoEvento.fecha) : 'Sin eventos'} onClick={proximoEvento ? () => navigate('/eventos') : undefined} />
           </div>
         </section>
+
+        {error && <p style={hs.error}>{error}</p>}
 
         <section style={hs.activityGrid} aria-label="Actividad de la Hermandad">
           <article className="home-feature-card home-feature-card--photo" style={hs.nextEventCard}>
@@ -308,60 +314,87 @@ const hs = {
 
   // Banner
   banner: {
-    background: `linear-gradient(135deg, rgba(25,17,15,0.88), rgba(65,42,26,0.72)), url(${bienvenida}) center/cover no-repeat`,
-    borderRadius: '18px',
-    padding: '30px 34px',
-    marginBottom: '18px',
+    minHeight: 'clamp(430px, 55vh, 580px)',
+    background: `linear-gradient(90deg, rgba(20,14,12,0.94) 0%, rgba(25,18,15,0.76) 46%, rgba(20,26,30,0.32) 100%), linear-gradient(0deg, rgba(18,12,10,0.6), transparent 48%), url(${bienvenida}) center 30%/cover no-repeat`,
+    borderRadius: '24px',
+    padding: '46px 52px',
+    marginBottom: 0,
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '28px',
+    alignItems: 'flex-end',
+    gap: '48px',
     position: 'relative',
     overflow: 'hidden',
-    boxShadow: '0 8px 24px rgba(36, 24, 19, 0.12)',
+    boxShadow: '0 22px 50px rgba(36, 24, 19, 0.18)',
   },
   bannerContent: {
     flex: 1,
     zIndex: 1,
+    maxWidth: '800px',
+    alignSelf: 'stretch',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center',
+    paddingBottom: '48px',
+  },
+  bannerKicker: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '20px',
+    color: '#e7c777',
+    fontFamily: 'var(--font-app)',
+    fontSize: '11px',
+    fontWeight: '700',
+    letterSpacing: '0.18em',
+    textTransform: 'uppercase',
   },
   bannerLema: {
-    color: '#e7c777',
-    fontSize: '10px',
-    fontWeight: '700',
-    letterSpacing: '0.12em',
+    maxWidth: '760px',
+    color: 'rgba(255,250,245,0.9)',
+    fontFamily: 'var(--font-app)',
+    fontSize: '11px',
+    fontWeight: '650',
+    letterSpacing: '0.085em',
     textTransform: 'uppercase',
-    marginBottom: '72px',
-    textAlign: 'justify',
-    lineHeight: '1.6',
+    margin: '22px 0 0',
+    textAlign: 'left',
+    lineHeight: '1.7',
+    textShadow: '0 2px 12px rgba(0,0,0,0.65)',
   },
   bannerTitulo: {
     color: '#fffaf5',
-    fontSize: '48px',
+    fontSize: 'clamp(48px, 5.4vw, 76px)',
     fontWeight: '700',
-    margin: 0,
-    lineHeight: '1.05',
-    letterSpacing: '-0.04em',
+    margin: 'auto 0 0',
+    lineHeight: '0.98',
+    letterSpacing: '-0.045em',
+    textShadow: '0 6px 24px rgba(0,0,0,0.24)',
+  },
+  bannerNombre: {
+    color: '#ecd48d',
   },
   bannerEscudo: {
-    width: '210px',
-    height: '210px',
+    width: '220px',
+    height: '220px',
     borderRadius: '50%',
-    border: '2px solid rgba(201,168,76,0.5)',
+    border: '1px solid rgba(231,199,119,0.6)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
-    background: 'rgba(255,255,255,0.04)',
+    position: 'absolute',
+    top: '46px',
+    right: '52px',
+    zIndex: 1,
+    background: 'rgba(30,22,18,0.34)',
+    backdropFilter: 'blur(10px)',
+    boxShadow: '0 18px 38px rgba(0,0,0,0.24), inset 0 0 0 8px rgba(255,255,255,0.025)',
   },
   escudoImg: {
-    width: '210px',
-    height: '210px',
+    width: '204px',
+    height: '204px',
     objectFit: 'contain',
-    opacity: 0.95,
-    filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.25))',
+    opacity: 0.98,
+    filter: 'drop-shadow(0 7px 16px rgba(0,0,0,0.3))',
   },
 
   // Stats
@@ -586,20 +619,21 @@ const hs = {
     marginTop: '4px',
   },
 
-  dashboard: { marginTop: '30px' },
-  error: { margin: '0 0 18px', padding: '11px 14px', borderRadius: '10px', color: '#8d2b1e', background: '#fee8e5', border: '1px solid #f0b9ae', fontSize: '14px' },
+  dashboard: { marginTop: '-42px', position: 'relative', zIndex: 2 },
+  error: { margin: '18px 24px 0', padding: '11px 14px', borderRadius: '10px', color: '#8d2b1e', background: '#fee8e5', border: '1px solid #f0b9ae', fontSize: '14px' },
+  overviewSection: { marginTop: 0, padding: '0 24px' },
   dashboardSection: { marginTop: '30px' },
   sectionHeading: { marginBottom: '13px' },
   panelEyebrow: { margin: 0, color: '#95713a', fontSize: '12px', fontWeight: '700', letterSpacing: '0.06em', textTransform: 'uppercase' },
   sectionTitle: { margin: '3px 0 0', color: DARK, fontSize: '22px' },
-  overviewGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '13px' },
-  overviewCard: { minHeight: '92px', display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', borderRadius: '15px', background: '#fffdfa', border: '1px solid rgba(117,82,52,0.15)', boxShadow: '0 8px 18px rgba(44,24,16,0.05)', textAlign: 'left' },
+  overviewGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px' },
+  overviewCard: { minHeight: '112px', display: 'flex', alignItems: 'center', gap: '14px', padding: '18px', borderRadius: '14px', background: 'rgba(255,253,250,0.94)', border: '1px solid rgba(117,82,52,0.14)', boxShadow: '0 16px 34px rgba(44,24,16,0.12)', backdropFilter: 'blur(14px)', textAlign: 'left' },
   overviewButton: { width: '100%', cursor: 'pointer', fontFamily: 'inherit' },
-  overviewIcon: { width: '42px', height: '42px', flexShrink: 0, display: 'grid', placeItems: 'center', overflow: 'hidden', borderRadius: '12px', color: '#775420', background: '#f2e6cf', fontSize: '21px' },
+  overviewIcon: { width: '46px', height: '46px', flexShrink: 0, display: 'grid', placeItems: 'center', overflow: 'hidden', borderRadius: '12px', color: '#775420', background: '#f2e6cf', fontSize: '21px' },
   overviewImage: { width: '100%', height: '100%', objectFit: 'contain', padding: '4px' },
   overviewLabel: { margin: 0, color: '#836c57', fontSize: '12px', fontWeight: '700', letterSpacing: '0.035em', textTransform: 'uppercase' },
   overviewValue: { margin: '3px 0 0', color: DARK, fontSize: '17px', fontWeight: '700', lineHeight: 1.2 },
-  countdownCard: { alignItems: 'flex-start' },
+  countdownCard: { alignItems: 'center' },
   countdownContent: { minWidth: 0, flex: 1 },
   countdownDate: { margin: '2px 0 7px', color: DARK, fontSize: '13px', fontWeight: '700', lineHeight: 1.2 },
   countdownValues: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '5px' },
@@ -607,7 +641,7 @@ const hs = {
   countdownNumber: { color: DARK, fontSize: '16px', lineHeight: 1.05 },
   countdownLabel: { marginTop: '2px', color: '#836c57', fontSize: '9px', fontWeight: '700', lineHeight: 1.1 },
   cardArrow: { marginLeft: 'auto', color: '#9b7b4d', fontSize: '20px', lineHeight: 1 },
-  activityGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 330px), 1fr))', gap: '18px', marginTop: '30px' },
+  activityGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 330px), 1fr))', gap: '18px', marginTop: '42px' },
   nextEventCard: { minHeight: '300px', padding: '26px', borderRadius: '16px', color: '#fffaf4', background: `linear-gradient(90deg, rgba(30,20,17,0.94), rgba(30,20,17,0.7)), url(${cristoVirgen}) center 35%/cover no-repeat`, boxShadow: '0 8px 24px rgba(36,24,19,0.11)', border: '1px solid rgba(184,155,82,0.35)' },
   newsCard: { minHeight: '300px', padding: '26px', borderRadius: '16px', background: '#ffffff', border: '1px solid #e3dedb', boxShadow: '0 5px 18px rgba(36,24,19,0.045)' },
   cardHeader: { display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '21px' },

@@ -813,11 +813,58 @@ button:disabled {
   background: var(--app-surface-muted) !important;
 }
 
-.home-metric-card,
 .home-quick-access {
   border-radius: 12px !important;
   background: var(--app-surface) !important;
   box-shadow: 0 3px 14px rgba(36, 24, 19, 0.04) !important;
+}
+
+.home-banner {
+  isolation: isolate;
+  transition:
+    transform var(--motion-surface) var(--motion-ease),
+    box-shadow var(--motion-surface) var(--motion-ease);
+}
+
+.home-banner::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(231, 199, 119, 0.16), transparent 26%),
+    linear-gradient(115deg, rgba(255, 255, 255, 0.04), transparent 30%);
+}
+
+.home-banner::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  right: 42px;
+  bottom: 0;
+  left: 42px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(231, 199, 119, 0.72), transparent);
+}
+
+.home-banner-copy,
+.home-banner-seal {
+  position: relative;
+  z-index: 1;
+}
+
+.home-banner-seal {
+  transition: transform var(--motion-surface) var(--motion-ease);
+}
+
+.home-metric-card {
+  border: 1px solid rgba(117, 82, 52, 0.14) !important;
+  border-radius: 14px !important;
+  background: rgba(255, 253, 250, 0.94) !important;
+  box-shadow: 0 16px 34px rgba(44, 24, 16, 0.12) !important;
+  backdrop-filter: blur(14px);
 }
 
 .event-card,
@@ -1022,6 +1069,32 @@ button:disabled {
     padding: 24px !important;
   }
 
+  .home-banner {
+    min-height: 450px !important;
+    gap: 28px !important;
+    padding: 36px !important;
+  }
+
+  .home-banner-seal {
+    top: 36px !important;
+    right: 36px !important;
+    width: 170px !important;
+    height: 170px !important;
+  }
+
+  .home-banner-seal img {
+    width: 158px !important;
+    height: 158px !important;
+  }
+
+  .home-overview {
+    padding: 0 12px !important;
+  }
+
+  .home-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
   .home-stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
@@ -1182,24 +1255,54 @@ button:disabled {
   }
 
   .home-banner {
-    align-items: flex-start !important;
-    gap: 16px !important;
-    padding: 22px !important;
+    min-height: 440px !important;
+    align-items: flex-end !important;
+    gap: 0 !important;
+    padding: 24px !important;
+    border-radius: 18px !important;
   }
 
-  .home-banner > :last-child,
-  .home-banner > :last-child img {
-    width: 96px !important;
-    height: 96px !important;
+  .home-banner-copy {
+    width: 100%;
+    padding-top: 88px;
+    padding-bottom: 42px !important;
+  }
+
+  .home-banner-seal {
+    position: absolute !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 90px !important;
+    height: 90px !important;
+  }
+
+  .home-banner-seal img {
+    width: 82px !important;
+    height: 82px !important;
   }
 
   .home-banner h1 {
-    font-size: clamp(30px, 10vw, 42px) !important;
+    font-size: clamp(38px, 12vw, 52px) !important;
   }
 
   .home-banner p {
-    margin-bottom: 28px !important;
+    margin: 18px 0 0 !important;
+    font-size: 9px !important;
+    line-height: 1.55 !important;
     text-align: left !important;
+  }
+
+  .home-dashboard {
+    margin-top: -22px !important;
+  }
+
+  .home-overview {
+    padding: 0 8px !important;
+  }
+
+  .home-overview-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
   }
 
   .home-stats-grid,
@@ -1470,13 +1573,27 @@ button:disabled {
   .donation-card:hover,
   .procession-card:hover,
   .donation-admin-card:hover,
-  .home-metric-card:hover,
   .home-quick-access:hover,
   .home-feature-card:hover,
   .profile-milestones > *:hover {
     transform: translateY(-2px);
     border-color: #cfc5bf !important;
     box-shadow: 0 9px 24px rgba(36, 24, 19, 0.075) !important;
+  }
+
+  .home-banner:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 28px 60px rgba(36, 24, 19, 0.22) !important;
+  }
+
+  .home-banner:hover .home-banner-seal {
+    transform: translateY(-4px) scale(1.015);
+  }
+
+  .home-metric-card:hover {
+    transform: translateY(-4px) !important;
+    border-color: rgba(184, 155, 82, 0.48) !important;
+    box-shadow: 0 22px 42px rgba(44, 24, 16, 0.16) !important;
   }
 
   .profile-panel:hover,
@@ -1517,6 +1634,11 @@ button:disabled {
 
   .home-banner > :last-child {
     display: none !important;
+  }
+
+  .home-banner-copy {
+    padding-top: 0;
+    padding-bottom: 34px !important;
   }
 
   .donation-card {
