@@ -7,6 +7,8 @@ import FormModal from '../../components/FormModal'
 import CharacterIcon from '../../components/CharacterIcon'
 import AppIcon from '../../components/AppIcon'
 import { CHARACTER_INFO } from '../../constants/characterInfo'
+import perfilUsuario from '../../assets/perfil_usuario.jpg'
+import datosUsuario from '../../assets/datos_usuario.jpg'
 
 const ESTADO_CUOTA_INFO = {
   PAGADO:    { label: 'Al corriente',  color: '#2d7a45', bg: '#eaf7ee', icon: 'check' },
@@ -245,11 +247,14 @@ export default function Perfil() {
             )}
           </section>
 
-          <section className="profile-panel" style={styles.quickAccessPanel}>
+          <section
+            className="profile-panel profile-quick-card"
+            style={{ ...styles.quickAccessPanel, '--profile-data-image': `url(${datosUsuario})` }}
+          >
             <div style={styles.panelHeader}>
               <div>
-                <p style={styles.panelEyebrow}>Gestiones habituales</p>
-                <h2 style={styles.panelTitle}>Accesos rápidos</h2>
+                <p style={{ ...styles.panelEyebrow, ...styles.panelEyebrowOnDark }}>Gestiones habituales</p>
+                <h2 style={{ ...styles.panelTitle, ...styles.panelTitleOnDark }}>Accesos rápidos</h2>
               </div>
             </div>
             <div style={styles.quickLinks}>
@@ -440,9 +445,11 @@ const styles = {
   errorBox: { margin: '16px 0', padding: '12px 16px', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: '10px', fontSize: '15px' },
 
   credentialHero: {
-    maxWidth: '1240px', margin: '0 auto', minHeight: '202px', padding: 'clamp(22px, 4vw, 36px)', borderRadius: '26px',
+    maxWidth: '1240px', margin: '0 auto', minHeight: '302px', padding: 'clamp(22px, 4vw, 36px)', borderRadius: '26px',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap',
-    background: '#241813',
+    backgroundColor: '#241813',
+    backgroundImage: `linear-gradient(90deg, rgba(25,16,13,0.94) 0%, rgba(31,21,17,0.8) 48%, rgba(24,17,15,0.38) 100%), url(${perfilUsuario})`,
+    backgroundPosition: 'center 42%', backgroundSize: 'cover', backgroundRepeat: 'no-repeat',
     border: '1px solid rgba(184,155,82,0.35)', boxShadow: '0 8px 24px rgba(36,24,19,0.12)',
   },
   heroIdentity: { display: 'flex', alignItems: 'center', gap: '22px', minWidth: 0 },
@@ -467,6 +474,8 @@ const styles = {
   panelHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '8px' },
   panelEyebrow: { margin: 0, color: '#95713a', fontSize: '12px', fontWeight: '700', letterSpacing: '0.06em', textTransform: 'uppercase' },
   panelTitle: { margin: '3px 0 0', color: '#2c1810', fontSize: '22px' },
+  panelEyebrowOnDark: { color: '#e7c777', textShadow: '0 2px 10px rgba(0,0,0,0.45)' },
+  panelTitleOnDark: { color: '#fffaf4', textShadow: '0 3px 14px rgba(0,0,0,0.55)' },
   panelDescription: { margin: '0 0 20px', maxWidth: '520px', color: '#765f4d', fontSize: '14px', lineHeight: 1.55 },
   detailGrid: { display: 'grid', gridTemplateColumns: '1fr', gap: '10px' },
   detailRow: { padding: '14px 16px', border: '1px solid rgba(117,82,52,0.12)', borderRadius: '12px', background: '#fbf8f3', display: 'flex', flexDirection: 'column', gap: '4px' },
@@ -475,10 +484,10 @@ const styles = {
   formFields: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' },
   quickAccessPanel: { padding: '26px', borderRadius: '14px', border: `1px solid ${BORDER}`, background: '#ffffff', boxShadow: '0 5px 18px rgba(36,24,19,0.045)' },
   quickLinks: { display: 'flex', flexDirection: 'column', gap: '0' },
-  quickLink: { width: '100%', minHeight: '66px', display: 'flex', alignItems: 'center', gap: '13px', padding: '10px 0', color: '#4f3829', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(117,82,52,0.12)', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' },
-  quickLinkIcon: { width: '40px', height: '40px', flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '12px', color: '#775420', background: '#f2e6cf' },
+  quickLink: { width: '100%', minHeight: '66px', display: 'flex', alignItems: 'center', gap: '13px', padding: '10px 0', color: '#fffaf4', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.16)', borderRadius: '10px', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' },
+  quickLinkIcon: { width: '40px', height: '40px', flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '12px', color: '#e7c777', background: 'rgba(255,255,255,0.1)' },
   quickLinkText: { minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' },
-  quickLinkLabel: { color: '#3f2a1f', fontSize: '15px', fontWeight: '700', lineHeight: 1.35 },
-  quickLinkDescription: { color: '#826b57', fontSize: '13px', fontWeight: '400', lineHeight: 1.4 },
-  quickLinkArrow: { marginLeft: 'auto', color: '#9b7b4d', fontSize: '19px' },
+  quickLinkLabel: { color: '#fffaf4', fontSize: '15px', fontWeight: '700', lineHeight: 1.35, textShadow: '0 2px 10px rgba(0,0,0,0.5)' },
+  quickLinkDescription: { color: 'rgba(255,250,244,0.76)', fontSize: '13px', fontWeight: '400', lineHeight: 1.4 },
+  quickLinkArrow: { marginLeft: 'auto', color: '#e7c777', fontSize: '19px' },
 }

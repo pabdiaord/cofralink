@@ -805,8 +805,28 @@ button:disabled {
 .profile-hero {
   border: 1px solid rgba(184, 155, 82, 0.35) !important;
   border-radius: 18px !important;
-  background: var(--cofrade-ink) !important;
+  background-color: var(--cofrade-ink) !important;
   box-shadow: 0 8px 24px rgba(36, 24, 19, 0.12) !important;
+}
+
+.profile-panel.profile-quick-card {
+  border-color: rgba(184, 155, 82, 0.42) !important;
+  background-color: #241813 !important;
+  background-image:
+    linear-gradient(90deg, rgba(25, 16, 13, 0.96) 0%, rgba(30, 20, 16, 0.8) 56%, rgba(24, 16, 13, 0.38) 100%),
+    var(--profile-data-image) !important;
+  background-position: center 34% !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  box-shadow: 0 10px 28px rgba(36, 24, 19, 0.16) !important;
+}
+
+.profile-quick-card .profile-quick-link:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.profile-quick-card .profile-quick-link:hover > :first-child {
+  background: rgba(231, 199, 119, 0.2) !important;
 }
 
 .profile-quick-link:hover {
@@ -1594,6 +1614,12 @@ button:disabled {
     transform: translateY(-4px) !important;
     border-color: rgba(184, 155, 82, 0.48) !important;
     box-shadow: 0 22px 42px rgba(44, 24, 16, 0.16) !important;
+  }
+
+  .profile-panel.profile-quick-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(184, 155, 82, 0.58) !important;
+    box-shadow: 0 16px 34px rgba(36, 24, 19, 0.2) !important;
   }
 
   .profile-panel:hover,
