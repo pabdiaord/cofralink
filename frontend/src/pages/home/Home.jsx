@@ -100,7 +100,7 @@ export default function Home() {
             Tu casa, tu hermandad
           </div>
           <h1 style={hs.bannerTitulo}>
-            Bienvenido,<br />
+            Bienvenido<br />
             <span style={hs.bannerNombre}>{nombre}</span>
           </h1>
           <p style={hs.bannerLema}>Hermandad Franciscana del Santísimo Sacramento, Inmaculada Concepción
