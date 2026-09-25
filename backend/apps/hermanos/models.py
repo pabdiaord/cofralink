@@ -17,6 +17,7 @@ class Hermano(models.Model):
     nombre         = models.CharField(max_length=100)
     apellidos      = models.CharField(max_length=150)
     direccion      = models.CharField(max_length=255, blank=True)
+    telefono       = models.CharField(max_length=20, blank=True)
     fecha_ingreso  = models.DateField(null=True, blank=True)
     numero_hermano = models.PositiveIntegerField(unique=True)
     estado_cuota   = models.CharField(

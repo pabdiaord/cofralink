@@ -53,6 +53,7 @@ class TestCrearHermanoCompleto(HermanoTestCase):
             'nombre':         'Pedro',
             'apellidos':      'Martínez',
             'email':          'pedro@cofralink.com',
+            'telefono':       '+34 600 123 456',
             'numero_hermano': 10,
             'estado_cuota':   'NO_PAGADO',
             'caracter':       'COSTALERO',
@@ -63,6 +64,8 @@ class TestCrearHermanoCompleto(HermanoTestCase):
         self.assertTrue(Hermano.objects.filter(numero_hermano=10).exists())
         usuario = Usuario.objects.get(email='pedro@cofralink.com')
         self.assertFalse(usuario.has_usable_password())
+        self.assertEqual(usuario.hermano.telefono, '+34 600 123 456')
+        self.assertEqual(res.data['telefono'], '+34 600 123 456')
 
     def test_crear_hermano_completo_sin_admin(self):
         """Un hermano no puede crear otro hermano — debe recibir 403."""
@@ -150,11 +153,13 @@ class TestEditarBajaHermano(HermanoTestCase):
         """Admin puede editar el estado de cuota de un hermano."""
         self._auth_admin()
         res = self.client.patch(f'/api/hermanos/{self.hermano2.id}/', {
-            'estado_cuota': 'PAGADO'
+            'estado_cuota': 'PAGADO',
+            'telefono': '654 321 987',
         }, format='json')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.hermano2.refresh_from_db()
         self.assertEqual(self.hermano2.estado_cuota, 'PAGADO')
+        self.assertEqual(self.hermano2.telefono, '654 321 987')
 
     def test_baja_hermano(self):
         """Admin da de baja a un hermano: se elimina hermano y su usuario."""
@@ -237,6 +242,45 @@ class TestMiPerfilEdicion(HermanoTestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.hermano2.refresh_from_db()
         self.assertEqual(self.hermano2.direccion, 'Calle Nueva 42, Sevilla')
+
+    def test_editar_y_borrar_telefono_del_perfil(self):
+        self._auth_hermano()
+        res = self.client.patch('/api/mi-perfil/', {
+            'telefono': '+34 600 123 456'
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['telefono'], '+34 600 123 456')
+        self.hermano2.refresh_from_db()
+        self.assertEqual(self.hermano2.telefono, '+34 600 123 456')
+        self.assertEqual(
+            self.client.get('/api/mi-perfil/').data['telefono'],
+            '+34 600 123 456',
+        )
+
+        res = self.client.patch('/api/mi-perfil/', {'telefono': ''}, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.hermano2.refresh_from_db()
+        self.assertEqual(self.hermano2.telefono, '')
+
+    def test_rechazar_telefono_demasiado_largo(self):
+        self._auth_hermano()
+        res = self.client.patch('/api/mi-perfil/', {
+            'telefono': '1' * 21
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_crear_hermano_rechaza_telefono_demasiado_largo(self):
+        self._auth_admin()
+        res = self.client.post('/api/hermanos/crear-completo/', {
+            'nombre': 'Pedro',
+            'email': 'pedro@cofralink.com',
+            'numero_hermano': 10,
+            'telefono': '1' * 21,
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('telefono', res.data)
+        self.assertFalse(Usuario.objects.filter(email='pedro@cofralink.com').exists())
+        self.assertIn('telefono', res.data)
 
     def test_editar_mi_perfil_email(self):
         """Hermano puede actualizar su email."""

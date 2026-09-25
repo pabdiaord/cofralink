@@ -44,6 +44,7 @@ class CrearHermanoCompletoView(APIView):
         numero = data.get('numero_hermano')
         nombre = data.get('nombre', '').strip()
         email  = data.get('email', '').strip()
+        telefono = data.get('telefono', '')
 
         if not numero or not nombre:
             return Response(
@@ -71,6 +72,12 @@ class CrearHermanoCompletoView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        if not isinstance(telefono, str) or len(telefono.strip()) > 20:
+            return Response(
+                {'telefono': ['El teléfono debe tener como máximo 20 caracteres.']},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         # Username generado automáticamente
         username = (
             nombre.lower()
@@ -89,6 +96,7 @@ class CrearHermanoCompletoView(APIView):
             nombre         = nombre,
             apellidos      = data.get('apellidos', ''),
             direccion      = data.get('direccion', ''),
+            telefono       = telefono.strip(),
             numero_hermano = numero,
             estado_cuota   = data.get('estado_cuota', 'NO_PAGADO'),
             caracter       = data.get('caracter', 'NAZARENO'),
@@ -126,7 +134,7 @@ class MiPerfilView(APIView):
             return Response({'detail': 'Sin perfil de hermano.'}, status=404)
 
         # Solo puede editar sus datos personales y de contacto.
-        campos_permitidos = ['nombre', 'apellidos', 'direccion']
+        campos_permitidos = ['nombre', 'apellidos', 'direccion', 'telefono']
         data = {k: v for k, v in request.data.items() if k in campos_permitidos}
         serializer = HermanoSerializer(hermano, data=data, partial=True)
         if serializer.is_valid():
