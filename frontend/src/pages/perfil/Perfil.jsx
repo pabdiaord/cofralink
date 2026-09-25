@@ -31,7 +31,7 @@ export default function Perfil() {
   const [exito, setExito]         = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [pendingAction, setPendingAction] = useState(null)
-  const [form, setForm] = useState({ nombre: '', apellidos: '', direccion: '', email: '' })
+  const [form, setForm] = useState({ nombre: '', apellidos: '', direccion: '', telefono: '', email: '' })
 
   useEffect(() => {
     let activo = true
@@ -56,6 +56,7 @@ export default function Perfil() {
               nombre: perfil.nombre || '',
               apellidos: perfil.apellidos || '',
               direccion: perfil.direccion || '',
+              telefono: perfil.telefono || '',
               email: perfil.usuario_email || usuario?.email || '',
             })
           }
@@ -90,6 +91,7 @@ export default function Perfil() {
           nombre: res.data.nombre || '',
           apellidos: res.data.apellidos || '',
           direccion: res.data.direccion || '',
+          telefono: res.data.telefono || '',
           email: res.data.usuario_email || form.email,
         })
         setEditando(false)
@@ -115,6 +117,7 @@ export default function Perfil() {
       nombre: hermano?.nombre || '',
       apellidos: hermano?.apellidos || '',
       direccion: hermano?.direccion || '',
+      telefono: hermano?.telefono || '',
       email: hermano?.usuario_email || usuario?.email || '',
     })
     setEditando(false)
@@ -229,6 +232,10 @@ export default function Perfil() {
                       <input id="perfil-email" style={styles.input} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} type="email" autoComplete="email" required />
                     </div>
                     <div style={styles.campo}>
+                      <label htmlFor="perfil-telefono" style={styles.campoLabel}>Teléfono</label>
+                      <input id="perfil-telefono" style={styles.input} value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} type="tel" autoComplete="tel" maxLength={20} placeholder="Tu teléfono (opcional)" />
+                    </div>
+                    <div style={styles.campo}>
                       <label htmlFor="perfil-direccion" style={styles.campoLabel}>Dirección</label>
                       <input id="perfil-direccion" style={styles.input} value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} placeholder="Tu dirección" autoComplete="street-address" />
                     </div>
@@ -242,6 +249,7 @@ export default function Perfil() {
             ) : (
               <div style={styles.detailGrid}>
                 <Fila label="Correo electrónico" value={form.email || usuario?.email} />
+                {hermano && <Fila label="Teléfono" value={hermano.telefono || 'No indicado'} />}
                 {hermano && <Fila label="Dirección" value={hermano.direccion || 'No indicada'} />}
               </div>
             )}

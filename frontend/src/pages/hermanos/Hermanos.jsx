@@ -41,7 +41,7 @@ export default function Hermanos() {
   const [pendingAction, setPendingAction] = useState(null)
 
   const formVacio = {
-  nombre: '', apellidos: '', direccion: '', email: '',
+  nombre: '', apellidos: '', direccion: '', telefono: '', email: '',
   numero_hermano: '', estado_cuota: 'NO_PAGADO', caracter: 'NAZARENO',
 }
   const [form, setForm]         = useState(formVacio)
@@ -90,6 +90,7 @@ const openConfirm = (action, payload = null) => {
           nombre:         form.nombre,
           apellidos:      form.apellidos,
           direccion:      form.direccion,
+          telefono:       form.telefono,
           email:          form.email,
           numero_hermano: form.numero_hermano,
           estado_cuota:   form.estado_cuota,
@@ -145,6 +146,7 @@ const openConfirm = (action, payload = null) => {
       nombre:         h.nombre,
       apellidos:      h.apellidos,
       direccion:      h.direccion || '',
+      telefono:       h.telefono || '',
       numero_hermano: h.numero_hermano,
       estado_cuota:   h.estado_cuota,
       caracter:       h.caracter || 'NAZARENO',
@@ -296,6 +298,13 @@ const openConfirm = (action, payload = null) => {
             onChange={e => setForm({ ...form, direccion: e.target.value })}
             placeholder="Dirección (opcional)"
           />
+          <label style={styles.label}>Teléfono</label>
+          <input
+            type="tel" autoComplete="tel" maxLength={20}
+            style={styles.input} value={form.telefono}
+            onChange={e => setForm({ ...form, telefono: e.target.value })}
+            placeholder="Teléfono (opcional)"
+          />
           <label style={styles.label}>Email del hermano</label>
           <input
             type="email"
@@ -444,6 +453,13 @@ const openConfirm = (action, payload = null) => {
               <input
                 style={styles.input} value={formEdit.direccion}
                 onChange={e => setFormEdit({ ...formEdit, direccion: e.target.value })}
+              />
+
+              <label style={styles.label}>Teléfono</label>
+              <input
+                type="tel" autoComplete="tel" maxLength={20}
+                style={styles.input} value={formEdit.telefono}
+                onChange={e => setFormEdit({ ...formEdit, telefono: e.target.value })}
               />
 
               <div className="form-grid-3" style={styles.grid3}>

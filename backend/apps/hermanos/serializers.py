@@ -8,7 +8,7 @@ class HermanoSerializer(serializers.ModelSerializer):
         model  = Hermano
         fields = (
             'id', 'usuario', 'usuario_email',
-            'nombre', 'apellidos', 'direccion',
+            'nombre', 'apellidos', 'direccion', 'telefono',
             'fecha_ingreso', 'numero_hermano',
             'estado_cuota', 'caracter',
         )
