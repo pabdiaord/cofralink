@@ -76,6 +76,16 @@ archivos de `backend/media`. No ejecutes `seed_initial` después de restaurar:
 su propósito es poblar una instalación nueva. El respaldo debe quedarse fuera
 de Git.
 
+Para crear ambos archivos en la carpeta privada `$carpeta` desde PowerShell,
+ejecuta desde la raíz del repositorio:
+
+```powershell
+& .\backend\.venv\Scripts\python.exe .\backend\backup_local.py $carpeta
+```
+
+El script lee `backend/.env` sin mostrar contraseñas, verifica el volcado con
+`pg_restore --list` y crea `cofralink.dump` y `media.zip` fuera de Git.
+
 ## Carga inicial de contenido
 
 La aplicación dispone de un comando idempotente para llenar una instalación
