@@ -20,12 +20,15 @@ class HermanoViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_destroy(self, instance):
-        usuario_id = instance.usuario_id
-        instance.delete()
-        Usuario.objects.filter(pk=usuario_id).delete()
+        # La baja conserva el perfil y sus relaciones históricas (donaciones,
+        # publicaciones, inscripciones...). Django bloquea el acceso de las
+        # cuentas inactivas y permite reactivarlas desde administración.
+        usuario = instance.usuario
+        usuario.is_active = False
+        usuario.save(update_fields=['is_active'])
 
     def get_queryset(self):
-        qs = super().get_queryset().order_by('numero_hermano')
+        qs = super().get_queryset().filter(usuario__is_active=True).order_by('numero_hermano')
         nombre = self.request.query_params.get('nombre')
         numero = self.request.query_params.get('numero')
         if nombre:

@@ -92,7 +92,7 @@ class SolicitarCambioPasswordView(APIView):
         }
 
         try:
-            usuario = Usuario.objects.get(email=email)
+            usuario = Usuario.objects.get(email=email, is_active=True)
         except Usuario.DoesNotExist:
             return Response(mensaje)
 
@@ -124,7 +124,7 @@ class ConfirmarCambioPasswordView(APIView):
         except (TypeError, ValueError, OverflowError, Usuario.DoesNotExist):
             return Response({'error': 'Enlace inválido o expirado.'}, status=400)
 
-        if not PasswordResetTokenGenerator().check_token(usuario, token):
+        if not usuario.is_active or not PasswordResetTokenGenerator().check_token(usuario, token):
             return Response({'error': 'El enlace ha expirado. Solicita uno nuevo.'}, status=400)
 
         try:

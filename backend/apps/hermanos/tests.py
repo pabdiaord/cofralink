@@ -2,6 +2,8 @@ from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 from rest_framework import status
 from apps.usuarios.models import Usuario
+from apps.donaciones.models import Donacion, EstadoDonacion, Hucha, TipoHucha
+from apps.publicaciones.models import Publicacion
 from .models import Hermano
 
 
@@ -162,14 +164,20 @@ class TestEditarBajaHermano(HermanoTestCase):
         self.assertEqual(self.hermano2.telefono, '654 321 987')
 
     def test_baja_hermano(self):
-        """Admin da de baja a un hermano: se elimina hermano y su usuario."""
+        """La baja oculta al hermano sin borrar su perfil ni su cuenta."""
         self._auth_admin()
         hermano_id = self.hermano2.id
         usuario_id = self.usuario_hermano.id
         res = self.client.delete(f'/api/hermanos/{hermano_id}/')
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Hermano.objects.filter(id=hermano_id).exists())
-        self.assertFalse(Usuario.objects.filter(id=usuario_id).exists())
+        self.assertTrue(Hermano.objects.filter(id=hermano_id).exists())
+        self.assertFalse(Usuario.objects.get(id=usuario_id).is_active)
+        listado = self.client.get('/api/hermanos/')
+        self.assertNotIn(hermano_id, [hermano['id'] for hermano in listado.data])
+        self.assertEqual(
+            self.client.get(f'/api/hermanos/{hermano_id}/').status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
 
 
 class TestMiPerfil(HermanoTestCase):
@@ -300,25 +308,40 @@ class TestMiPerfilEdicion(HermanoTestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class TestBajaAtomicaHermano(HermanoTestCase):
+class TestBajaConHistorial(HermanoTestCase):
 
-    def test_baja_hermano_elimina_usuario_asociado(self):
-        """Al dar de baja un hermano se elimina 
-        también su usuario de forma atómica."""
+    def test_baja_preserva_donacion_y_publicacion_e_invalida_acceso(self):
+        """La baja conserva el historial e impide usar un JWT ya emitido."""
+        token = self.client.post('/api/auth/login/', {
+            'email': 'hermano2@cofralink.com',
+            'password': 'Cofralink123!',
+        }, format='json').data['access']
+
+        hucha = Hucha.objects.create(
+            nombre='Restauración', tipo=TipoHucha.PROYECTO,
+        )
+        donacion = Donacion.objects.create(
+            donante=self.usuario_hermano, hucha=hucha,
+            importe_centimos=1000, estado=EstadoDonacion.PAGADA,
+        )
+        publicacion = Publicacion.objects.create(
+            hermano=self.hermano2, titular='Noticia histórica',
+        )
+
         self._auth_admin()
-        # Crear un hermano extra para borrar
-        nuevo_usuario = Usuario.objects.create_user(
-            username='borrar', email='borrar@cofralink.com', 
-            password='Cofralink123!'
-        )
-        nuevo_hermano = Hermano.objects.create(
-            usuario=nuevo_usuario, nombre='Borrar', apellidos='Este',
-            numero_hermano=50, estado_cuota='NO_PAGADO', caracter='NAZARENO'
-        )
-        hermano_id = nuevo_hermano.id
-        usuario_id = nuevo_usuario.id
-
-        res = self.client.delete(f'/api/hermanos/{hermano_id}/')
+        res = self.client.delete(f'/api/hermanos/{self.hermano2.id}/')
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Hermano.objects.filter(id=hermano_id).exists())
-        self.assertFalse(Usuario.objects.filter(id=usuario_id).exists())
+        self.assertTrue(Donacion.objects.filter(pk=donacion.pk).exists())
+        self.assertTrue(Publicacion.objects.filter(pk=publicacion.pk).exists())
+        self.assertFalse(Usuario.objects.get(pk=self.usuario_hermano.pk).is_active)
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        self.assertEqual(
+            self.client.get('/api/mi-perfil/').status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+        self.client.credentials()
+        self.assertEqual(self.client.post('/api/auth/login/', {
+            'email': 'hermano2@cofralink.com',
+            'password': 'Cofralink123!',
+        }, format='json').status_code, status.HTTP_401_UNAUTHORIZED)

@@ -7,6 +7,7 @@ from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from datetime import date
 from django.core.cache import cache
+from django.core import mail
 # from django.urls import reverse
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
@@ -110,6 +111,35 @@ class TestPerfil(UsuarioTestCase):
 
 
 class TestCambioPassword(UsuarioTestCase):
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_cuenta_inactiva_no_recibe_enlace_de_cambio(self):
+        self.hermano.is_active = False
+        self.hermano.save(update_fields=['is_active'])
+
+        res = self.client.post('/api/auth/solicitar-cambio-password/', {
+            'email': self.hermano.email,
+        }, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_cuenta_inactiva_no_puede_confirmar_cambio(self):
+        token = PasswordResetTokenGenerator().make_token(self.hermano)
+        uid = urlsafe_base64_encode(force_bytes(self.hermano.pk))
+        self.hermano.is_active = False
+        self.hermano.save(update_fields=['is_active'])
+
+        res = self.client.post('/api/auth/confirmar-cambio-password/', {
+            'uid': uid,
+            'token': token,
+            'password1': 'NuevaPass123!',
+            'password2': 'NuevaPass123!',
+        }, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.hermano.refresh_from_db()
+        self.assertTrue(self.hermano.check_password('Cofralink123!'))
 
     @override_settings(
             EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')

@@ -81,6 +81,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -119,7 +120,9 @@ DATABASES = {
         'PASSWORD': required_env('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
-        # En producción PostgreSQL debe exigir certificado válido.
+        # Render usa certificados autofirmados en su red interna: allí se
+        # configura DB_SSLMODE=require. Otros proveedores pueden usar
+        # verify-full con una CA de confianza.
         'OPTIONS': {
             'sslmode': os.getenv('DB_SSLMODE', 'prefer' if DEBUG else 'verify-full'),
         },
@@ -235,9 +238,17 @@ TIME_ZONE = 'Europe/Madrid'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+if not DEBUG:
+    STORAGES = {
+        'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        },
+    }
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = Path(os.getenv('MEDIA_ROOT', BASE_DIR / 'media'))
 
 # Límites de entrada: el proxy debe aplicar límites iguales o más estrictos.
 DATA_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024

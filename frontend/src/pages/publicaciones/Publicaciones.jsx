@@ -159,8 +159,9 @@ export default function Publicaciones() {
   }
 
   // ── URL imagen ────────────────────────────────────────────────
-  const imgUrl = src =>
-    src?.startsWith('http') ? src : `http://localhost:8000${src}`
+  const imgUrl = src => src
+    ? new URL(src, new URL(api.defaults.baseURL, window.location.origin).origin).href
+    : ''
 
   const cerrarEdicion = () => {
     setEditando(null)

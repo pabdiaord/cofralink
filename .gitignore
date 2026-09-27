@@ -10,6 +10,8 @@ venv/
 .env.*
 !.env.example
 *.sqlite3
+*.dump
+*.backup
 *.pem
 *.key
 *.p12
@@ -76,6 +78,7 @@ cover/
 *.pot
 
 # Django stuff:
+backend/staticfiles/
 *.log
 local_settings.py
 db.sqlite3

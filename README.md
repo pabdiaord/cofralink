@@ -10,14 +10,17 @@ subas un `.env` a Git ni uses variables `VITE_` para secretos: esas variables
 se incorporan al JavaScript del navegador.
 
 Con `DEBUG=False` la aplicación no inicia si faltan `ALLOWED_HOSTS`,
-`FRONTEND_URL` o `REDIS_URL`. Es intencionado: el backend exige HTTPS, Redis
-para el rate limiting y TLS validado hacia PostgreSQL.
+`FRONTEND_URL` o `REDIS_URL`. Es intencionado: el backend exige HTTPS y Redis
+para el rate limiting. La conexión interna de PostgreSQL en Render usa
+`DB_SSLMODE=require` porque sus certificados son autofirmados; no admite
+`verify-full` en esa conexión.
 
 1. Publica frontend y API en el mismo origen siempre que sea posible. Si no,
    configura `VITE_API_URL`, `CORS_ALLOWED_ORIGINS` y
    `CSRF_TRUSTED_ORIGINS` con los dominios HTTPS exactos.
-2. Mantén PostgreSQL y Redis en red privada, con contraseña, TLS y acceso solo
-   desde el backend. El rol de aplicación no debe ser propietario ni superusuario.
+2. Mantén PostgreSQL y Redis en red privada, con contraseña y acceso solo
+   desde el backend. Usa TLS cuando el proveedor lo permita. El rol de
+   aplicación debe tener únicamente los permisos necesarios.
 3. Termina TLS en un proxy de confianza y activa
    `TRUST_X_FORWARDED_PROTO=True` solo si el proxy reemplaza la cabecera
    `X-Forwarded-Proto`. Aplica también en el proxy límite de cuerpo de 2 MB y
@@ -35,6 +38,43 @@ para el rate limiting y TLS validado hacia PostgreSQL.
 Las altas de hermanos ahora envían un enlace individual para establecer la
 contraseña; no hay contraseña compartida. Las papeletas solo pueden ser
 aprobadas o rechazadas por una cuenta `is_staff`.
+
+### Preparación para Render
+
+El despliegue utiliza un sitio estático para React y un servicio web de pago
+para Django, ambos conectados al mismo repositorio. El servicio web usa un
+PostgreSQL de pago, Key Value para la caché y un disco persistente para las
+imágenes de publicaciones.
+
+| Servicio | Root Directory | Comando |
+| --- | --- | --- |
+| Backend | `backend` | Build: `pip install -r requirements.txt && python manage.py collectstatic --noinput` |
+| Backend | `backend` | Pre-deploy: `python manage.py migrate --noinput` |
+| Backend | `backend` | Start: `gunicorn cofralink_backend.wsgi:application --bind 0.0.0.0:$PORT --workers 1` |
+| Frontend | `frontend` | Build: `npm ci && npm run build`; Publish Directory: `dist` |
+
+La versión de Python del backend está fijada en `backend/.python-version`.
+Comprueba en el log de Render que selecciona Python 3.13; si no lo detecta
+por la estructura del repositorio, define `PYTHON_VERSION=3.13.5` en el
+servicio. Monta un disco de 1 GB en `/var/data` y configura
+`MEDIA_ROOT=/var/data/media`.
+Los archivos de `backend/media` se copian al disco tras el primer despliegue;
+`collectstatic` gestiona los archivos del administrador por separado. La ruta
+`/media/publicaciones/` sirve solo imágenes referenciadas por publicaciones.
+No uses `django.views.static.serve` para las imágenes en producción.
+
+Configura `FRONTEND_URL` y `CORS_ALLOWED_ORIGINS` con la URL HTTPS del sitio
+estático; `ALLOWED_HOSTS` y `CSRF_TRUSTED_ORIGINS` con la URL del backend.
+Configura `VITE_API_URL=https://<backend>.onrender.com/api` en el sitio estático
+y vuelve a compilarlo cuando conozcas la URL final. Para las rutas de React,
+añade una regla de reescritura `/*` a `/index.html`.
+
+Si quieres conservar exactamente los datos del entorno local, restaura un
+respaldo completo de PostgreSQL **antes** de iniciar el backend y deja que el
+pre-deploy aplique únicamente migraciones pendientes. Copia también los
+archivos de `backend/media`. No ejecutes `seed_initial` después de restaurar:
+su propósito es poblar una instalación nueva. El respaldo debe quedarse fuera
+de Git.
 
 ## Carga inicial de contenido
 

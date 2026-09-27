@@ -1,4 +1,10 @@
-from django.test import TestCase
+from io import BytesIO
+from tempfile import TemporaryDirectory
+
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.test import TestCase, override_settings
+from PIL import Image
 from rest_framework.test import APIClient
 from rest_framework import status
 from apps.usuarios.models import Usuario
@@ -47,6 +53,29 @@ class PublicacionTestCase(TestCase):
 
 
 class TestPublicaciones(PublicacionTestCase):
+
+    def test_imagen_publicada_se_sirve_sin_debug(self):
+        """Las imágenes referenciadas funcionan en producción y no expone otras."""
+        with TemporaryDirectory() as media_root, override_settings(
+            MEDIA_ROOT=media_root,
+            DEBUG=False,
+            SECURE_SSL_REDIRECT=False,
+            ALLOWED_HOSTS=['testserver'],
+        ):
+            buffer = BytesIO()
+            Image.new('RGB', (1, 1), 'red').save(buffer, format='PNG')
+            imagen = buffer.getvalue()
+            self.publicacion.imagen.save('noticia.png', ContentFile(imagen))
+
+            respuesta = self.client.get(self.publicacion.imagen.url)
+            self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+            self.assertEqual(respuesta['Content-Type'], 'image/png')
+            self.assertEqual(b''.join(respuesta.streaming_content), imagen)
+            default_storage.save('publicaciones/no-publicada.png', ContentFile(imagen))
+            self.assertEqual(
+                self.client.get('/media/publicaciones/no-publicada.png').status_code,
+                status.HTTP_404_NOT_FOUND,
+            )
 
     def test_listar_publicaciones_autenticado(self):
         """Cualquier usuario autenticado puede ver publicaciones."""

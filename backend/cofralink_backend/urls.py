@@ -18,9 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from apps.publicaciones.views import publicacion_imagen
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('media/publicaciones/<str:nombre>', publicacion_imagen, name='publicacion-imagen'),
 
     # Auth
     path('api/auth/',           include('apps.usuarios.urls')),

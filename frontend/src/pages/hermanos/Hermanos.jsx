@@ -122,6 +122,7 @@ const openConfirm = (action, payload = null) => {
     }
 
     if (action === 'delete-hermano') {
+      setError('')
       try {
         await api.delete(`/hermanos/${payload.id}/`)
         await recargar()
@@ -200,7 +201,7 @@ const openConfirm = (action, payload = null) => {
         open={confirmOpen}
         title={pendingAction?.action === 'delete-hermano' ? 'Dar de baja' : pendingAction?.action === 'create-hermano' ? 'Crear hermano' : 'Guardar cambios'}
         message={pendingAction?.action === 'delete-hermano'
-          ? `¿Seguro que quieres dar de baja a ${pendingAction.payload?.nombre}? Esta acción eliminará también su cuenta de usuario.`
+          ? `¿Seguro que quieres dar de baja a ${pendingAction.payload?.nombre}? Se desactivará su acceso y dejará de aparecer en el listado. Se conservarán sus donaciones y demás historial.`
           : pendingAction?.action === 'create-hermano'
             ? '¿Quieres crear este nuevo hermano con los datos introducidos?'
             : '¿Deseas guardar los cambios del hermano?'}
